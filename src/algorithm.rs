@@ -1,5 +1,7 @@
 // Derived from https://github.com/rust-lang/rust/blob/1.57.0/compiler/rustc_ast_pretty/src/pp.rs
 
+#![allow(dead_code)]
+
 use std::borrow::Cow;
 use std::collections::VecDeque;
 

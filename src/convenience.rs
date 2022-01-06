@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::algorithm::{self, BeginToken, BreakToken, Breaks, Printer, Token};
 use std::borrow::Cow;
 
