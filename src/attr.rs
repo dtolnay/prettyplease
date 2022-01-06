@@ -27,5 +27,6 @@ impl Printer {
         self.path(&attr.path);
         self.tokens(&attr.tokens);
         self.word("]");
+        self.hardbreak();
     }
 }
