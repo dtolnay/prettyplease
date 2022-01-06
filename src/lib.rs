@@ -7,9 +7,18 @@ mod item;
 mod lifetime;
 mod lit;
 mod mac;
-mod op;
 mod pat;
 mod path;
 mod stmt;
+mod token;
 mod ty;
 mod unparse;
+
+use crate::unparse::Printer;
+use syn::File;
+
+pub fn unparse(file: &File) -> String {
+    let mut p = Printer::new();
+    p.file(file);
+    p.eof()
+}

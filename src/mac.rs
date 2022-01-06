@@ -1,19 +1,24 @@
-/*
-impl ToTokens for Macro {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.path.to_tokens(tokens);
-        self.bang_token.to_tokens(tokens);
-        match &self.delimiter {
-            MacroDelimiter::Paren(paren) => {
-                paren.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
-            }
-            MacroDelimiter::Brace(brace) => {
-                brace.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
-            }
-            MacroDelimiter::Bracket(bracket) => {
-                bracket.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
-            }
+use crate::unparse::Printer;
+use syn::{Macro, MacroDelimiter};
+
+impl Printer {
+    pub fn mac(&mut self, mac: &Macro) {
+        self.path(&mac.path);
+        self.word("!");
+        let (open, close) = match mac.delimiter {
+            MacroDelimiter::Paren(_) => ('(', ')'),
+            MacroDelimiter::Brace(_) => ('{', '}'),
+            MacroDelimiter::Bracket(_) => ('[', ']'),
+        };
+        self.character(open);
+        self.tokens(&mac.tokens);
+        self.character(close);
+    }
+
+    pub fn mac_semi_if_needed(&mut self, delimiter: &MacroDelimiter) {
+        match delimiter {
+            MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => self.word(";"),
+            MacroDelimiter::Brace(_) => {}
         }
     }
 }
-*/

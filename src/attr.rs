@@ -1,31 +1,31 @@
-/*
-impl ToTokens for Attribute {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.pound_token.to_tokens(tokens);
-        if let AttrStyle::Inner(b) = &self.style {
-            b.to_tokens(tokens);
+use crate::unparse::Printer;
+use syn::{AttrStyle, Attribute};
+
+impl Printer {
+    pub fn outer_attrs(&mut self, attrs: &[Attribute]) {
+        for attr in attrs {
+            if let AttrStyle::Outer = attr.style {
+                self.attr(attr);
+            }
         }
-        self.bracket_token.surround(tokens, |tokens| {
-            self.path.to_tokens(tokens);
-            self.tokens.to_tokens(tokens);
-        });
     }
-}
 
-impl ToTokens for MetaList {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.path.to_tokens(tokens);
-        self.paren_token.surround(tokens, |tokens| {
-            self.nested.to_tokens(tokens);
-        });
+    pub fn inner_attrs(&mut self, attrs: &[Attribute]) {
+        for attr in attrs {
+            if let AttrStyle::Inner(_) = attr.style {
+                self.attr(attr);
+            }
+        }
     }
-}
 
-impl ToTokens for MetaNameValue {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.path.to_tokens(tokens);
-        self.eq_token.to_tokens(tokens);
-        self.lit.to_tokens(tokens);
+    fn attr(&mut self, attr: &Attribute) {
+        self.word(match attr.style {
+            AttrStyle::Outer => "#",
+            AttrStyle::Inner(_) => "#!",
+        });
+        self.word("[");
+        self.path(&attr.path);
+        self.tokens(&attr.tokens);
+        self.word("]");
     }
 }
-*/

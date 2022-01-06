@@ -1,160 +1,183 @@
-/*
-impl ToTokens for TypeSlice {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.bracket_token.surround(tokens, |tokens| {
-            self.elem.to_tokens(tokens);
-        });
-    }
-}
+use crate::unparse::Printer;
+use proc_macro2::TokenStream;
+use syn::{
+    Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait, TypeInfer,
+    TypeMacro, TypeNever, TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTraitObject,
+    TypeTuple, Variadic,
+};
 
-impl ToTokens for TypeArray {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.bracket_token.surround(tokens, |tokens| {
-            self.elem.to_tokens(tokens);
-            self.semi_token.to_tokens(tokens);
-            self.len.to_tokens(tokens);
-        });
-    }
-}
-
-impl ToTokens for TypePtr {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.star_token.to_tokens(tokens);
-        match &self.mutability {
-            Some(tok) => tok.to_tokens(tokens),
-            None => {
-                TokensOrDefault(&self.const_token).to_tokens(tokens);
-            }
+impl Printer {
+    pub fn ty(&mut self, ty: &Type) {
+        match ty {
+            Type::Array(ty) => self.type_array(ty),
+            Type::BareFn(ty) => self.type_bare_fn(ty),
+            Type::Group(ty) => self.type_group(ty),
+            Type::ImplTrait(ty) => self.type_impl_trait(ty),
+            Type::Infer(ty) => self.type_infer(ty),
+            Type::Macro(ty) => self.type_macro(ty),
+            Type::Never(ty) => self.type_never(ty),
+            Type::Paren(ty) => self.type_paren(ty),
+            Type::Path(ty) => self.type_path(ty),
+            Type::Ptr(ty) => self.type_ptr(ty),
+            Type::Reference(ty) => self.type_reference(ty),
+            Type::Slice(ty) => self.type_slice(ty),
+            Type::TraitObject(ty) => self.type_trait_object(ty),
+            Type::Tuple(ty) => self.type_tuple(ty),
+            Type::Verbatim(ty) => self.type_verbatim(ty),
+            #[cfg(test)]
+            Type::__TestExhaustive(_) => unreachable!(),
+            #[cfg(not(test))]
+            _ => unimplemented!("unknown Type"),
         }
-        self.elem.to_tokens(tokens);
     }
-}
 
-impl ToTokens for TypeReference {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.and_token.to_tokens(tokens);
-        self.lifetime.to_tokens(tokens);
-        self.mutability.to_tokens(tokens);
-        self.elem.to_tokens(tokens);
+    fn type_array(&mut self, ty: &TypeArray) {
+        self.word("[");
+        self.ty(&ty.elem);
+        self.word(";");
+        self.expr(&ty.len);
+        self.word("]");
     }
-}
 
-impl ToTokens for TypeBareFn {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.lifetimes.to_tokens(tokens);
-        self.unsafety.to_tokens(tokens);
-        self.abi.to_tokens(tokens);
-        self.fn_token.to_tokens(tokens);
-        self.paren_token.surround(tokens, |tokens| {
-            self.inputs.to_tokens(tokens);
-            if let Some(variadic) = &self.variadic {
-                if !self.inputs.empty_or_trailing() {
-                    let span = variadic.dots.spans[0];
-                    Token![,](span).to_tokens(tokens);
-                }
-                variadic.to_tokens(tokens);
+    fn type_bare_fn(&mut self, ty: &TypeBareFn) {
+        if let Some(bound_lifetimes) = &ty.lifetimes {
+            self.bound_lifetimes(bound_lifetimes);
+        }
+        if ty.unsafety.is_some() {
+            self.word("unsafe");
+        }
+        if let Some(abi) = &ty.abi {
+            self.abi(abi);
+        }
+        self.word("fn(");
+        for bare_fn_arg in &ty.inputs {
+            self.bare_fn_arg(bare_fn_arg);
+            self.word(",");
+        }
+        if let Some(variadic) = &ty.variadic {
+            self.variadic(variadic);
+        }
+        self.word(")");
+        self.return_type(&ty.output);
+    }
+
+    fn type_group(&mut self, ty: &TypeGroup) {
+        self.ty(&ty.elem);
+    }
+
+    fn type_impl_trait(&mut self, ty: &TypeImplTrait) {
+        self.word("impl");
+        for (i, type_param_bound) in ty.bounds.iter().enumerate() {
+            if i > 0 {
+                self.word("+");
             }
-        });
-        self.output.to_tokens(tokens);
+            self.type_param_bound(type_param_bound);
+        }
     }
-}
 
-impl ToTokens for TypeNever {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.bang_token.to_tokens(tokens);
+    fn type_infer(&mut self, ty: &TypeInfer) {
+        let _ = ty;
+        self.word("_");
     }
-}
 
-impl ToTokens for TypeTuple {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.paren_token.surround(tokens, |tokens| {
-            self.elems.to_tokens(tokens);
-        });
+    fn type_macro(&mut self, ty: &TypeMacro) {
+        self.mac(&ty.mac);
     }
-}
 
-impl ToTokens for TypePath {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        private::print_path(tokens, &self.qself, &self.path);
+    fn type_never(&mut self, ty: &TypeNever) {
+        let _ = ty;
+        self.word("!");
     }
-}
 
-impl ToTokens for TypeTraitObject {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.dyn_token.to_tokens(tokens);
-        self.bounds.to_tokens(tokens);
+    fn type_paren(&mut self, ty: &TypeParen) {
+        self.word("(");
+        self.ty(&ty.elem);
+        self.word(")");
     }
-}
 
-impl ToTokens for TypeImplTrait {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_token.to_tokens(tokens);
-        self.bounds.to_tokens(tokens);
+    fn type_path(&mut self, ty: &TypePath) {
+        self.qpath(&ty.qself, &ty.path);
     }
-}
 
-impl ToTokens for TypeGroup {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.group_token.surround(tokens, |tokens| {
-            self.elem.to_tokens(tokens);
-        });
+    fn type_ptr(&mut self, ty: &TypePtr) {
+        self.word("*");
+        if ty.mutability.is_some() {
+            self.word("mut");
+        } else {
+            self.word("const");
+        }
+        self.ty(&ty.elem);
     }
-}
 
-impl ToTokens for TypeParen {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.paren_token.surround(tokens, |tokens| {
-            self.elem.to_tokens(tokens);
-        });
+    fn type_reference(&mut self, ty: &TypeReference) {
+        self.word("&");
+        if let Some(lifetime) = &ty.lifetime {
+            self.lifetime(lifetime);
+        }
+        if ty.mutability.is_some() {
+            self.word("mut");
+        }
+        self.ty(&ty.elem);
     }
-}
 
-impl ToTokens for TypeInfer {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.underscore_token.to_tokens(tokens);
+    fn type_slice(&mut self, ty: &TypeSlice) {
+        self.word("[");
+        self.ty(&ty.elem);
+        self.word("]");
     }
-}
 
-impl ToTokens for TypeMacro {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.mac.to_tokens(tokens);
+    fn type_trait_object(&mut self, ty: &TypeTraitObject) {
+        self.word("dyn");
+        for (i, type_param_bound) in ty.bounds.iter().enumerate() {
+            if i > 0 {
+                self.word("+");
+            }
+            self.type_param_bound(type_param_bound);
+        }
     }
-}
 
-impl ToTokens for ReturnType {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
+    fn type_tuple(&mut self, ty: &TypeTuple) {
+        self.word("(");
+        for elem in &ty.elems {
+            self.ty(elem);
+            self.word(",");
+        }
+        self.word(")");
+    }
+
+    fn type_verbatim(&mut self, ty: &TokenStream) {
+        let _ = ty;
+        unimplemented!("Type::Verbatim");
+    }
+
+    pub fn return_type(&mut self, ty: &ReturnType) {
+        match ty {
             ReturnType::Default => {}
-            ReturnType::Type(arrow, ty) => {
-                arrow.to_tokens(tokens);
-                ty.to_tokens(tokens);
+            ReturnType::Type(_arrow, ty) => {
+                self.word("->");
+                self.ty(ty);
             }
         }
     }
-}
 
-impl ToTokens for BareFnArg {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        if let Some((name, colon)) = &self.name {
-            name.to_tokens(tokens);
-            colon.to_tokens(tokens);
+    fn bare_fn_arg(&mut self, bare_fn_arg: &BareFnArg) {
+        self.outer_attrs(&bare_fn_arg.attrs);
+        if let Some((name, _colon)) = &bare_fn_arg.name {
+            self.ident(name);
+            self.word(":");
         }
-        self.ty.to_tokens(tokens);
+        self.ty(&bare_fn_arg.ty);
     }
-}
 
-impl ToTokens for Variadic {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.dots.to_tokens(tokens);
+    fn variadic(&mut self, variadic: &Variadic) {
+        self.outer_attrs(&variadic.attrs);
+        self.word("...");
     }
-}
 
-impl ToTokens for Abi {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.extern_token.to_tokens(tokens);
-        self.name.to_tokens(tokens);
+    pub fn abi(&mut self, abi: &Abi) {
+        self.word("extern");
+        if let Some(name) = &abi.name {
+            self.lit_str(name);
+        }
     }
 }
-*/

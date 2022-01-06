@@ -1,65 +1,83 @@
-/*
-impl ToTokens for Variant {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(&self.attrs);
-        self.ident.to_tokens(tokens);
-        self.fields.to_tokens(tokens);
-        if let Some((eq_token, disc)) = &self.discriminant {
-            eq_token.to_tokens(tokens);
-            disc.to_tokens(tokens);
+use crate::unparse::Printer;
+use syn::{
+    Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted,
+    Visibility,
+};
+
+impl Printer {
+    pub fn variant(&mut self, variant: &Variant) {
+        self.outer_attrs(&variant.attrs);
+        self.ident(&variant.ident);
+        self.fields(&variant.fields);
+        if let Some((_eq_token, discriminant)) = &variant.discriminant {
+            self.word("=");
+            self.expr(&discriminant);
         }
     }
-}
 
-impl ToTokens for FieldsNamed {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.brace_token.surround(tokens, |tokens| {
-            self.named.to_tokens(tokens);
-        });
-    }
-}
-
-impl ToTokens for FieldsUnnamed {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.paren_token.surround(tokens, |tokens| {
-            self.unnamed.to_tokens(tokens);
-        });
-    }
-}
-
-impl ToTokens for Field {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(&self.attrs);
-        self.vis.to_tokens(tokens);
-        if let Some(ident) = &self.ident {
-            ident.to_tokens(tokens);
-            TokensOrDefault(&self.colon_token).to_tokens(tokens);
+    fn fields(&mut self, fields: &Fields) {
+        match fields {
+            Fields::Named(fields) => self.fields_named(fields),
+            Fields::Unnamed(fields) => self.fields_unnamed(fields),
+            Fields::Unit => {}
         }
-        self.ty.to_tokens(tokens);
     }
-}
 
-impl ToTokens for VisPublic {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.pub_token.to_tokens(tokens);
+    pub fn fields_named(&mut self, fields: &FieldsNamed) {
+        self.word("{");
+        for field in &fields.named {
+            self.field(field);
+            self.word(",");
+        }
+        self.word("}");
     }
-}
 
-impl ToTokens for VisCrate {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.crate_token.to_tokens(tokens);
+    pub fn fields_unnamed(&mut self, fields: &FieldsUnnamed) {
+        self.word("(");
+        for field in &fields.unnamed {
+            self.field(field);
+            self.word(",");
+        }
+        self.word(")");
     }
-}
 
-impl ToTokens for VisRestricted {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.pub_token.to_tokens(tokens);
-        self.paren_token.surround(tokens, |tokens| {
-            // TODO: If we have a path which is not "self" or "super" or
-            // "crate", automatically add the "in" token.
-            self.in_token.to_tokens(tokens);
-            self.path.to_tokens(tokens);
-        });
+    fn field(&mut self, field: &Field) {
+        self.outer_attrs(&field.attrs);
+        self.visibility(&field.vis);
+        if let Some(ident) = &field.ident {
+            self.ident(ident);
+            self.word(":");
+        }
+        self.ty(&field.ty);
+    }
+
+    pub fn visibility(&mut self, vis: &Visibility) {
+        match vis {
+            Visibility::Public(vis) => self.vis_public(vis),
+            Visibility::Crate(vis) => self.vis_crate(vis),
+            Visibility::Restricted(vis) => self.vis_restricted(vis),
+            Visibility::Inherited => {}
+        }
+    }
+
+    fn vis_public(&mut self, vis: &VisPublic) {
+        let _ = vis;
+        self.word("pub");
+    }
+
+    fn vis_crate(&mut self, vis: &VisCrate) {
+        let _ = vis;
+        self.word("crate");
+    }
+
+    fn vis_restricted(&mut self, vis: &VisRestricted) {
+        self.word("pub(");
+        // TODO: If we have a path which is not "self" or "super" or "crate",
+        // automatically add the "in" token.
+        if vis.in_token.is_some() {
+            self.word("in");
+        }
+        self.path(&vis.path);
+        self.word(")");
     }
 }
-*/

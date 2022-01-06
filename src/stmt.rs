@@ -1,36 +1,35 @@
-/*
-impl ToTokens for Block {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.brace_token.surround(tokens, |tokens| {
-            tokens.append_all(&self.stmts);
-        });
-    }
-}
+use crate::unparse::Printer;
+use syn::{Block, Local, Stmt};
 
-impl ToTokens for Stmt {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Stmt::Local(local) => local.to_tokens(tokens),
-            Stmt::Item(item) => item.to_tokens(tokens),
-            Stmt::Expr(expr) => expr.to_tokens(tokens),
-            Stmt::Semi(expr, semi) => {
-                expr.to_tokens(tokens);
-                semi.to_tokens(tokens);
+impl Printer {
+    pub fn block(&mut self, block: &Block) {
+        self.word("{");
+        for stmt in &block.stmts {
+            self.stmt(stmt);
+        }
+        self.word("}");
+    }
+
+    pub fn stmt(&mut self, stmt: &Stmt) {
+        match stmt {
+            Stmt::Local(local) => self.local(local),
+            Stmt::Item(item) => self.item(item),
+            Stmt::Expr(expr) => self.expr(expr),
+            Stmt::Semi(expr, _semi) => {
+                self.expr(expr);
+                self.word(";");
             }
         }
     }
-}
 
-impl ToTokens for Local {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        expr::printing::outer_attrs_to_tokens(&self.attrs, tokens);
-        self.let_token.to_tokens(tokens);
-        self.pat.to_tokens(tokens);
-        if let Some((eq_token, init)) = &self.init {
-            eq_token.to_tokens(tokens);
-            init.to_tokens(tokens);
+    fn local(&mut self, local: &Local) {
+        self.outer_attrs(&local.attrs);
+        self.word("let");
+        self.pat(&local.pat);
+        if let Some((_eq, init)) = &local.init {
+            self.word("=");
+            self.expr(init);
         }
-        self.semi_token.to_tokens(tokens);
+        self.word(";");
     }
 }
-*/

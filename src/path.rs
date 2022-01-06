@@ -1,74 +1,75 @@
-/*
-impl ToTokens for Path {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.leading_colon.to_tokens(tokens);
-        self.segments.to_tokens(tokens);
-    }
-}
+use crate::unparse::Printer;
+use std::cmp;
+use syn::{
+    AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
+    ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
+};
 
-impl ToTokens for PathSegment {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.ident.to_tokens(tokens);
-        self.arguments.to_tokens(tokens);
+impl Printer {
+    pub fn path(&mut self, path: &Path) {
+        for (i, segment) in path.segments.iter().enumerate() {
+            if i > 0 || path.leading_colon.is_some() {
+                self.word("::");
+            }
+            self.path_segment(segment);
+        }
     }
-}
 
-impl ToTokens for PathArguments {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
+    pub fn path_segment(&mut self, segment: &PathSegment) {
+        self.ident(&segment.ident);
+        self.path_arguments(&segment.arguments);
+    }
+
+    fn path_arguments(&mut self, arguments: &PathArguments) {
+        match arguments {
             PathArguments::None => {}
             PathArguments::AngleBracketed(arguments) => {
-                arguments.to_tokens(tokens);
+                self.angle_bracketed_generic_arguments(arguments);
             }
             PathArguments::Parenthesized(arguments) => {
-                arguments.to_tokens(tokens);
+                self.parenthesized_generic_arguments(arguments);
             }
         }
     }
-}
 
-impl ToTokens for GenericArgument {
-    #[allow(clippy::match_same_arms)]
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            GenericArgument::Lifetime(lt) => lt.to_tokens(tokens),
-            GenericArgument::Type(ty) => ty.to_tokens(tokens),
-            GenericArgument::Binding(tb) => tb.to_tokens(tokens),
-            GenericArgument::Constraint(tc) => tc.to_tokens(tokens),
-            GenericArgument::Const(e) => match *e {
-                Expr::Lit(_) => e.to_tokens(tokens),
-
-                // NOTE: We should probably support parsing blocks with only
-                // expressions in them without the full feature for const
-                // generics.
-                Expr::Block(_) => e.to_tokens(tokens),
-
-                // ERROR CORRECTION: Add braces to make sure that the
-                // generated code is valid.
-                _ => token::Brace::default().surround(tokens, |tokens| {
-                    e.to_tokens(tokens);
-                }),
-            },
+    fn generic_argument(&mut self, arg: &GenericArgument) {
+        match arg {
+            GenericArgument::Lifetime(lifetime) => self.lifetime(lifetime),
+            GenericArgument::Type(ty) => self.ty(ty),
+            GenericArgument::Binding(binding) => self.binding(binding),
+            GenericArgument::Constraint(constraint) => self.constraint(constraint),
+            GenericArgument::Const(expr) => {
+                match expr {
+                    Expr::Lit(expr) => self.expr_lit(expr),
+                    Expr::Block(expr) => self.expr_block(expr),
+                    // ERROR CORRECTION: Add braces to make sure that the
+                    // generated code is valid.
+                    _ => {
+                        self.word("{");
+                        self.expr(expr);
+                        self.word("}");
+                    }
+                }
+            }
         }
     }
-}
 
-impl ToTokens for AngleBracketedGenericArguments {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.colon2_token.to_tokens(tokens);
-        self.lt_token.to_tokens(tokens);
+    fn angle_bracketed_generic_arguments(&mut self, generic: &AngleBracketedGenericArguments) {
+        if generic.colon2_token.is_some() {
+            self.word("::");
+        }
+        self.word("<");
 
         // Print lifetimes before types and consts, all before bindings,
         // regardless of their order in self.args.
         //
         // TODO: ordering rules for const arguments vs type arguments have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        let mut trailing_or_empty = true;
-        for param in self.args.pairs() {
-            match **param.value() {
+        for arg in &generic.args {
+            match arg {
                 GenericArgument::Lifetime(_) => {
-                    param.to_tokens(tokens);
-                    trailing_or_empty = param.punct().is_some();
+                    self.generic_argument(arg);
+                    self.word(",");
                 }
                 GenericArgument::Type(_)
                 | GenericArgument::Binding(_)
@@ -76,28 +77,22 @@ impl ToTokens for AngleBracketedGenericArguments {
                 | GenericArgument::Const(_) => {}
             }
         }
-        for param in self.args.pairs() {
-            match **param.value() {
+        for arg in &generic.args {
+            match arg {
                 GenericArgument::Type(_) | GenericArgument::Const(_) => {
-                    if !trailing_or_empty {
-                        <Token![,]>::default().to_tokens(tokens);
-                    }
-                    param.to_tokens(tokens);
-                    trailing_or_empty = param.punct().is_some();
+                    self.generic_argument(arg);
+                    self.word(",");
                 }
                 GenericArgument::Lifetime(_)
                 | GenericArgument::Binding(_)
                 | GenericArgument::Constraint(_) => {}
             }
         }
-        for param in self.args.pairs() {
-            match **param.value() {
+        for arg in &generic.args {
+            match arg {
                 GenericArgument::Binding(_) | GenericArgument::Constraint(_) => {
-                    if !trailing_or_empty {
-                        <Token![,]>::default().to_tokens(tokens);
-                    }
-                    param.to_tokens(tokens);
-                    trailing_or_empty = param.punct().is_some();
+                    self.generic_argument(arg);
+                    self.word(",");
                 }
                 GenericArgument::Lifetime(_)
                 | GenericArgument::Type(_)
@@ -105,68 +100,65 @@ impl ToTokens for AngleBracketedGenericArguments {
             }
         }
 
-        self.gt_token.to_tokens(tokens);
+        self.word(">");
     }
-}
 
-impl ToTokens for Binding {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.ident.to_tokens(tokens);
-        self.eq_token.to_tokens(tokens);
-        self.ty.to_tokens(tokens);
+    fn binding(&mut self, binding: &Binding) {
+        self.ident(&binding.ident);
+        self.word("=");
+        self.ty(&binding.ty);
     }
-}
 
-impl ToTokens for Constraint {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.ident.to_tokens(tokens);
-        self.colon_token.to_tokens(tokens);
-        self.bounds.to_tokens(tokens);
+    fn constraint(&mut self, constraint: &Constraint) {
+        self.ident(&constraint.ident);
+        self.word(":");
+        for bound in &constraint.bounds {
+            self.type_param_bound(bound);
+            self.word("+");
+        }
     }
-}
 
-impl ToTokens for ParenthesizedGenericArguments {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.paren_token.surround(tokens, |tokens| {
-            self.inputs.to_tokens(tokens);
-        });
-        self.output.to_tokens(tokens);
+    fn parenthesized_generic_arguments(&mut self, arguments: &ParenthesizedGenericArguments) {
+        self.word("(");
+        for ty in &arguments.inputs {
+            self.ty(ty);
+            self.word(",");
+        }
+        self.word(")");
+        self.return_type(&arguments.output);
     }
-}
 
-impl private {
-    pub(crate) fn print_path(tokens: &mut TokenStream, qself: &Option<QSelf>, path: &Path) {
+    pub fn qpath(&mut self, qself: &Option<QSelf>, path: &Path) {
         let qself = match qself {
             Some(qself) => qself,
             None => {
-                path.to_tokens(tokens);
+                self.path(path);
                 return;
             }
         };
-        qself.lt_token.to_tokens(tokens);
-        qself.ty.to_tokens(tokens);
+
+        self.word("<");
+        self.ty(&qself.ty);
 
         let pos = cmp::min(qself.position, path.segments.len());
-        let mut segments = path.segments.pairs();
+        let mut segments = path.segments.iter();
         if pos > 0 {
-            TokensOrDefault(&qself.as_token).to_tokens(tokens);
-            path.leading_colon.to_tokens(tokens);
+            self.word("as");
             for (i, segment) in segments.by_ref().take(pos).enumerate() {
+                if i > 0 || path.leading_colon.is_some() {
+                    self.word("::");
+                }
+                self.path_segment(segment);
                 if i + 1 == pos {
-                    segment.value().to_tokens(tokens);
-                    qself.gt_token.to_tokens(tokens);
-                    segment.punct().to_tokens(tokens);
-                } else {
-                    segment.to_tokens(tokens);
+                    self.word(">");
                 }
             }
         } else {
-            qself.gt_token.to_tokens(tokens);
-            path.leading_colon.to_tokens(tokens);
+            self.word(">");
         }
         for segment in segments {
-            segment.to_tokens(tokens);
+            self.word("::");
+            self.path_segment(segment);
         }
     }
 }
-*/

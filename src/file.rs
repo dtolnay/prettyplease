@@ -1,8 +1,15 @@
-/*
-impl ToTokens for File {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.inner());
-        tokens.append_all(&self.items);
+use crate::unparse::Printer;
+use syn::File;
+
+impl Printer {
+    pub fn file(&mut self, file: &File) {
+        if let Some(shebang) = &file.shebang {
+            self.word(shebang);
+            self.hardbreak();
+        }
+        self.inner_attrs(&file.attrs);
+        for item in &file.items {
+            self.item(item);
+        }
     }
 }
-*/

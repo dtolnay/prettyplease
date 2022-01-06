@@ -1,285 +1,189 @@
-/*
-impl ToTokens for Generics {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if self.params.is_empty() {
+use crate::unparse::Printer;
+use syn::{
+    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
+    PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
+    WhereClause, WherePredicate,
+};
+
+impl Printer {
+    pub fn generics(&mut self, generics: &Generics) {
+        if generics.params.is_empty() {
             return;
         }
 
-        TokensOrDefault(&self.lt_token).to_tokens(tokens);
+        self.word("<");
 
         // Print lifetimes before types and consts, regardless of their
         // order in self.params.
         //
         // TODO: ordering rules for const parameters vs type parameters have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        let mut trailing_or_empty = true;
-        for param in self.params.pairs() {
-            if let GenericParam::Lifetime(_) = **param.value() {
-                param.to_tokens(tokens);
-                trailing_or_empty = param.punct().is_some();
+        for param in &generics.params {
+            if let GenericParam::Lifetime(_) = param {
+                self.generic_param(param);
+                self.word(",");
             }
         }
-        for param in self.params.pairs() {
-            match **param.value() {
+        for param in &generics.params {
+            match param {
                 GenericParam::Type(_) | GenericParam::Const(_) => {
-                    if !trailing_or_empty {
-                        <Token![,]>::default().to_tokens(tokens);
-                        trailing_or_empty = true;
-                    }
-                    param.to_tokens(tokens);
+                    self.generic_param(param);
+                    self.word(",");
                 }
                 GenericParam::Lifetime(_) => {}
             }
         }
 
-        TokensOrDefault(&self.gt_token).to_tokens(tokens);
+        self.word(">");
     }
-}
 
-impl<'a> ToTokens for ImplGenerics<'a> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if self.0.params.is_empty() {
-            return;
-        }
-
-        TokensOrDefault(&self.0.lt_token).to_tokens(tokens);
-
-        // Print lifetimes before types and consts, regardless of their
-        // order in self.params.
-        //
-        // TODO: ordering rules for const parameters vs type parameters have
-        // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        let mut trailing_or_empty = true;
-        for param in self.0.params.pairs() {
-            if let GenericParam::Lifetime(_) = **param.value() {
-                param.to_tokens(tokens);
-                trailing_or_empty = param.punct().is_some();
-            }
-        }
-        for param in self.0.params.pairs() {
-            if let GenericParam::Lifetime(_) = **param.value() {
-                continue;
-            }
-            if !trailing_or_empty {
-                <Token![,]>::default().to_tokens(tokens);
-                trailing_or_empty = true;
-            }
-            match *param.value() {
-                GenericParam::Lifetime(_) => unreachable!(),
-                GenericParam::Type(param) => {
-                    // Leave off the type parameter defaults
-                    tokens.append_all(param.attrs.outer());
-                    param.ident.to_tokens(tokens);
-                    if !param.bounds.is_empty() {
-                        TokensOrDefault(&param.colon_token).to_tokens(tokens);
-                        param.bounds.to_tokens(tokens);
-                    }
-                }
-                GenericParam::Const(param) => {
-                    // Leave off the const parameter defaults
-                    tokens.append_all(param.attrs.outer());
-                    param.const_token.to_tokens(tokens);
-                    param.ident.to_tokens(tokens);
-                    param.colon_token.to_tokens(tokens);
-                    param.ty.to_tokens(tokens);
-                }
-            }
-            param.punct().to_tokens(tokens);
-        }
-
-        TokensOrDefault(&self.0.gt_token).to_tokens(tokens);
-    }
-}
-
-impl<'a> ToTokens for TypeGenerics<'a> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if self.0.params.is_empty() {
-            return;
-        }
-
-        TokensOrDefault(&self.0.lt_token).to_tokens(tokens);
-
-        // Print lifetimes before types and consts, regardless of their
-        // order in self.params.
-        //
-        // TODO: ordering rules for const parameters vs type parameters have
-        // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        let mut trailing_or_empty = true;
-        for param in self.0.params.pairs() {
-            if let GenericParam::Lifetime(def) = *param.value() {
-                // Leave off the lifetime bounds and attributes
-                def.lifetime.to_tokens(tokens);
-                param.punct().to_tokens(tokens);
-                trailing_or_empty = param.punct().is_some();
-            }
-        }
-        for param in self.0.params.pairs() {
-            if let GenericParam::Lifetime(_) = **param.value() {
-                continue;
-            }
-            if !trailing_or_empty {
-                <Token![,]>::default().to_tokens(tokens);
-                trailing_or_empty = true;
-            }
-            match *param.value() {
-                GenericParam::Lifetime(_) => unreachable!(),
-                GenericParam::Type(param) => {
-                    // Leave off the type parameter defaults
-                    param.ident.to_tokens(tokens);
-                }
-                GenericParam::Const(param) => {
-                    // Leave off the const parameter defaults
-                    param.ident.to_tokens(tokens);
-                }
-            }
-            param.punct().to_tokens(tokens);
-        }
-
-        TokensOrDefault(&self.0.gt_token).to_tokens(tokens);
-    }
-}
-
-impl<'a> ToTokens for Turbofish<'a> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if !self.0.params.is_empty() {
-            <Token![::]>::default().to_tokens(tokens);
-            TypeGenerics(self.0).to_tokens(tokens);
+    fn generic_param(&mut self, generic_param: &GenericParam) {
+        match generic_param {
+            GenericParam::Type(type_param) => self.type_param(type_param),
+            GenericParam::Lifetime(lifetime_def) => self.lifetime_def(lifetime_def),
+            GenericParam::Const(const_param) => self.const_param(const_param),
         }
     }
-}
 
-impl ToTokens for BoundLifetimes {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.for_token.to_tokens(tokens);
-        self.lt_token.to_tokens(tokens);
-        self.lifetimes.to_tokens(tokens);
-        self.gt_token.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for LifetimeDef {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.lifetime.to_tokens(tokens);
-        if !self.bounds.is_empty() {
-            TokensOrDefault(&self.colon_token).to_tokens(tokens);
-            self.bounds.to_tokens(tokens);
+    pub fn bound_lifetimes(&mut self, bound_lifetimes: &BoundLifetimes) {
+        self.word("for<");
+        for lifetime_def in &bound_lifetimes.lifetimes {
+            self.lifetime_def(lifetime_def);
+            self.word(",");
         }
+        self.word(">");
     }
-}
 
-impl ToTokens for TypeParam {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.ident.to_tokens(tokens);
-        if !self.bounds.is_empty() {
-            TokensOrDefault(&self.colon_token).to_tokens(tokens);
-            self.bounds.to_tokens(tokens);
-        }
-        if let Some(default) = &self.default {
-            if self.eq_token.is_none() {
-                if let Type::Verbatim(default) = default {
-                    let mut iter = default.clone().into_iter().peekable();
-                    while let Some(token) = iter.next() {
-                        if let TokenTree::Punct(q) = token {
-                            if q.as_char() == '~' {
-                                if let Some(TokenTree::Ident(c)) = iter.peek() {
-                                    if c == "const" {
-                                        if self.bounds.is_empty() {
-                                            TokensOrDefault(&self.colon_token)
-                                                .to_tokens(tokens);
-                                        }
-                                        return default.to_tokens(tokens);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+    fn lifetime_def(&mut self, lifetime_def: &LifetimeDef) {
+        self.outer_attrs(&lifetime_def.attrs);
+        self.lifetime(&lifetime_def.lifetime);
+        for (i, lifetime) in lifetime_def.bounds.iter().enumerate() {
+            if i == 0 {
+                self.word(":");
+            } else {
+                self.word("+");
             }
-            TokensOrDefault(&self.eq_token).to_tokens(tokens);
-            default.to_tokens(tokens);
+            self.lifetime(lifetime);
         }
     }
-}
 
-impl ToTokens for TraitBound {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let to_tokens = |tokens: &mut TokenStream| {
-            let skip = match self.path.segments.pairs().next() {
-                Some(Pair::Punctuated(t, p)) if t.ident == "const" => {
-                    Token![~](p.spans[0]).to_tokens(tokens);
-                    t.to_tokens(tokens);
-                    1
-                }
-                _ => 0,
-            };
-            self.modifier.to_tokens(tokens);
-            self.lifetimes.to_tokens(tokens);
-            self.path.leading_colon.to_tokens(tokens);
-            tokens.append_all(self.path.segments.pairs().skip(skip));
+    fn type_param(&mut self, type_param: &TypeParam) {
+        self.outer_attrs(&type_param.attrs);
+        self.ident(&type_param.ident);
+        for (i, type_param_bound) in type_param.bounds.iter().enumerate() {
+            if i == 0 {
+                self.word(":");
+            } else {
+                self.word("+");
+            }
+            self.type_param_bound(type_param_bound);
+        }
+        if let Some(default) = &type_param.default {
+            self.word("=");
+            self.ty(default);
+        }
+    }
+
+    pub fn type_param_bound(&mut self, type_param_bound: &TypeParamBound) {
+        match type_param_bound {
+            TypeParamBound::Trait(trait_bound) => self.trait_bound(trait_bound),
+            TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
+        }
+    }
+
+    fn trait_bound(&mut self, trait_bound: &TraitBound) {
+        if trait_bound.paren_token.is_some() {
+            self.word("(");
+        }
+        let skip = match trait_bound.path.segments.first() {
+            Some(segment) if segment.ident == "const" => {
+                self.word("~const");
+                1
+            }
+            _ => 0,
         };
-        match &self.paren_token {
-            Some(paren) => paren.surround(tokens, to_tokens),
-            None => to_tokens(tokens),
+        self.trait_bound_modifier(&trait_bound.modifier);
+        if let Some(bound_lifetimes) = &trait_bound.lifetimes {
+            self.bound_lifetimes(bound_lifetimes);
+        }
+        for (i, segment) in trait_bound.path.segments.iter().skip(skip).enumerate() {
+            if i > 0 || trait_bound.path.leading_colon.is_some() {
+                self.word("::");
+            }
+            self.path_segment(segment);
+        }
+        if trait_bound.paren_token.is_some() {
+            self.word(")");
         }
     }
-}
 
-impl ToTokens for TraitBoundModifier {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
+    fn trait_bound_modifier(&mut self, trait_bound_modifier: &TraitBoundModifier) {
+        match trait_bound_modifier {
             TraitBoundModifier::None => {}
-            TraitBoundModifier::Maybe(t) => t.to_tokens(tokens),
+            TraitBoundModifier::Maybe(_question_mark) => self.word("?"),
         }
     }
-}
 
-impl ToTokens for ConstParam {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.const_token.to_tokens(tokens);
-        self.ident.to_tokens(tokens);
-        self.colon_token.to_tokens(tokens);
-        self.ty.to_tokens(tokens);
-        if let Some(default) = &self.default {
-            TokensOrDefault(&self.eq_token).to_tokens(tokens);
-            default.to_tokens(tokens);
+    fn const_param(&mut self, const_param: &ConstParam) {
+        self.outer_attrs(&const_param.attrs);
+        self.word("const");
+        self.ident(&const_param.ident);
+        self.word(":");
+        self.ty(&const_param.ty);
+        if let Some(default) = &const_param.default {
+            self.word("=");
+            self.expr(default);
         }
     }
-}
 
-impl ToTokens for WhereClause {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if !self.predicates.is_empty() {
-            self.where_token.to_tokens(tokens);
-            self.predicates.to_tokens(tokens);
+    pub fn where_clause(&mut self, where_clause: &Option<WhereClause>) {
+        if let Some(where_clause) = where_clause {
+            if !where_clause.predicates.is_empty() {
+                self.word("where");
+                for predicate in &where_clause.predicates {
+                    self.where_predicate(predicate);
+                    self.word(",");
+                }
+            }
         }
     }
-}
 
-impl ToTokens for PredicateType {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.lifetimes.to_tokens(tokens);
-        self.bounded_ty.to_tokens(tokens);
-        self.colon_token.to_tokens(tokens);
-        self.bounds.to_tokens(tokens);
+    fn where_predicate(&mut self, predicate: &WherePredicate) {
+        match predicate {
+            WherePredicate::Type(predicate) => self.predicate_type(predicate),
+            WherePredicate::Lifetime(predicate) => self.predicate_lifetime(predicate),
+            WherePredicate::Eq(predicate) => self.predicate_eq(predicate),
+        }
+    }
+
+    fn predicate_type(&mut self, predicate: &PredicateType) {
+        if let Some(bound_lifetimes) = &predicate.lifetimes {
+            self.bound_lifetimes(bound_lifetimes);
+        }
+        self.ty(&predicate.bounded_ty);
+        self.word(":");
+        for (i, type_param_bound) in predicate.bounds.iter().enumerate() {
+            if i > 0 {
+                self.word("+");
+            }
+            self.type_param_bound(type_param_bound);
+        }
+    }
+
+    fn predicate_lifetime(&mut self, predicate: &PredicateLifetime) {
+        self.lifetime(&predicate.lifetime);
+        self.word(":");
+        for (i, lifetime) in predicate.bounds.iter().enumerate() {
+            if i > 0 {
+                self.word("+");
+            }
+            self.lifetime(lifetime);
+        }
+    }
+
+    fn predicate_eq(&mut self, predicate: &PredicateEq) {
+        self.ty(&predicate.lhs_ty);
+        self.word("=");
+        self.ty(&predicate.rhs_ty);
     }
 }
-
-impl ToTokens for PredicateLifetime {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.lifetime.to_tokens(tokens);
-        self.colon_token.to_tokens(tokens);
-        self.bounds.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PredicateEq {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.lhs_ty.to_tokens(tokens);
-        self.eq_token.to_tokens(tokens);
-        self.rhs_ty.to_tokens(tokens);
-    }
-}
-*/

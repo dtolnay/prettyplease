@@ -11,8 +11,12 @@ impl Printer {
         self.out.push_str(string);
     }
 
-    pub fn space(&mut self) {
-        self.word(" ");
+    pub fn character(&mut self, ch: char) {
+        self.out.push(ch);
+    }
+
+    pub fn hardbreak(&mut self) {
+        self.out.push('\n');
     }
 
     pub fn eof(self) -> String {

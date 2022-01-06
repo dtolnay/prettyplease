@@ -1,147 +1,169 @@
-/*
-impl ToTokens for PatWild {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.underscore_token.to_tokens(tokens);
-    }
-}
+use crate::unparse::Printer;
+use proc_macro2::TokenStream;
+use syn::{
+    FieldPat, Pat, PatBox, PatIdent, PatLit, PatMacro, PatOr, PatPath, PatRange, PatReference,
+    PatRest, PatSlice, PatStruct, PatTuple, PatTupleStruct, PatType, PatWild, RangeLimits,
+};
 
-impl ToTokens for PatIdent {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.by_ref.to_tokens(tokens);
-        self.mutability.to_tokens(tokens);
-        self.ident.to_tokens(tokens);
-        if let Some((at_token, subpat)) = &self.subpat {
-            at_token.to_tokens(tokens);
-            subpat.to_tokens(tokens);
+impl Printer {
+    pub fn pat(&mut self, pat: &Pat) {
+        match pat {
+            Pat::Box(pat) => self.pat_box(pat),
+            Pat::Ident(pat) => self.pat_ident(pat),
+            Pat::Lit(pat) => self.pat_lit(pat),
+            Pat::Macro(pat) => self.pat_macro(pat),
+            Pat::Or(pat) => self.pat_or(pat),
+            Pat::Path(pat) => self.pat_path(pat),
+            Pat::Range(pat) => self.pat_range(pat),
+            Pat::Reference(pat) => self.pat_reference(pat),
+            Pat::Rest(pat) => self.pat_rest(pat),
+            Pat::Slice(pat) => self.pat_slice(pat),
+            Pat::Struct(pat) => self.pat_struct(pat),
+            Pat::Tuple(pat) => self.pat_tuple(pat),
+            Pat::TupleStruct(pat) => self.pat_tuple_struct(pat),
+            Pat::Type(pat) => self.pat_type(pat),
+            Pat::Verbatim(pat) => self.pat_verbatim(pat),
+            Pat::Wild(pat) => self.pat_wild(pat),
+            #[cfg(test)]
+            Pat::__TestExhaustive(_) => unreachable!(),
+            #[cfg(not(test))]
+            _ => unimplemented!("unknown Pat"),
         }
     }
-}
 
-impl ToTokens for PatStruct {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.path.to_tokens(tokens);
-        self.brace_token.surround(tokens, |tokens| {
-            self.fields.to_tokens(tokens);
-            // NOTE: We need a comma before the dot2 token if it is present.
-            if !self.fields.empty_or_trailing() && self.dot2_token.is_some() {
-                <Token![,]>::default().to_tokens(tokens);
+    fn pat_box(&mut self, pat: &PatBox) {
+        self.outer_attrs(&pat.attrs);
+        self.word("box");
+        self.pat(&pat.pat);
+    }
+
+    fn pat_ident(&mut self, pat: &PatIdent) {
+        self.outer_attrs(&pat.attrs);
+        if pat.by_ref.is_some() {
+            self.word("ref");
+        }
+        if pat.mutability.is_some() {
+            self.word("mut");
+        }
+        self.ident(&pat.ident);
+        if let Some((_at_token, subpat)) = &pat.subpat {
+            self.word("@");
+            self.pat(subpat);
+        }
+    }
+
+    fn pat_lit(&mut self, pat: &PatLit) {
+        self.outer_attrs(&pat.attrs);
+        self.expr(&pat.expr);
+    }
+
+    fn pat_macro(&mut self, pat: &PatMacro) {
+        self.outer_attrs(&pat.attrs);
+        self.mac(&pat.mac);
+    }
+
+    fn pat_or(&mut self, pat: &PatOr) {
+        self.outer_attrs(&pat.attrs);
+        for (i, case) in pat.cases.iter().enumerate() {
+            if i > 0 {
+                self.word("|");
             }
-            self.dot2_token.to_tokens(tokens);
-        });
-    }
-}
-
-impl ToTokens for PatTupleStruct {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.path.to_tokens(tokens);
-        self.pat.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatType {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.pat.to_tokens(tokens);
-        self.colon_token.to_tokens(tokens);
-        self.ty.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatPath {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        private::print_path(tokens, &self.qself, &self.path);
-    }
-}
-
-impl ToTokens for PatTuple {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.paren_token.surround(tokens, |tokens| {
-            self.elems.to_tokens(tokens);
-        });
-    }
-}
-
-impl ToTokens for PatBox {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.box_token.to_tokens(tokens);
-        self.pat.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatReference {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.and_token.to_tokens(tokens);
-        self.mutability.to_tokens(tokens);
-        self.pat.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatRest {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.dot2_token.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatLit {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.expr.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatRange {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.lo.to_tokens(tokens);
-        match &self.limits {
-            RangeLimits::HalfOpen(t) => t.to_tokens(tokens),
-            RangeLimits::Closed(t) => t.to_tokens(tokens),
+            self.pat(case);
         }
-        self.hi.to_tokens(tokens);
     }
-}
 
-impl ToTokens for PatSlice {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.bracket_token.surround(tokens, |tokens| {
-            self.elems.to_tokens(tokens);
-        });
+    fn pat_path(&mut self, pat: &PatPath) {
+        self.outer_attrs(&pat.attrs);
+        self.qpath(&pat.qself, &pat.path);
     }
-}
 
-impl ToTokens for PatMacro {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.mac.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for PatOr {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        self.leading_vert.to_tokens(tokens);
-        self.cases.to_tokens(tokens);
-    }
-}
-
-impl ToTokens for FieldPat {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.attrs.outer());
-        if let Some(colon_token) = &self.colon_token {
-            self.member.to_tokens(tokens);
-            colon_token.to_tokens(tokens);
+    fn pat_range(&mut self, pat: &PatRange) {
+        self.outer_attrs(&pat.attrs);
+        self.expr(&pat.lo);
+        match &pat.limits {
+            RangeLimits::HalfOpen(_) => self.word(".."),
+            RangeLimits::Closed(_) => self.word("..="),
         }
-        self.pat.to_tokens(tokens);
+        self.expr(&pat.hi);
+    }
+
+    fn pat_reference(&mut self, pat: &PatReference) {
+        self.outer_attrs(&pat.attrs);
+        self.word("&");
+        if pat.mutability.is_some() {
+            self.word("mut");
+        }
+        self.pat(&pat.pat);
+    }
+
+    fn pat_rest(&mut self, pat: &PatRest) {
+        self.outer_attrs(&pat.attrs);
+        self.word("..");
+    }
+
+    fn pat_slice(&mut self, pat: &PatSlice) {
+        self.outer_attrs(&pat.attrs);
+        self.word("[");
+        for elem in &pat.elems {
+            self.pat(elem);
+            self.word(",");
+        }
+        self.word("]");
+    }
+
+    fn pat_struct(&mut self, pat: &PatStruct) {
+        self.outer_attrs(&pat.attrs);
+        self.path(&pat.path);
+        self.word("{");
+        for field in &pat.fields {
+            self.field_pat(field);
+            self.word(",");
+        }
+        if pat.dot2_token.is_some() {
+            self.word("..");
+        }
+        self.word("}");
+    }
+
+    fn pat_tuple(&mut self, pat: &PatTuple) {
+        self.outer_attrs(&pat.attrs);
+        self.word("(");
+        for elem in &pat.elems {
+            self.pat(elem);
+            self.word(",");
+        }
+        self.word(")");
+    }
+
+    fn pat_tuple_struct(&mut self, pat: &PatTupleStruct) {
+        self.outer_attrs(&pat.attrs);
+        self.path(&pat.path);
+        self.pat_tuple(&pat.pat);
+    }
+
+    pub fn pat_type(&mut self, pat: &PatType) {
+        self.outer_attrs(&pat.attrs);
+        self.pat(&pat.pat);
+        self.word(":");
+        self.ty(&pat.ty);
+    }
+
+    fn pat_verbatim(&mut self, pat: &TokenStream) {
+        let _ = pat;
+        unimplemented!("Pat::Verbatim");
+    }
+
+    fn pat_wild(&mut self, pat: &PatWild) {
+        self.outer_attrs(&pat.attrs);
+        self.word("_");
+    }
+
+    fn field_pat(&mut self, field_pat: &FieldPat) {
+        self.outer_attrs(&field_pat.attrs);
+        if field_pat.colon_token.is_some() {
+            self.member(&field_pat.member);
+            self.word(":");
+        }
+        self.pat(&field_pat.pat);
     }
 }
-*/

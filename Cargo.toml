@@ -3,3 +3,7 @@ name = "prettyplease"
 version = "0.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2021"
+
+[dependencies]
+proc-macro2 = { version = "1.0", default-features = false }
+syn = { version = "1.0.85", default-features = false, features = ["full"] }
