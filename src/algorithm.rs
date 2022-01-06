@@ -35,7 +35,7 @@ pub enum Token {
 }
 
 impl Token {
-    crate fn is_eof(&self) -> bool {
+    pub fn is_eof(&self) -> bool {
         matches!(self, Token::Eof)
     }
 
@@ -408,7 +408,7 @@ impl Printer {
         self.break_offset(n, 0)
     }
 
-    crate fn zerobreak(&mut self) {
+    pub fn zerobreak(&mut self) {
         self.spaces(0)
     }
 

@@ -1,3 +1,4 @@
+mod algorithm;
 mod attr;
 mod data;
 mod expr;
