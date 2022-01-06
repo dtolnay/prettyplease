@@ -10,7 +10,9 @@ impl Printer {
         self.ident(&variant.ident);
         self.fields(&variant.fields);
         if let Some((_eq_token, discriminant)) = &variant.discriminant {
+            self.nbsp();
             self.word("=");
+            self.nbsp();
             self.expr(&discriminant);
         }
     }
@@ -24,10 +26,17 @@ impl Printer {
     }
 
     pub fn fields_named(&mut self, fields: &FieldsNamed) {
+        self.nbsp();
         self.word("{");
-        for field in &fields.named {
-            self.field(field);
-            self.word(",");
+        if !fields.named.is_empty() {
+            self.cbox(Printer::INDENT);
+            self.hardbreak();
+            for field in &fields.named {
+                self.field(field);
+                self.word(",");
+                self.hardbreak();
+            }
+            self.end();
         }
         self.word("}");
     }
@@ -47,6 +56,7 @@ impl Printer {
         if let Some(ident) = &field.ident {
             self.ident(ident);
             self.word(":");
+            self.nbsp();
         }
         self.ty(&field.ty);
     }
@@ -63,11 +73,13 @@ impl Printer {
     fn vis_public(&mut self, vis: &VisPublic) {
         let _ = vis;
         self.word("pub");
+        self.nbsp();
     }
 
     fn vis_crate(&mut self, vis: &VisCrate) {
         let _ = vis;
         self.word("crate");
+        self.nbsp();
     }
 
     fn vis_restricted(&mut self, vis: &VisRestricted) {
@@ -76,8 +88,10 @@ impl Printer {
         // automatically add the "in" token.
         if vis.in_token.is_some() {
             self.word("in");
+            self.nbsp();
         }
         self.path(&vis.path);
         self.word(")");
+        self.nbsp();
     }
 }

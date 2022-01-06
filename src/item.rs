@@ -187,6 +187,7 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
         self.word("struct");
+        self.nbsp();
         self.ident(&item.ident);
         self.generics(&item.generics);
         match &item.fields {
