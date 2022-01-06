@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use syn::{
     Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted,
     Visibility,

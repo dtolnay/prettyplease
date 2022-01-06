@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use proc_macro2::TokenStream;
 use syn::{
     Arm, BinOp, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait, ExprBinary,
@@ -515,7 +515,7 @@ impl Printer {
     }
 
     fn index(&mut self, member: &Index) {
-        self.word(&member.index.to_string());
+        self.word(member.index.to_string());
     }
 
     fn binary_operator(&mut self, op: &BinOp) {

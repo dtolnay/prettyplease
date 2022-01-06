@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, TokenStream, TokenTree};
 
 impl Printer {
@@ -26,14 +26,14 @@ impl Printer {
     }
 
     pub fn ident(&mut self, ident: &Ident) {
-        self.word(&ident.to_string());
+        self.word(ident.to_string());
     }
 
     pub fn token_punct(&mut self, punct: &Punct) {
-        self.character(punct.as_char());
+        self.word(punct.as_char().to_string());
     }
 
     pub fn token_literal(&mut self, literal: &Literal) {
-        self.word(&literal.to_string());
+        self.word(literal.to_string());
     }
 }

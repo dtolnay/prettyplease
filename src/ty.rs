@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use proc_macro2::TokenStream;
 use syn::{
     Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait, TypeInfer,

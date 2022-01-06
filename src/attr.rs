@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use syn::{AttrStyle, Attribute};
 
 impl Printer {

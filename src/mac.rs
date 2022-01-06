@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use syn::{Macro, MacroDelimiter};
 
 impl Printer {
@@ -6,13 +6,13 @@ impl Printer {
         self.path(&mac.path);
         self.word("!");
         let (open, close) = match mac.delimiter {
-            MacroDelimiter::Paren(_) => ('(', ')'),
-            MacroDelimiter::Brace(_) => ('{', '}'),
-            MacroDelimiter::Bracket(_) => ('[', ']'),
+            MacroDelimiter::Paren(_) => ("(", ")"),
+            MacroDelimiter::Brace(_) => ("{", "}"),
+            MacroDelimiter::Bracket(_) => ("[", "]"),
         };
-        self.character(open);
+        self.word(open);
         self.tokens(&mac.tokens);
-        self.character(close);
+        self.word(close);
     }
 
     pub fn mac_semi_if_needed(&mut self, delimiter: &MacroDelimiter) {

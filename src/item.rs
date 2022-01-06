@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use proc_macro2::TokenStream;
 use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
@@ -133,13 +133,13 @@ impl Printer {
             self.ident(ident);
         }
         let (open, close) = match item.mac.delimiter {
-            MacroDelimiter::Paren(_) => ('(', ')'),
-            MacroDelimiter::Brace(_) => ('{', '}'),
-            MacroDelimiter::Bracket(_) => ('[', ']'),
+            MacroDelimiter::Paren(_) => ("(", ")"),
+            MacroDelimiter::Brace(_) => ("{", "}"),
+            MacroDelimiter::Bracket(_) => ("[", "]"),
         };
-        self.character(open);
+        self.word(open);
         self.tokens(&item.mac.tokens);
-        self.character(close);
+        self.word(close);
         self.mac_semi_if_needed(&item.mac.delimiter);
     }
 

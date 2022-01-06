@@ -1,4 +1,4 @@
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use proc_macro2::Literal;
 use syn::{Lit, LitBool, LitByte, LitByteStr, LitChar, LitFloat, LitInt, LitStr};
 
@@ -17,27 +17,27 @@ impl Printer {
     }
 
     pub fn lit_str(&mut self, lit: &LitStr) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_byte_str(&mut self, lit: &LitByteStr) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_byte(&mut self, lit: &LitByte) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_char(&mut self, lit: &LitChar) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_int(&mut self, lit: &LitInt) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_float(&mut self, lit: &LitFloat) {
-        self.word(&lit.token().to_string());
+        self.word(lit.token().to_string());
     }
 
     fn lit_bool(&mut self, lit: &LitBool) {
@@ -45,6 +45,6 @@ impl Printer {
     }
 
     fn lit_verbatim(&mut self, token: &Literal) {
-        self.word(&token.to_string());
+        self.word(token.to_string());
     }
 }

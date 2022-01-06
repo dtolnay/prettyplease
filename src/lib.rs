@@ -14,9 +14,8 @@ mod path;
 mod stmt;
 mod token;
 mod ty;
-mod unparse;
 
-use crate::unparse::Printer;
+use crate::algorithm::Printer;
 use syn::File;
 
 pub fn unparse(file: &File) -> String {
