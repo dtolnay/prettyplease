@@ -12,14 +12,14 @@ pub enum Breaks {
 
 #[derive(Clone, Copy)]
 pub struct BreakToken {
-    offset: isize,
-    blank_space: isize,
+    pub offset: isize,
+    pub blank_space: isize,
 }
 
 #[derive(Clone, Copy)]
 pub struct BeginToken {
-    offset: isize,
-    breaks: Breaks,
+    pub offset: isize,
+    pub breaks: Breaks,
 }
 
 #[derive(Clone)]
@@ -62,7 +62,7 @@ struct PrintStackElem {
     pbreak: PrintStackBreak,
 }
 
-const SIZE_INFINITY: isize = 0xffff;
+pub const SIZE_INFINITY: isize = 0xffff;
 
 pub fn mk_printer() -> Printer {
     let linewidth = 78;
@@ -141,14 +141,15 @@ impl Printer {
         self.buf[self.right].token = t;
     }
 
-    fn scan_eof(&mut self) {
+    pub fn eof(mut self) -> String {
         if !self.scan_stack.is_empty() {
             self.check_stack(0);
             self.advance_left();
         }
+        self.out
     }
 
-    fn scan_begin(&mut self, b: BeginToken) {
+    pub fn scan_begin(&mut self, b: BeginToken) {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
@@ -163,7 +164,7 @@ impl Printer {
         });
     }
 
-    fn scan_end(&mut self) {
+    pub fn scan_end(&mut self) {
         if self.scan_stack.is_empty() {
             self.print_end();
         } else {
@@ -175,7 +176,7 @@ impl Printer {
         }
     }
 
-    fn scan_break(&mut self, b: BreakToken) {
+    pub fn scan_break(&mut self, b: BreakToken) {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
@@ -192,7 +193,7 @@ impl Printer {
         self.right_total += b.blank_space;
     }
 
-    fn scan_string(&mut self, s: Cow<'static, str>) {
+    pub fn scan_string(&mut self, s: Cow<'static, str>) {
         if self.scan_stack.is_empty() {
             self.print_string(s);
         } else {
@@ -397,73 +398,5 @@ impl Printer {
             }
             Token::Eof => panic!(), // Eof should never get here.
         }
-    }
-
-    // Convenience functions to talk to the printer.
-
-    // "raw box"
-    pub fn rbox(&mut self, indent: usize, b: Breaks) {
-        self.scan_begin(BeginToken {
-            offset: indent as isize,
-            breaks: b,
-        })
-    }
-
-    // Inconsistent breaking box
-    pub fn ibox(&mut self, indent: usize) {
-        self.rbox(indent, Breaks::Inconsistent)
-    }
-
-    // Consistent breaking box
-    pub fn cbox(&mut self, indent: usize) {
-        self.rbox(indent, Breaks::Consistent)
-    }
-
-    pub fn break_offset(&mut self, n: usize, off: isize) {
-        self.scan_break(BreakToken {
-            offset: off,
-            blank_space: n as isize,
-        })
-    }
-
-    pub fn end(&mut self) {
-        self.scan_end()
-    }
-
-    pub fn eof(mut self) -> String {
-        self.scan_eof();
-        self.out
-    }
-
-    pub fn word<S: Into<Cow<'static, str>>>(&mut self, wrd: S) {
-        let s = wrd.into();
-        self.scan_string(s)
-    }
-
-    fn spaces(&mut self, n: usize) {
-        self.break_offset(n, 0)
-    }
-
-    pub fn zerobreak(&mut self) {
-        self.spaces(0)
-    }
-
-    pub fn space(&mut self) {
-        self.spaces(1)
-    }
-
-    pub fn hardbreak(&mut self) {
-        self.spaces(SIZE_INFINITY as usize)
-    }
-
-    pub fn is_beginning_of_line(&self) -> bool {
-        self.last_token().is_eof() || self.last_token().is_hardbreak_tok()
-    }
-
-    pub fn hardbreak_tok_offset(off: isize) -> Token {
-        Token::Break(BreakToken {
-            offset: off,
-            blank_space: SIZE_INFINITY,
-        })
     }
 }

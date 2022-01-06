@@ -1,5 +1,6 @@
 mod algorithm;
 mod attr;
+mod convenience;
 mod data;
 mod expr;
 mod file;
