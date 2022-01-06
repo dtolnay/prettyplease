@@ -40,7 +40,13 @@ impl Token {
     }
 
     pub fn is_hardbreak_tok(&self) -> bool {
-        matches!(self, Token::Break(BreakToken { offset: 0, blank_space: SIZE_INFINITY }))
+        matches!(
+            self,
+            Token::Break(BreakToken {
+                offset: 0,
+                blank_space: SIZE_INFINITY,
+            })
+        )
     }
 }
 
@@ -118,7 +124,10 @@ struct BufEntry {
 
 impl Default for BufEntry {
     fn default() -> Self {
-        BufEntry { token: Token::Eof, size: 0 }
+        BufEntry {
+            token: Token::Eof,
+            size: 0,
+        }
     }
 }
 
@@ -148,7 +157,10 @@ impl Printer {
         } else {
             self.advance_right();
         }
-        self.scan_push(BufEntry { token: Token::Begin(b), size: -self.right_total });
+        self.scan_push(BufEntry {
+            token: Token::Begin(b),
+            size: -self.right_total,
+        });
     }
 
     fn scan_end(&mut self) {
@@ -156,7 +168,10 @@ impl Printer {
             self.print_end();
         } else {
             self.advance_right();
-            self.scan_push(BufEntry { token: Token::End, size: -1 });
+            self.scan_push(BufEntry {
+                token: Token::End,
+                size: -1,
+            });
         }
     }
 
@@ -170,7 +185,10 @@ impl Printer {
             self.advance_right();
         }
         self.check_stack(0);
-        self.scan_push(BufEntry { token: Token::Break(b), size: -self.right_total });
+        self.scan_push(BufEntry {
+            token: Token::Break(b),
+            size: -self.right_total,
+        });
         self.right_total += b.blank_space;
     }
 
@@ -180,7 +198,10 @@ impl Printer {
         } else {
             self.advance_right();
             let len = s.len() as isize;
-            self.buf[self.right] = BufEntry { token: Token::String(s), size: len };
+            self.buf[self.right] = BufEntry {
+                token: Token::String(s),
+                size: len,
+            };
             self.right_total += len;
             self.check_stream();
         }
@@ -297,17 +318,25 @@ impl Printer {
 
     fn get_top(&self) -> PrintStackElem {
         *self.print_stack.last().unwrap_or({
-            &PrintStackElem { offset: 0, pbreak: PrintStackBreak::Broken(Breaks::Inconsistent) }
+            &PrintStackElem {
+                offset: 0,
+                pbreak: PrintStackBreak::Broken(Breaks::Inconsistent),
+            }
         })
     }
 
     fn print_begin(&mut self, b: BeginToken, l: isize) {
         if l > self.space {
             let col = self.margin - self.space + b.offset;
-            self.print_stack
-                .push(PrintStackElem { offset: col, pbreak: PrintStackBreak::Broken(b.breaks) });
+            self.print_stack.push(PrintStackElem {
+                offset: col,
+                pbreak: PrintStackBreak::Broken(b.breaks),
+            });
         } else {
-            self.print_stack.push(PrintStackElem { offset: 0, pbreak: PrintStackBreak::Fits });
+            self.print_stack.push(PrintStackElem {
+                offset: 0,
+                pbreak: PrintStackBreak::Fits,
+            });
         }
     }
 
@@ -350,7 +379,8 @@ impl Printer {
         // But that is significantly slower. This code is sufficiently hot, and indents can get
         // sufficiently large, that the difference is significant on some workloads.
         self.out.reserve(self.pending_indentation as usize);
-        self.out.extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
+        self.out
+            .extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
         self.pending_indentation = 0;
         self.out.push_str(&s);
     }
@@ -373,7 +403,10 @@ impl Printer {
 
     // "raw box"
     pub fn rbox(&mut self, indent: usize, b: Breaks) {
-        self.scan_begin(BeginToken { offset: indent as isize, breaks: b })
+        self.scan_begin(BeginToken {
+            offset: indent as isize,
+            breaks: b,
+        })
     }
 
     // Inconsistent breaking box
@@ -387,7 +420,10 @@ impl Printer {
     }
 
     pub fn break_offset(&mut self, n: usize, off: isize) {
-        self.scan_break(BreakToken { offset: off, blank_space: n as isize })
+        self.scan_break(BreakToken {
+            offset: off,
+            blank_space: n as isize,
+        })
     }
 
     pub fn end(&mut self) {
@@ -425,6 +461,9 @@ impl Printer {
     }
 
     pub fn hardbreak_tok_offset(off: isize) -> Token {
-        Token::Break(BreakToken { offset: off, blank_space: SIZE_INFINITY })
+        Token::Break(BreakToken {
+            offset: off,
+            blank_space: SIZE_INFINITY,
+        })
     }
 }
