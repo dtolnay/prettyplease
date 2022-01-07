@@ -11,9 +11,7 @@ impl Printer {
         self.ident(&variant.ident);
         self.fields(&variant.fields);
         if let Some((_eq_token, discriminant)) = &variant.discriminant {
-            self.nbsp();
-            self.word("=");
-            self.nbsp();
+            self.word(" = ");
             self.expr(discriminant);
         }
     }
@@ -27,8 +25,7 @@ impl Printer {
     }
 
     pub fn fields_named(&mut self, fields: &FieldsNamed) {
-        self.nbsp();
-        self.word("{");
+        self.word(" {");
         if !fields.named.is_empty() {
             self.cbox(INDENT);
             self.hardbreak();
@@ -66,8 +63,7 @@ impl Printer {
         self.visibility(&field.vis);
         if let Some(ident) = &field.ident {
             self.ident(ident);
-            self.word(":");
-            self.nbsp();
+            self.word(": ");
         }
         self.ty(&field.ty);
     }
@@ -83,14 +79,12 @@ impl Printer {
 
     fn vis_public(&mut self, vis: &VisPublic) {
         let _ = vis;
-        self.word("pub");
-        self.nbsp();
+        self.word("pub ");
     }
 
     fn vis_crate(&mut self, vis: &VisCrate) {
         let _ = vis;
-        self.word("crate");
-        self.nbsp();
+        self.word("crate ");
     }
 
     fn vis_restricted(&mut self, vis: &VisRestricted) {
@@ -98,11 +92,9 @@ impl Printer {
         // TODO: If we have a path which is not "self" or "super" or "crate",
         // automatically add the "in" token.
         if vis.in_token.is_some() {
-            self.word("in");
-            self.nbsp();
+            self.word("in ");
         }
         self.path(&vis.path);
-        self.word(")");
-        self.nbsp();
+        self.word(") ");
     }
 }

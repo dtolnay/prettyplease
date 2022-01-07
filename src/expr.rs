@@ -99,9 +99,9 @@ impl Printer {
 
     fn expr_async(&mut self, expr: &ExprAsync) {
         self.outer_attrs(&expr.attrs);
-        self.word("async");
+        self.word("async ");
         if expr.capture.is_some() {
-            self.word("move");
+            self.word("move ");
         }
         self.block(&expr.block);
     }

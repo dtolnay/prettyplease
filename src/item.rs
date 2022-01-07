@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::{attr, INDENT};
 use proc_macro2::TokenStream;
 use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
@@ -39,50 +40,65 @@ impl Printer {
     fn item_const(&mut self, item: &ItemConst) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("const");
+        self.word("const ");
         self.ident(&item.ident);
-        self.word(":");
+        self.word(": ");
         self.ty(&item.ty);
-        self.word("=");
+        self.word(" = ");
         self.expr(&item.expr);
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_enum(&mut self, item: &ItemEnum) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("enum");
+        self.word("enum ");
         self.ident(&item.ident);
         self.generics(&item.generics);
         self.where_clause(&item.generics.where_clause);
-        self.word("{");
-        for variant in &item.variants {
-            self.variant(variant);
-            self.word(",");
+        self.word(" {");
+        if !item.variants.is_empty() {
+            self.cbox(INDENT);
+            self.hardbreak();
+            for variant in &item.variants {
+                self.variant(variant);
+                self.word(",");
+                self.hardbreak();
+            }
+            self.offset(-INDENT);
+            self.end();
         }
         self.word("}");
+        self.hardbreak();
     }
 
     fn item_extern_crate(&mut self, item: &ItemExternCrate) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("extern crate");
+        self.word("extern crate ");
         self.ident(&item.ident);
         if let Some((_as_token, rename)) = &item.rename {
-            self.word("as");
+            self.word(" as ");
             self.ident(rename);
         }
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_fn(&mut self, item: &ItemFn) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
         self.signature(&item.sig);
-        self.word("{");
-        self.inner_attrs(&item.attrs);
-        for stmt in &item.block.stmts {
-            self.stmt(stmt);
+        self.word(" {");
+        if !item.block.stmts.is_empty() || attr::has_inner(&item.attrs) {
+            self.cbox(INDENT);
+            self.inner_attrs(&item.attrs);
+            for stmt in &item.block.stmts {
+                self.stmt(stmt);
+            }
+            self.offset(-INDENT);
+            self.end();
         }
         self.word("}");
     }
@@ -186,8 +202,7 @@ impl Printer {
     fn item_struct(&mut self, item: &ItemStruct) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("struct");
-        self.nbsp();
+        self.word("struct ");
         self.ident(&item.ident);
         self.generics(&item.generics);
         match &item.fields {
