@@ -168,24 +168,20 @@ impl Printer {
     }
 
     fn advance_left(&mut self) {
-        let mut left_size = self.buf.first().size;
+        while self.buf.first().size >= 0 {
+            let left = self.buf.pop_first();
 
-        while left_size >= 0 {
-            let left = self.buf.pop_first().token;
-
-            match &left {
+            match &left.token {
                 Token::Break(b) => self.left_total += b.blank_space,
                 Token::String(s) => self.left_total += s.len() as isize,
                 _ => {}
             }
 
-            self.print(left, left_size);
+            self.print(left.token, left.size);
 
             if self.buf.is_empty() {
                 break;
             }
-
-            left_size = self.buf.first().size;
         }
     }
 
