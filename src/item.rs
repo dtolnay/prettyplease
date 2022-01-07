@@ -205,6 +205,7 @@ impl Printer {
                 self.word(";");
             }
         }
+        self.hardbreak();
     }
 
     fn item_trait(&mut self, item: &ItemTrait) {

@@ -45,10 +45,15 @@ impl Printer {
 
     pub fn fields_unnamed(&mut self, fields: &FieldsUnnamed) {
         self.word("(");
+        self.cbox(INDENT);
+        self.zerobreak();
         for field in &fields.unnamed {
             self.field(field);
             self.word(",");
+            self.space();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 
