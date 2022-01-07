@@ -115,33 +115,40 @@ impl Printer {
         self.offset(-INDENT);
         self.end();
         self.word("}");
+        self.hardbreak();
     }
 
     fn item_impl(&mut self, item: &ItemImpl) {
         self.outer_attrs(&item.attrs);
         if item.defaultness.is_some() {
-            self.word("default");
+            self.word("default ");
         }
         if item.unsafety.is_some() {
-            self.word("unsafe");
+            self.word("unsafe ");
         }
         self.word("impl");
         self.generics(&item.generics);
+        self.nbsp();
         if let Some((negative_polarity, path, _for_token)) = &item.trait_ {
             if negative_polarity.is_some() {
                 self.word("!");
             }
             self.path(path);
-            self.word("for");
+            self.word(" for ");
         }
         self.ty(&item.self_ty);
         self.where_clause(&item.generics.where_clause);
         self.word("{");
+        self.cbox(INDENT);
+        self.hardbreak();
         self.inner_attrs(&item.attrs);
         for impl_item in &item.items {
             self.impl_item(impl_item);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
+        self.hardbreak();
     }
 
     fn item_macro(&mut self, item: &ItemMacro) {
@@ -160,46 +167,54 @@ impl Printer {
         self.tokens(&item.mac.tokens);
         self.word(close);
         self.mac_semi_if_needed(&item.mac.delimiter);
+        self.hardbreak();
     }
 
     fn item_macro2(&mut self, item: &ItemMacro2) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("macro");
+        self.word("macro ");
         self.ident(&item.ident);
         self.tokens(&item.rules);
+        self.hardbreak();
     }
 
     fn item_mod(&mut self, item: &ItemMod) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("mod");
+        self.word("mod ");
         self.ident(&item.ident);
         if let Some((_brace, items)) = &item.content {
-            self.word("{");
+            self.word(" {");
+            self.cbox(INDENT);
+            self.hardbreak();
             self.inner_attrs(&item.attrs);
             for item in items {
                 self.item(item);
             }
+            self.offset(-INDENT);
+            self.end();
             self.word("}");
         } else {
             self.word(";");
         }
+        self.hardbreak();
     }
 
     fn item_static(&mut self, item: &ItemStatic) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("static");
+        self.word("static ");
         if item.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.ident(&item.ident);
-        self.word(":");
+        self.word(": ");
         self.ty(&item.ty);
-        self.word("=");
+        self.word(" = ");
         self.expr(&item.expr);
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_struct(&mut self, item: &ItemStruct) {
@@ -230,30 +245,35 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
         if item.unsafety.is_some() {
-            self.word("unsafe");
+            self.word("unsafe ");
         }
         if item.auto_token.is_some() {
-            self.word("auto");
+            self.word("auto ");
         }
-        self.word("trait");
+        self.word("trait ");
         self.ident(&item.ident);
         self.generics(&item.generics);
         if !item.supertraits.is_empty() {
-            self.word(":");
+            self.word(": ");
             for supertrait in item.supertraits.iter().delimited() {
                 if !supertrait.is_first {
-                    self.word("+");
+                    self.word(" + ");
                 }
                 self.type_param_bound(&supertrait);
             }
         }
         self.where_clause(&item.generics.where_clause);
-        self.word("{");
+        self.word(" {");
+        self.cbox(INDENT);
+        self.hardbreak();
         self.inner_attrs(&item.attrs);
         for trait_item in &item.items {
             self.trait_item(trait_item);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
+        self.hardbreak();
     }
 
     fn item_trait_alias(&mut self, item: &ItemTraitAlias) {
@@ -271,6 +291,7 @@ impl Printer {
         }
         self.where_clause(&item.generics.where_clause);
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_type(&mut self, item: &ItemType) {
@@ -283,6 +304,7 @@ impl Printer {
         self.word("=");
         self.ty(&item.ty);
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_union(&mut self, item: &ItemUnion) {
@@ -293,6 +315,7 @@ impl Printer {
         self.generics(&item.generics);
         self.where_clause(&item.generics.where_clause);
         self.fields_named(&item.fields);
+        self.hardbreak();
     }
 
     fn item_use(&mut self, item: &ItemUse) {
@@ -304,6 +327,7 @@ impl Printer {
         }
         self.use_tree(&item.tree);
         self.word(";");
+        self.hardbreak();
     }
 
     fn item_verbatim(&mut self, item: &TokenStream) {
@@ -370,33 +394,37 @@ impl Printer {
         self.visibility(&foreign_item.vis);
         self.signature(&foreign_item.sig);
         self.word(";");
+        self.hardbreak();
     }
 
     fn foreign_item_static(&mut self, foreign_item: &ForeignItemStatic) {
         self.outer_attrs(&foreign_item.attrs);
         self.visibility(&foreign_item.vis);
-        self.word("static");
+        self.word("static ");
         if foreign_item.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.ident(&foreign_item.ident);
-        self.word(":");
+        self.word(": ");
         self.ty(&foreign_item.ty);
         self.word(";");
+        self.hardbreak();
     }
 
     fn foreign_item_type(&mut self, foreign_item: &ForeignItemType) {
         self.outer_attrs(&foreign_item.attrs);
         self.visibility(&foreign_item.vis);
-        self.word("type");
+        self.word("type ");
         self.ident(&foreign_item.ident);
         self.word(";");
+        self.hardbreak();
     }
 
     fn foreign_item_macro(&mut self, foreign_item: &ForeignItemMacro) {
         self.outer_attrs(&foreign_item.attrs);
         self.mac(&foreign_item.mac);
         self.mac_semi_if_needed(&foreign_item.mac.delimiter);
+        self.hardbreak();
     }
 
     fn foreign_item_verbatim(&mut self, foreign_item: &TokenStream) {
@@ -429,6 +457,7 @@ impl Printer {
             self.expr(default);
         }
         self.word(";");
+        self.hardbreak();
     }
 
     fn trait_item_method(&mut self, trait_item: &TraitItemMethod) {
@@ -445,6 +474,7 @@ impl Printer {
             }
             None => self.word(";"),
         }
+        self.hardbreak();
     }
 
     fn trait_item_type(&mut self, trait_item: &TraitItemType) {
@@ -466,12 +496,14 @@ impl Printer {
             self.ty(default);
         }
         self.word(";");
+        self.hardbreak();
     }
 
     fn trait_item_macro(&mut self, trait_item: &TraitItemMacro) {
         self.outer_attrs(&trait_item.attrs);
         self.mac(&trait_item.mac);
         self.mac_semi_if_needed(&trait_item.mac.delimiter);
+        self.hardbreak();
     }
 
     fn trait_item_verbatim(&mut self, trait_item: &TokenStream) {
@@ -506,6 +538,7 @@ impl Printer {
         self.word("=");
         self.expr(&impl_item.expr);
         self.word(";");
+        self.hardbreak();
     }
 
     fn impl_item_method(&mut self, impl_item: &ImplItemMethod) {
@@ -519,6 +552,7 @@ impl Printer {
             if let Stmt::Item(Item::Verbatim(verbatim)) = &impl_item.block.stmts[0] {
                 if verbatim.to_string() == ";" {
                     self.word(";");
+                    self.hardbreak();
                     return;
                 }
             }
@@ -529,6 +563,7 @@ impl Printer {
             self.stmt(stmt);
         }
         self.word("}");
+        self.hardbreak();
     }
 
     fn impl_item_type(&mut self, impl_item: &ImplItemType) {
@@ -544,12 +579,14 @@ impl Printer {
         self.word("=");
         self.ty(&impl_item.ty);
         self.word(";");
+        self.hardbreak();
     }
 
     fn impl_item_macro(&mut self, impl_item: &ImplItemMacro) {
         self.outer_attrs(&impl_item.attrs);
         self.mac(&impl_item.mac);
         self.mac_semi_if_needed(&impl_item.mac.delimiter);
+        self.hardbreak();
     }
 
     fn impl_item_verbatim(&mut self, impl_item: &TokenStream) {
@@ -597,7 +634,7 @@ impl Printer {
         if let Some(abi) = &signature.abi {
             self.abi(abi);
         }
-        self.word("fn");
+        self.word("fn ");
         self.ident(&signature.ident);
         self.generics(&signature.generics);
         self.word("(");
