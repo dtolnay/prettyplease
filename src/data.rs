@@ -13,7 +13,7 @@ impl Printer {
             self.nbsp();
             self.word("=");
             self.nbsp();
-            self.expr(&discriminant);
+            self.expr(discriminant);
         }
     }
 

@@ -1,3 +1,14 @@
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::match_like_matches_macro,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::needless_pass_by_value,
+    clippy::similar_names,
+    clippy::unused_self
+)]
+
 mod algorithm;
 mod attr;
 mod convenience;
