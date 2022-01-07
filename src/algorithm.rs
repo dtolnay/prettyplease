@@ -128,23 +128,27 @@ impl Printer {
             self.right = self.left;
             self.buf.truncate(1);
         } else {
-            self.advance_right();
+            self.right += 1;
+            self.buf.advance_right();
         }
-        self.scan_push(BufEntry {
+        self.buf[self.right] = BufEntry {
             token: Token::Begin(b),
             size: -self.right_total,
-        });
+        };
+        self.scan_stack.push_front(self.right);
     }
 
     pub fn scan_end(&mut self) {
         if self.scan_stack.is_empty() {
             self.print_end();
         } else {
-            self.advance_right();
-            self.scan_push(BufEntry {
+            self.right += 1;
+            self.buf.advance_right();
+            self.buf[self.right] = BufEntry {
                 token: Token::End,
                 size: -1,
-            });
+            };
+            self.scan_stack.push_front(self.right);
         }
     }
 
@@ -155,13 +159,15 @@ impl Printer {
             self.right = self.left;
             self.buf.truncate(1);
         } else {
-            self.advance_right();
+            self.right += 1;
+            self.buf.advance_right();
         }
         self.check_stack(0);
-        self.scan_push(BufEntry {
+        self.buf[self.right] = BufEntry {
             token: Token::Break(b),
             size: -self.right_total,
-        });
+        };
+        self.scan_stack.push_front(self.right);
         self.right_total += b.blank_space;
     }
 
@@ -169,7 +175,8 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.print_string(s);
         } else {
-            self.advance_right();
+            self.right += 1;
+            self.buf.advance_right();
             let len = s.len() as isize;
             self.buf[self.right] = BufEntry {
                 token: Token::String(s),
@@ -193,11 +200,6 @@ impl Printer {
         }
     }
 
-    fn scan_push(&mut self, entry: BufEntry) {
-        self.buf[self.right] = entry;
-        self.scan_stack.push_front(self.right);
-    }
-
     fn scan_pop(&mut self) -> usize {
         self.scan_stack.pop_front().unwrap()
     }
@@ -208,11 +210,6 @@ impl Printer {
 
     fn scan_pop_bottom(&mut self) -> usize {
         self.scan_stack.pop_back().unwrap()
-    }
-
-    fn advance_right(&mut self) {
-        self.right += 1;
-        self.buf.advance_right();
     }
 
     fn advance_left(&mut self) {
