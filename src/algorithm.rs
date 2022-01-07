@@ -126,15 +126,14 @@ impl Printer {
             self.left_total = 1;
             self.right_total = 1;
             self.right = self.left;
-            self.buf.truncate(1);
+            self.buf.clear();
         } else {
             self.right += 1;
-            self.buf.advance_right();
         }
-        self.buf[self.right] = BufEntry {
+        self.buf.push(BufEntry {
             token: Token::Begin(b),
             size: -self.right_total,
-        };
+        });
         self.scan_stack.push_front(self.right);
     }
 
@@ -143,11 +142,10 @@ impl Printer {
             self.print_end();
         } else {
             self.right += 1;
-            self.buf.advance_right();
-            self.buf[self.right] = BufEntry {
+            self.buf.push(BufEntry {
                 token: Token::End,
                 size: -1,
-            };
+            });
             self.scan_stack.push_front(self.right);
         }
     }
@@ -176,12 +174,11 @@ impl Printer {
             self.print_string(s);
         } else {
             self.right += 1;
-            self.buf.advance_right();
             let len = s.len() as isize;
-            self.buf[self.right] = BufEntry {
+            self.buf.push(BufEntry {
                 token: Token::String(s),
                 size: len,
-            };
+            });
             self.right_total += len;
             self.check_stream();
         }
