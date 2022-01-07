@@ -229,23 +229,24 @@ impl Printer {
 
     fn check_stack(&mut self, mut k: usize) {
         while let Some(&x) = self.scan_stack.back() {
-            match self.buf[x].token {
+            let mut entry = &mut self.buf[x];
+            match entry.token {
                 Token::Begin(_) => {
                     if k == 0 {
                         break;
                     }
                     self.scan_stack.pop_back().unwrap();
-                    self.buf[x].size += self.right_total;
+                    entry.size += self.right_total;
                     k -= 1;
                 }
                 Token::End => {
                     self.scan_stack.pop_back().unwrap();
-                    self.buf[x].size = 1;
+                    entry.size = 1;
                     k += 1;
                 }
                 _ => {
                     self.scan_stack.pop_back().unwrap();
-                    self.buf[x].size += self.right_total;
+                    entry.size += self.right_total;
                     if k == 0 {
                         break;
                     }
