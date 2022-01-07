@@ -213,11 +213,6 @@ impl Printer {
         }
     }
 
-    fn print_newline(&mut self, amount: isize) {
-        self.out.push('\n');
-        self.pending_indentation = amount;
-    }
-
     fn get_top(&self) -> PrintFrame {
         const OUTER: PrintFrame = PrintFrame::Broken(0, Breaks::Inconsistent);
         self.print_stack.last().map_or(OUTER, PrintFrame::clone)
@@ -243,12 +238,14 @@ impl Printer {
                 self.space -= token.blank_space;
             }
             PrintFrame::Broken(offset, Breaks::Consistent) => {
-                self.print_newline(offset + token.offset);
+                self.out.push('\n');
+                self.pending_indentation = offset + token.offset;
                 self.space = self.margin - (offset + token.offset);
             }
             PrintFrame::Broken(offset, Breaks::Inconsistent) => {
                 if size > self.space {
-                    self.print_newline(offset + token.offset);
+                    self.out.push('\n');
+                    self.pending_indentation = offset + token.offset;
                     self.space = self.margin - (offset + token.offset);
                 } else {
                     self.pending_indentation += token.blank_space;
