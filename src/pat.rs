@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use proc_macro2::TokenStream;
 use syn::{
     FieldPat, Pat, PatBox, PatIdent, PatLit, PatMacro, PatOr, PatPath, PatRange, PatReference,
@@ -64,11 +65,11 @@ impl Printer {
 
     fn pat_or(&mut self, pat: &PatOr) {
         self.outer_attrs(&pat.attrs);
-        for (i, case) in pat.cases.iter().enumerate() {
-            if i > 0 {
+        for case in pat.cases.iter().delimited() {
+            if !case.is_first {
                 self.word("|");
             }
-            self.pat(case);
+            self.pat(&case);
         }
     }
 

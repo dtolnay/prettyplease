@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use syn::{
     BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
     PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
@@ -47,9 +48,9 @@ impl Printer {
 
     pub fn bound_lifetimes(&mut self, bound_lifetimes: &BoundLifetimes) {
         self.word("for<");
-        for (i, lifetime_def) in bound_lifetimes.lifetimes.iter().enumerate() {
-            self.lifetime_def(lifetime_def);
-            if i < bound_lifetimes.lifetimes.len() - 1 {
+        for lifetime_def in bound_lifetimes.lifetimes.iter().delimited() {
+            self.lifetime_def(&lifetime_def);
+            if !lifetime_def.is_last {
                 self.word(", ");
             }
         }
@@ -59,26 +60,26 @@ impl Printer {
     fn lifetime_def(&mut self, lifetime_def: &LifetimeDef) {
         self.outer_attrs(&lifetime_def.attrs);
         self.lifetime(&lifetime_def.lifetime);
-        for (i, lifetime) in lifetime_def.bounds.iter().enumerate() {
-            if i == 0 {
+        for lifetime in lifetime_def.bounds.iter().delimited() {
+            if lifetime.is_first {
                 self.word(":");
             } else {
                 self.word("+");
             }
-            self.lifetime(lifetime);
+            self.lifetime(&lifetime);
         }
     }
 
     fn type_param(&mut self, type_param: &TypeParam) {
         self.outer_attrs(&type_param.attrs);
         self.ident(&type_param.ident);
-        for (i, type_param_bound) in type_param.bounds.iter().enumerate() {
-            if i == 0 {
+        for type_param_bound in type_param.bounds.iter().delimited() {
+            if type_param_bound.is_first {
                 self.word(":");
             } else {
                 self.word("+");
             }
-            self.type_param_bound(type_param_bound);
+            self.type_param_bound(&type_param_bound);
         }
         if let Some(default) = &type_param.default {
             self.word("=");
@@ -108,11 +109,11 @@ impl Printer {
         if let Some(bound_lifetimes) = &trait_bound.lifetimes {
             self.bound_lifetimes(bound_lifetimes);
         }
-        for (i, segment) in trait_bound.path.segments.iter().skip(skip).enumerate() {
-            if i > 0 || trait_bound.path.leading_colon.is_some() {
+        for segment in trait_bound.path.segments.iter().skip(skip).delimited() {
+            if !segment.is_first || trait_bound.path.leading_colon.is_some() {
                 self.word("::");
             }
-            self.path_segment(segment);
+            self.path_segment(&segment);
         }
         if trait_bound.paren_token.is_some() {
             self.word(")");
@@ -164,22 +165,22 @@ impl Printer {
         }
         self.ty(&predicate.bounded_ty);
         self.word(":");
-        for (i, type_param_bound) in predicate.bounds.iter().enumerate() {
-            if i > 0 {
+        for type_param_bound in predicate.bounds.iter().delimited() {
+            if !type_param_bound.is_first {
                 self.word("+");
             }
-            self.type_param_bound(type_param_bound);
+            self.type_param_bound(&type_param_bound);
         }
     }
 
     fn predicate_lifetime(&mut self, predicate: &PredicateLifetime) {
         self.lifetime(&predicate.lifetime);
         self.word(":");
-        for (i, lifetime) in predicate.bounds.iter().enumerate() {
-            if i > 0 {
+        for lifetime in predicate.bounds.iter().delimited() {
+            if !lifetime.is_first {
                 self.word("+");
             }
-            self.lifetime(lifetime);
+            self.lifetime(&lifetime);
         }
     }
 

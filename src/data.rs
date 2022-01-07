@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use crate::INDENT;
 use syn::{
     Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted,
@@ -42,13 +43,13 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        for (i, field) in fields.unnamed.iter().enumerate() {
-            self.field(field);
-            if i < fields.unnamed.len() - 1 {
+        for field in fields.unnamed.iter().delimited() {
+            self.field(&field);
+            if field.is_last {
+                self.trailing_comma();
+            } else {
                 self.word(",");
                 self.space();
-            } else {
-                self.trailing_comma();
             }
         }
         self.offset(-INDENT);

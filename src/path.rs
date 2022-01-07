@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use std::cmp;
 use syn::{
     AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
@@ -7,11 +8,11 @@ use syn::{
 
 impl Printer {
     pub fn path(&mut self, path: &Path) {
-        for (i, segment) in path.segments.iter().enumerate() {
-            if i > 0 || path.leading_colon.is_some() {
+        for segment in path.segments.iter().delimited() {
+            if !segment.is_first || path.leading_colon.is_some() {
                 self.word("::");
             }
-            self.path_segment(segment);
+            self.path_segment(&segment);
         }
     }
 
@@ -144,12 +145,12 @@ impl Printer {
         let mut segments = path.segments.iter();
         if pos > 0 {
             self.word("as");
-            for (i, segment) in segments.by_ref().take(pos).enumerate() {
-                if i > 0 || path.leading_colon.is_some() {
+            for segment in segments.by_ref().take(pos).delimited() {
+                if !segment.is_first || path.leading_colon.is_some() {
                     self.word("::");
                 }
-                self.path_segment(segment);
-                if i + 1 == pos {
+                self.path_segment(&segment);
+                if segment.is_last {
                     self.word(">");
                 }
             }

@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use proc_macro2::TokenStream;
 use syn::{
     Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait, TypeInfer,
@@ -67,11 +68,11 @@ impl Printer {
 
     fn type_impl_trait(&mut self, ty: &TypeImplTrait) {
         self.word("impl");
-        for (i, type_param_bound) in ty.bounds.iter().enumerate() {
-            if i > 0 {
+        for type_param_bound in ty.bounds.iter().delimited() {
+            if !type_param_bound.is_first {
                 self.word("+");
             }
-            self.type_param_bound(type_param_bound);
+            self.type_param_bound(&type_param_bound);
         }
     }
 
@@ -128,11 +129,11 @@ impl Printer {
 
     fn type_trait_object(&mut self, ty: &TypeTraitObject) {
         self.word("dyn");
-        for (i, type_param_bound) in ty.bounds.iter().enumerate() {
-            if i > 0 {
+        for type_param_bound in ty.bounds.iter().delimited() {
+            if !type_param_bound.is_first {
                 self.word("+");
             }
-            self.type_param_bound(type_param_bound);
+            self.type_param_bound(&type_param_bound);
         }
     }
 

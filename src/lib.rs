@@ -17,6 +17,7 @@ mod expr;
 mod file;
 mod generics;
 mod item;
+mod iter;
 mod lifetime;
 mod lit;
 mod mac;

@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
@@ -239,11 +240,11 @@ impl Printer {
         self.generics(&item.generics);
         if !item.supertraits.is_empty() {
             self.word(":");
-            for (i, supertrait) in item.supertraits.iter().enumerate() {
-                if i > 0 {
+            for supertrait in item.supertraits.iter().delimited() {
+                if !supertrait.is_first {
                     self.word("+");
                 }
-                self.type_param_bound(supertrait);
+                self.type_param_bound(&supertrait);
             }
         }
         self.where_clause(&item.generics.where_clause);
@@ -262,11 +263,11 @@ impl Printer {
         self.ident(&item.ident);
         self.generics(&item.generics);
         self.word("=");
-        for (i, bound) in item.bounds.iter().enumerate() {
-            if i > 0 {
+        for bound in item.bounds.iter().delimited() {
+            if !bound.is_first {
                 self.word("+");
             }
-            self.type_param_bound(bound);
+            self.type_param_bound(&bound);
         }
         self.where_clause(&item.generics.where_clause);
         self.word(";");
@@ -451,13 +452,13 @@ impl Printer {
         self.word("type");
         self.ident(&trait_item.ident);
         self.generics(&trait_item.generics);
-        for (i, bound) in trait_item.bounds.iter().enumerate() {
-            if i == 0 {
+        for bound in trait_item.bounds.iter().delimited() {
+            if bound.is_first {
                 self.word(":");
             } else {
                 self.word("+");
             }
-            self.type_param_bound(bound);
+            self.type_param_bound(&bound);
         }
         self.where_clause(&trait_item.generics.where_clause);
         if let Some((_eq_token, default)) = &trait_item.default {

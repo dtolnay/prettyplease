@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::iter::IterDelimited;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
@@ -160,13 +161,13 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        for (i, arg) in expr.args.iter().enumerate() {
-            self.expr(arg);
-            if i < expr.args.len() - 1 {
+        for arg in expr.args.iter().delimited() {
+            self.expr(&arg);
+            if arg.is_last {
+                self.trailing_comma();
+            } else {
                 self.word(",");
                 self.space();
-            } else {
-                self.trailing_comma();
             }
         }
         self.offset(-INDENT);
