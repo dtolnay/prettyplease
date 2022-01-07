@@ -177,7 +177,12 @@ impl Printer {
                 _ => {}
             }
 
-            self.print(left.token, left.size);
+            match left.token {
+                Token::Begin(b) => self.print_begin(b, left.size),
+                Token::End => self.print_end(),
+                Token::Break(b) => self.print_break(b, left.size),
+                Token::String(s) => self.print_string(s),
+            }
 
             if self.buf.is_empty() {
                 break;
@@ -291,14 +296,5 @@ impl Printer {
             .extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
         self.pending_indentation = 0;
         self.out.push_str(&s);
-    }
-
-    fn print(&mut self, token: Token, l: isize) {
-        match token {
-            Token::Begin(b) => self.print_begin(b, l),
-            Token::End => self.print_end(),
-            Token::Break(b) => self.print_break(b, l),
-            Token::String(s) => self.print_string(s),
-        }
     }
 }
