@@ -36,15 +36,9 @@ pub enum Token {
 }
 
 #[derive(Copy, Clone)]
-enum PrintStackBreak {
+enum PrintFrame {
     Fits,
-    Broken(Breaks),
-}
-
-#[derive(Copy, Clone)]
-struct PrintStackElem {
-    offset: isize,
-    pbreak: PrintStackBreak,
+    Broken(isize, Breaks),
 }
 
 pub const SIZE_INFINITY: isize = 0xffff;
@@ -68,7 +62,7 @@ pub struct Printer {
     // advancing.
     scan_stack: VecDeque<usize>,
     // Stack of blocks-in-progress being flushed by print
-    print_stack: Vec<PrintStackElem>,
+    print_stack: Vec<PrintFrame>,
     // Buffered indentation to avoid writing trailing whitespace
     pending_indentation: isize,
 }
@@ -229,26 +223,17 @@ impl Printer {
         self.pending_indentation += amount;
     }
 
-    fn get_top(&self) -> PrintStackElem {
-        const OUTER: PrintStackElem = PrintStackElem {
-            offset: 0,
-            pbreak: PrintStackBreak::Broken(Breaks::Inconsistent),
-        };
-        self.print_stack.last().map_or(OUTER, PrintStackElem::clone)
+    fn get_top(&self) -> PrintFrame {
+        const OUTER: PrintFrame = PrintFrame::Broken(0, Breaks::Inconsistent);
+        self.print_stack.last().map_or(OUTER, PrintFrame::clone)
     }
 
     fn print_begin(&mut self, token: BeginToken, size: isize) {
         if size > self.space {
             let col = self.margin - self.space + token.offset;
-            self.print_stack.push(PrintStackElem {
-                offset: col,
-                pbreak: PrintStackBreak::Broken(token.breaks),
-            });
+            self.print_stack.push(PrintFrame::Broken(col, token.breaks));
         } else {
-            self.print_stack.push(PrintStackElem {
-                offset: 0,
-                pbreak: PrintStackBreak::Fits,
-            });
+            self.print_stack.push(PrintFrame::Fits);
         }
     }
 
@@ -257,20 +242,19 @@ impl Printer {
     }
 
     fn print_break(&mut self, token: BreakToken, size: isize) {
-        let top = self.get_top();
-        match top.pbreak {
-            PrintStackBreak::Fits => {
-                self.space -= token.blank_space;
+        match self.get_top() {
+            PrintFrame::Fits => {
                 self.indent(token.blank_space);
+                self.space -= token.blank_space;
             }
-            PrintStackBreak::Broken(Breaks::Consistent) => {
-                self.print_newline(top.offset + token.offset);
-                self.space = self.margin - (top.offset + token.offset);
+            PrintFrame::Broken(offset, Breaks::Consistent) => {
+                self.print_newline(offset + token.offset);
+                self.space = self.margin - (offset + token.offset);
             }
-            PrintStackBreak::Broken(Breaks::Inconsistent) => {
+            PrintFrame::Broken(offset, Breaks::Inconsistent) => {
                 if size > self.space {
-                    self.print_newline(top.offset + token.offset);
-                    self.space = self.margin - (top.offset + token.offset);
+                    self.print_newline(offset + token.offset);
+                    self.space = self.margin - (offset + token.offset);
                 } else {
                     self.indent(token.blank_space);
                     self.space -= token.blank_space;
