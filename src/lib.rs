@@ -30,6 +30,8 @@ mod ty;
 use crate::algorithm::Printer;
 use syn::File;
 
+const INDENT: usize = 4;
+
 pub fn unparse(file: &File) -> String {
     let mut p = Printer::new();
     p.file(file);

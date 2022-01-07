@@ -4,8 +4,6 @@ use crate::algorithm::{self, BeginToken, BreakToken, Breaks, Printer, Token};
 use std::borrow::Cow;
 
 impl Printer {
-    pub const INDENT: usize = 4;
-
     // "raw box"
     pub fn rbox(&mut self, indent: usize, b: Breaks) {
         self.scan_begin(BeginToken {

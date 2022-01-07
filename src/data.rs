@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::INDENT;
 use syn::{
     Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted,
     Visibility,
@@ -29,7 +30,7 @@ impl Printer {
         self.nbsp();
         self.word("{");
         if !fields.named.is_empty() {
-            self.cbox(Printer::INDENT);
+            self.cbox(INDENT);
             self.hardbreak();
             for field in &fields.named {
                 self.field(field);
