@@ -37,6 +37,7 @@ impl Printer {
                 self.word(",");
                 self.hardbreak();
             }
+            self.offset(-INDENT);
             self.end();
         }
         self.word("}");

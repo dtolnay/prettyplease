@@ -5,20 +5,20 @@ use std::borrow::Cow;
 
 impl Printer {
     // "raw box"
-    pub fn rbox(&mut self, indent: usize, b: Breaks) {
+    pub fn rbox(&mut self, indent: isize, b: Breaks) {
         self.scan_begin(BeginToken {
-            offset: indent,
+            offset: usize::try_from(indent).unwrap(),
             breaks: b,
         });
     }
 
     // Inconsistent breaking box
-    pub fn ibox(&mut self, indent: usize) {
+    pub fn ibox(&mut self, indent: isize) {
         self.rbox(indent, Breaks::Inconsistent);
     }
 
     // Consistent breaking box
-    pub fn cbox(&mut self, indent: usize) {
+    pub fn cbox(&mut self, indent: isize) {
         self.rbox(indent, Breaks::Consistent);
     }
 

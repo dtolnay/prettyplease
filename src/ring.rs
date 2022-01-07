@@ -45,6 +45,10 @@ impl<T> RingBuffer<T> {
         self.offset += 1;
         self.data.pop_front().unwrap()
     }
+
+    pub fn last_mut(&mut self) -> &mut T {
+        self.data.back_mut().unwrap()
+    }
 }
 
 impl<T> Index<usize> for RingBuffer<T> {

@@ -155,6 +155,14 @@ impl Printer {
         }
     }
 
+    pub fn offset(&mut self, offset: isize) {
+        if let Token::Break(token) = &mut self.buf.last_mut().token {
+            token.offset += offset;
+        } else {
+            unreachable!();
+        }
+    }
+
     fn check_stream(&mut self) {
         while self.right_total - self.left_total > self.space {
             if *self.scan_stack.front().unwrap() == self.buf.index_of_first() {
