@@ -93,6 +93,7 @@ impl Printer {
         self.word(" {");
         if !item.block.stmts.is_empty() || attr::has_inner(&item.attrs) {
             self.cbox(INDENT);
+            self.hardbreak();
             self.inner_attrs(&item.attrs);
             for stmt in &item.block.stmts {
                 self.stmt(stmt);
@@ -107,9 +108,15 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.abi(&item.abi);
         self.word("{");
-        self.inner_attrs(&item.attrs);
-        for foreign_item in &item.items {
-            self.foreign_item(foreign_item);
+        if !item.items.is_empty() || attr::has_inner(&item.attrs) {
+            self.cbox(INDENT);
+            self.hardbreak();
+            self.inner_attrs(&item.attrs);
+            for foreign_item in &item.items {
+                self.foreign_item(foreign_item);
+            }
+            self.offset(-INDENT);
+            self.end();
         }
         self.word("}");
     }
