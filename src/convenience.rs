@@ -26,6 +26,7 @@ impl Printer {
         self.scan_break(BreakToken {
             offset: off,
             blank_space: n,
+            trailing_comma: false,
         });
     }
 
@@ -62,6 +63,15 @@ impl Printer {
         Token::Break(BreakToken {
             offset: off,
             blank_space: algorithm::SIZE_INFINITY as usize,
+            trailing_comma: false,
         })
+    }
+
+    pub fn trailing_comma(&mut self) {
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: 0,
+            trailing_comma: true,
+        });
     }
 }

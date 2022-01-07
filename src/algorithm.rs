@@ -16,6 +16,7 @@ pub enum Breaks {
 pub struct BreakToken {
     pub offset: isize,
     pub blank_space: usize,
+    pub trailing_comma: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -255,6 +256,9 @@ impl Printer {
             self.pending_indentation += token.blank_space;
             self.space -= token.blank_space as isize;
         } else {
+            if token.trailing_comma {
+                self.out.push(',');
+            }
             self.out.push('\n');
             let indent = self.indent as isize + token.offset;
             self.pending_indentation = indent as usize;

@@ -47,10 +47,14 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        for field in &fields.unnamed {
+        for (i, field) in fields.unnamed.iter().enumerate() {
             self.field(field);
-            self.word(",");
-            self.space();
+            if i < fields.unnamed.len() - 1 {
+                self.word(",");
+                self.space();
+            } else {
+                self.trailing_comma();
+            }
         }
         self.offset(-INDENT);
         self.end();
