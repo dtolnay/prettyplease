@@ -102,14 +102,14 @@ impl Printer {
         self.out
     }
 
-    pub fn scan_begin(&mut self, b: BeginToken) {
+    pub fn scan_begin(&mut self, token: BeginToken) {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
             self.buf.clear();
         }
         let right = self.buf.push(BufEntry {
-            token: Token::Begin(b),
+            token: Token::Begin(token),
             size: -self.right_total,
         });
         self.scan_stack.push_back(right);
@@ -127,7 +127,7 @@ impl Printer {
         }
     }
 
-    pub fn scan_break(&mut self, b: BreakToken) {
+    pub fn scan_break(&mut self, token: BreakToken) {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
@@ -136,20 +136,20 @@ impl Printer {
             self.check_stack(0);
         }
         let right = self.buf.push(BufEntry {
-            token: Token::Break(b),
+            token: Token::Break(token),
             size: -self.right_total,
         });
         self.scan_stack.push_back(right);
-        self.right_total += b.blank_space;
+        self.right_total += token.blank_space;
     }
 
-    pub fn scan_string(&mut self, s: Cow<'static, str>) {
+    pub fn scan_string(&mut self, string: Cow<'static, str>) {
         if self.scan_stack.is_empty() {
-            self.print_string(s);
+            self.print_string(string);
         } else {
-            let len = s.len() as isize;
+            let len = string.len() as isize;
             self.buf.push(BufEntry {
-                token: Token::String(s),
+                token: Token::String(string),
                 size: len,
             });
             self.right_total += len;
@@ -172,15 +172,15 @@ impl Printer {
             let left = self.buf.pop_first();
 
             match left.token {
-                Token::String(s) => {
-                    self.left_total += s.len() as isize;
-                    self.print_string(s);
+                Token::String(string) => {
+                    self.left_total += string.len() as isize;
+                    self.print_string(string);
                 }
-                Token::Break(b) => {
-                    self.left_total += b.blank_space;
-                    self.print_break(b, left.size);
+                Token::Break(token) => {
+                    self.left_total += token.blank_space;
+                    self.print_break(token, left.size);
                 }
-                Token::Begin(b) => self.print_begin(b, left.size),
+                Token::Begin(token) => self.print_begin(token, left.size),
                 Token::End => self.print_end(),
             }
 
@@ -190,27 +190,27 @@ impl Printer {
         }
     }
 
-    fn check_stack(&mut self, mut k: usize) {
-        while let Some(&x) = self.scan_stack.back() {
-            let mut entry = &mut self.buf[x];
+    fn check_stack(&mut self, mut depth: usize) {
+        while let Some(&index) = self.scan_stack.back() {
+            let mut entry = &mut self.buf[index];
             match entry.token {
                 Token::Begin(_) => {
-                    if k == 0 {
+                    if depth == 0 {
                         break;
                     }
                     self.scan_stack.pop_back().unwrap();
                     entry.size += self.right_total;
-                    k -= 1;
+                    depth -= 1;
                 }
                 Token::End => {
                     self.scan_stack.pop_back().unwrap();
                     entry.size = 1;
-                    k += 1;
+                    depth += 1;
                 }
                 _ => {
                     self.scan_stack.pop_back().unwrap();
                     entry.size += self.right_total;
-                    if k == 0 {
+                    if depth == 0 {
                         break;
                     }
                 }
@@ -236,12 +236,12 @@ impl Printer {
         self.print_stack.last().map_or(OUTER, PrintStackElem::clone)
     }
 
-    fn print_begin(&mut self, b: BeginToken, l: isize) {
-        if l > self.space {
-            let col = self.margin - self.space + b.offset;
+    fn print_begin(&mut self, token: BeginToken, size: isize) {
+        if size > self.space {
+            let col = self.margin - self.space + token.offset;
             self.print_stack.push(PrintStackElem {
                 offset: col,
-                pbreak: PrintStackBreak::Broken(b.breaks),
+                pbreak: PrintStackBreak::Broken(token.breaks),
             });
         } else {
             self.print_stack.push(PrintStackElem {
@@ -255,31 +255,31 @@ impl Printer {
         self.print_stack.pop().unwrap();
     }
 
-    fn print_break(&mut self, b: BreakToken, l: isize) {
+    fn print_break(&mut self, token: BreakToken, size: isize) {
         let top = self.get_top();
         match top.pbreak {
             PrintStackBreak::Fits => {
-                self.space -= b.blank_space;
-                self.indent(b.blank_space);
+                self.space -= token.blank_space;
+                self.indent(token.blank_space);
             }
             PrintStackBreak::Broken(Breaks::Consistent) => {
-                self.print_newline(top.offset + b.offset);
-                self.space = self.margin - (top.offset + b.offset);
+                self.print_newline(top.offset + token.offset);
+                self.space = self.margin - (top.offset + token.offset);
             }
             PrintStackBreak::Broken(Breaks::Inconsistent) => {
-                if l > self.space {
-                    self.print_newline(top.offset + b.offset);
-                    self.space = self.margin - (top.offset + b.offset);
+                if size > self.space {
+                    self.print_newline(top.offset + token.offset);
+                    self.space = self.margin - (top.offset + token.offset);
                 } else {
-                    self.indent(b.blank_space);
-                    self.space -= b.blank_space;
+                    self.indent(token.blank_space);
+                    self.space -= token.blank_space;
                 }
             }
         }
     }
 
-    fn print_string(&mut self, s: Cow<'static, str>) {
-        let len = s.len() as isize;
+    fn print_string(&mut self, string: Cow<'static, str>) {
+        let len = string.len() as isize;
         // assert!(len <= space);
         self.space -= len;
 
@@ -294,6 +294,6 @@ impl Printer {
         self.out
             .extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
         self.pending_indentation = 0;
-        self.out.push_str(&s);
+        self.out.push_str(&string);
     }
 }
