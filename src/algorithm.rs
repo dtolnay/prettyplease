@@ -171,7 +171,7 @@ impl Printer {
         let mut left_size = self.buf.first().size;
 
         while left_size >= 0 {
-            let left = self.buf.first().token.clone();
+            let left = self.buf.pop_first().token;
 
             let len = match left {
                 Token::Break(b) => b.blank_space,
@@ -187,7 +187,6 @@ impl Printer {
 
             self.left_total += len;
 
-            self.buf.advance_left();
             if self.buf.is_empty() {
                 break;
             }

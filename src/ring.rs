@@ -25,11 +25,6 @@ impl<T> RingBuffer<T> {
         index
     }
 
-    pub fn advance_left(&mut self) {
-        self.data.pop_front().unwrap();
-        self.offset += 1;
-    }
-
     pub fn clear(&mut self) {
         self.data.clear();
     }
@@ -44,6 +39,11 @@ impl<T> RingBuffer<T> {
 
     pub fn first_mut(&mut self) -> &mut T {
         &mut self.data[0]
+    }
+
+    pub fn pop_first(&mut self) -> T {
+        self.offset += 1;
+        self.data.pop_front().unwrap()
     }
 }
 
