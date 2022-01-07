@@ -19,6 +19,10 @@ impl<T> RingBuffer<T> {
         self.data.is_empty()
     }
 
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
     pub fn push(&mut self, value: T) -> usize {
         let index = self.offset + self.data.len();
         self.data.push_back(value);
@@ -46,8 +50,20 @@ impl<T> RingBuffer<T> {
         self.data.pop_front().unwrap()
     }
 
+    pub fn last(&self) -> &T {
+        self.data.back().unwrap()
+    }
+
     pub fn last_mut(&mut self) -> &mut T {
         self.data.back_mut().unwrap()
+    }
+
+    pub fn second_last(&self) -> &T {
+        &self.data[self.data.len() - 2]
+    }
+
+    pub fn pop_last(&mut self) {
+        self.data.pop_back().unwrap();
     }
 }
 
