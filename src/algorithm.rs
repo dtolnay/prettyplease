@@ -3,6 +3,7 @@
 use crate::ring::RingBuffer;
 use std::borrow::Cow;
 use std::collections::VecDeque;
+use std::iter;
 
 // How to break. Described in more detail in the module docs.
 #[derive(Clone, Copy, PartialEq)]
@@ -279,21 +280,12 @@ impl Printer {
     }
 
     fn print_string(&mut self, string: Cow<'static, str>) {
-        let len = string.len() as isize;
-        // assert!(len <= space);
-        self.space -= len;
-
-        // Write the pending indent. A more concise way of doing this would be:
-        //
-        //   write!(self.out, "{: >n$}", "", n = self.pending_indentation as usize)?;
-        //
-        // But that is significantly slower. This code is sufficiently hot, and
-        // indents can get sufficiently large, that the difference is
-        // significant on some workloads.
         self.out.reserve(self.pending_indentation as usize);
         self.out
-            .extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
+            .extend(iter::repeat(' ').take(self.pending_indentation as usize));
         self.pending_indentation = 0;
+
         self.out.push_str(&string);
+        self.space -= string.len() as isize;
     }
 }
