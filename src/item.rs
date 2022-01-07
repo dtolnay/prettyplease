@@ -1,5 +1,5 @@
 use crate::algorithm::Printer;
-use crate::{attr, INDENT};
+use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
@@ -58,17 +58,15 @@ impl Printer {
         self.generics(&item.generics);
         self.where_clause(&item.generics.where_clause);
         self.word(" {");
-        if !item.variants.is_empty() {
-            self.cbox(INDENT);
+        self.cbox(INDENT);
+        self.hardbreak();
+        for variant in &item.variants {
+            self.variant(variant);
+            self.word(",");
             self.hardbreak();
-            for variant in &item.variants {
-                self.variant(variant);
-                self.word(",");
-                self.hardbreak();
-            }
-            self.offset(-INDENT);
-            self.end();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
         self.hardbreak();
     }
@@ -91,16 +89,14 @@ impl Printer {
         self.visibility(&item.vis);
         self.signature(&item.sig);
         self.word(" {");
-        if !item.block.stmts.is_empty() || attr::has_inner(&item.attrs) {
-            self.cbox(INDENT);
-            self.hardbreak();
-            self.inner_attrs(&item.attrs);
-            for stmt in &item.block.stmts {
-                self.stmt(stmt);
-            }
-            self.offset(-INDENT);
-            self.end();
+        self.cbox(INDENT);
+        self.hardbreak();
+        self.inner_attrs(&item.attrs);
+        for stmt in &item.block.stmts {
+            self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -108,16 +104,14 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.abi(&item.abi);
         self.word("{");
-        if !item.items.is_empty() || attr::has_inner(&item.attrs) {
-            self.cbox(INDENT);
-            self.hardbreak();
-            self.inner_attrs(&item.attrs);
-            for foreign_item in &item.items {
-                self.foreign_item(foreign_item);
-            }
-            self.offset(-INDENT);
-            self.end();
+        self.cbox(INDENT);
+        self.hardbreak();
+        self.inner_attrs(&item.attrs);
+        for foreign_item in &item.items {
+            self.foreign_item(foreign_item);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 

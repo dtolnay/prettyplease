@@ -5,15 +5,13 @@ use syn::{Block, Local, Stmt};
 impl Printer {
     pub fn block(&mut self, block: &Block) {
         self.word("{");
-        if !block.stmts.is_empty() {
-            self.cbox(INDENT);
-            self.hardbreak();
-            for stmt in &block.stmts {
-                self.stmt(stmt);
-            }
-            self.offset(-INDENT);
-            self.end();
+        self.cbox(INDENT);
+        self.hardbreak();
+        for stmt in &block.stmts {
+            self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 

@@ -1,5 +1,5 @@
 use crate::algorithm::Printer;
-use crate::{attr, INDENT};
+use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     Arm, BinOp, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait, ExprBinary,
@@ -126,16 +126,14 @@ impl Printer {
             self.label(label);
         }
         self.word("{");
-        if !expr.block.stmts.is_empty() || attr::has_inner(&expr.attrs) {
-            self.cbox(INDENT);
-            self.hardbreak();
-            self.inner_attrs(&expr.attrs);
-            for stmt in &expr.block.stmts {
-                self.stmt(stmt);
-            }
-            self.offset(-INDENT);
-            self.end();
+        self.cbox(INDENT);
+        self.hardbreak();
+        self.inner_attrs(&expr.attrs);
+        for stmt in &expr.block.stmts {
+            self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 

@@ -26,17 +26,15 @@ impl Printer {
 
     pub fn fields_named(&mut self, fields: &FieldsNamed) {
         self.word(" {");
-        if !fields.named.is_empty() {
-            self.cbox(INDENT);
+        self.cbox(INDENT);
+        self.hardbreak();
+        for field in &fields.named {
+            self.field(field);
+            self.word(",");
             self.hardbreak();
-            for field in &fields.named {
-                self.field(field);
-                self.word(",");
-                self.hardbreak();
-            }
-            self.offset(-INDENT);
-            self.end();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
