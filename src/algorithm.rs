@@ -65,11 +65,10 @@ pub struct Printer {
     left_total: isize,
     // Running size of stream "...right"
     right_total: isize,
-    // Pseudo-stack, really a ring too. Holds the
-    // primary-ring-buffers index of the Begin that started the
-    // current block, possibly with the most recent Break after that
-    // Begin (if there is any) on top of it. Stuff is flushed off the
-    // bottom as it becomes irrelevant due to the primary ring-buffer
+    // Pseudo-stack, really a ring too. Holds the primary-ring-buffers index of
+    // the Begin that started the current block, possibly with the most recent
+    // Break after that Begin (if there is any) on top of it. Stuff is flushed
+    // off the bottom as it becomes irrelevant due to the primary ring-buffer
     // advancing.
     scan_stack: VecDeque<usize>,
     // Stack of blocks-in-progress being flushed by print
@@ -338,8 +337,9 @@ impl Printer {
         //
         //   write!(self.out, "{: >n$}", "", n = self.pending_indentation as usize)?;
         //
-        // But that is significantly slower. This code is sufficiently hot, and indents can get
-        // sufficiently large, that the difference is significant on some workloads.
+        // But that is significantly slower. This code is sufficiently hot, and
+        // indents can get sufficiently large, that the difference is
+        // significant on some workloads.
         self.out.reserve(self.pending_indentation as usize);
         self.out
             .extend(std::iter::repeat(' ').take(self.pending_indentation as usize));
