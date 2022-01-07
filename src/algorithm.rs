@@ -54,10 +54,6 @@ pub struct Printer {
     margin: isize,
     // Number of spaces left on line
     space: isize,
-    // Index of left side of input stream
-    left: usize,
-    // Index of right side of input stream
-    right: usize,
     // Ring-buffer of tokens and calculated sizes
     buf: RingBuffer<BufEntry>,
     // Running size of stream "...left"
@@ -89,8 +85,6 @@ impl Printer {
             out: String::new(),
             margin: linewidth as isize,
             space: linewidth as isize,
-            left: 0,
-            right: 0,
             buf: RingBuffer::new(),
             left_total: 0,
             right_total: 0,
@@ -112,28 +106,24 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
-            self.right = self.left;
             self.buf.clear();
-        } else {
-            self.right += 1;
         }
-        self.buf.push(BufEntry {
+        let right = self.buf.push(BufEntry {
             token: Token::Begin(b),
             size: -self.right_total,
         });
-        self.scan_stack.push_back(self.right);
+        self.scan_stack.push_back(right);
     }
 
     pub fn scan_end(&mut self) {
         if self.scan_stack.is_empty() {
             self.print_end();
         } else {
-            self.right += 1;
-            self.buf.push(BufEntry {
+            let right = self.buf.push(BufEntry {
                 token: Token::End,
                 size: -1,
             });
-            self.scan_stack.push_back(self.right);
+            self.scan_stack.push_back(right);
         }
     }
 
@@ -141,17 +131,15 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.left_total = 1;
             self.right_total = 1;
-            self.right = self.left;
             self.buf.clear();
         } else {
             self.check_stack(0);
-            self.right += 1;
         }
-        self.buf.push(BufEntry {
+        let right = self.buf.push(BufEntry {
             token: Token::Break(b),
             size: -self.right_total,
         });
-        self.scan_stack.push_back(self.right);
+        self.scan_stack.push_back(right);
         self.right_total += b.blank_space;
     }
 
@@ -159,7 +147,6 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.print_string(s);
         } else {
-            self.right += 1;
             let len = s.len() as isize;
             self.buf.push(BufEntry {
                 token: Token::String(s),
@@ -172,22 +159,19 @@ impl Printer {
 
     fn check_stream(&mut self) {
         while self.right_total - self.left_total > self.space {
-            if self.scan_stack.front() == Some(&self.left) {
+            if *self.scan_stack.front().unwrap() == self.buf.index_of_first() {
                 self.scan_stack.pop_front().unwrap();
-                self.buf[self.left].size = SIZE_INFINITY;
+                self.buf.first_mut().size = SIZE_INFINITY;
             }
             self.advance_left();
-            if self.left == self.right {
-                break;
-            }
         }
     }
 
     fn advance_left(&mut self) {
-        let mut left_size = self.buf[self.left].size;
+        let mut left_size = self.buf.first().size;
 
         while left_size >= 0 {
-            let left = self.buf[self.left].token.clone();
+            let left = self.buf.first().token.clone();
 
             let len = match left {
                 Token::Break(b) => b.blank_space,
@@ -203,14 +187,12 @@ impl Printer {
 
             self.left_total += len;
 
-            if self.left == self.right {
+            self.buf.advance_left();
+            if self.buf.is_empty() {
                 break;
             }
 
-            self.buf.advance_left();
-            self.left += 1;
-
-            left_size = self.buf[self.left].size;
+            left_size = self.buf.first().size;
         }
     }
 
