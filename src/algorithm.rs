@@ -216,13 +216,14 @@ impl Printer {
                     entry.size = 1;
                     depth += 1;
                 }
-                _ => {
+                Token::Break(_) => {
                     self.scan_stack.pop_back().unwrap();
                     entry.size += self.right_total;
                     if depth == 0 {
                         break;
                     }
                 }
+                Token::String(_) => unreachable!(),
             }
         }
     }
