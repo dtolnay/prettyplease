@@ -32,7 +32,6 @@ pub enum Token {
     Break(BreakToken),
     Begin(BeginToken),
     End,
-    Eof,
 }
 
 #[derive(Copy, Clone)]
@@ -83,27 +82,16 @@ struct BufEntry {
     size: isize,
 }
 
-impl Default for BufEntry {
-    fn default() -> Self {
-        BufEntry {
-            token: Token::Eof,
-            size: 0,
-        }
-    }
-}
-
 impl Printer {
     pub fn new() -> Self {
         let linewidth = 78;
-        let mut buf = RingBuffer::new();
-        buf.advance_right();
         Printer {
             out: String::new(),
             margin: linewidth as isize,
             space: linewidth as isize,
             left: 0,
             right: 0,
-            buf,
+            buf: RingBuffer::new(),
             left_total: 0,
             right_total: 0,
             scan_stack: VecDeque::new(),
@@ -344,7 +332,6 @@ impl Printer {
                 assert_eq!(len, l);
                 self.print_string(s);
             }
-            Token::Eof => panic!(), // Eof should never get here.
         }
     }
 }
