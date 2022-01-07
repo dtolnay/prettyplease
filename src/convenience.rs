@@ -60,10 +60,6 @@ impl Printer {
         self.spaces(algorithm::SIZE_INFINITY as usize)
     }
 
-    pub fn is_beginning_of_line(&self) -> bool {
-        self.last_token().is_eof() || self.last_token().is_hardbreak_tok()
-    }
-
     pub fn hardbreak_tok_offset(off: isize) -> Token {
         Token::Break(BreakToken {
             offset: off,

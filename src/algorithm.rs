@@ -1,7 +1,5 @@
 // Derived from https://github.com/rust-lang/rust/blob/1.57.0/compiler/rustc_ast_pretty/src/pp.rs
 
-#![allow(dead_code)]
-
 use crate::ring::RingBuffer;
 use std::borrow::Cow;
 use std::collections::VecDeque;
@@ -35,22 +33,6 @@ pub enum Token {
     Begin(BeginToken),
     End,
     Eof,
-}
-
-impl Token {
-    pub fn is_eof(&self) -> bool {
-        matches!(self, Token::Eof)
-    }
-
-    pub fn is_hardbreak_tok(&self) -> bool {
-        matches!(
-            self,
-            Token::Break(BreakToken {
-                offset: 0,
-                blank_space: SIZE_INFINITY,
-            })
-        )
-    }
 }
 
 #[derive(Copy, Clone)]
@@ -129,15 +111,6 @@ impl Printer {
             print_stack: Vec::new(),
             pending_indentation: 0,
         }
-    }
-
-    pub fn last_token(&self) -> Token {
-        self.buf[self.right].token.clone()
-    }
-
-    // Be very careful with this!
-    pub fn replace_last_token(&mut self, t: Token) {
-        self.buf[self.right].token = t;
     }
 
     pub fn eof(mut self) -> String {
