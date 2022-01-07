@@ -133,7 +133,7 @@ impl Printer {
             token: Token::Begin(b),
             size: -self.right_total,
         });
-        self.scan_stack.push_front(self.right);
+        self.scan_stack.push_back(self.right);
     }
 
     pub fn scan_end(&mut self) {
@@ -145,7 +145,7 @@ impl Printer {
                 token: Token::End,
                 size: -1,
             });
-            self.scan_stack.push_front(self.right);
+            self.scan_stack.push_back(self.right);
         }
     }
 
@@ -164,7 +164,7 @@ impl Printer {
             token: Token::Break(b),
             size: -self.right_total,
         };
-        self.scan_stack.push_front(self.right);
+        self.scan_stack.push_back(self.right);
         self.right_total += b.blank_space;
     }
 
@@ -185,8 +185,8 @@ impl Printer {
 
     fn check_stream(&mut self) {
         while self.right_total - self.left_total > self.space {
-            if self.scan_stack.back() == Some(&self.left) {
-                self.scan_stack.pop_back().unwrap();
+            if self.scan_stack.front() == Some(&self.left) {
+                self.scan_stack.pop_front().unwrap();
                 self.buf[self.left].size = SIZE_INFINITY;
             }
             self.advance_left();
@@ -228,23 +228,23 @@ impl Printer {
     }
 
     fn check_stack(&mut self, mut k: usize) {
-        while let Some(&x) = self.scan_stack.front() {
+        while let Some(&x) = self.scan_stack.back() {
             match self.buf[x].token {
                 Token::Begin(_) => {
                     if k == 0 {
                         break;
                     }
-                    self.scan_stack.pop_front().unwrap();
+                    self.scan_stack.pop_back().unwrap();
                     self.buf[x].size += self.right_total;
                     k -= 1;
                 }
                 Token::End => {
-                    self.scan_stack.pop_front().unwrap();
+                    self.scan_stack.pop_back().unwrap();
                     self.buf[x].size = 1;
                     k += 1;
                 }
                 _ => {
-                    self.scan_stack.pop_front().unwrap();
+                    self.scan_stack.pop_back().unwrap();
                     self.buf[x].size += self.right_total;
                     if k == 0 {
                         break;
