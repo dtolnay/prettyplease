@@ -47,11 +47,13 @@ impl Printer {
 
     pub fn bound_lifetimes(&mut self, bound_lifetimes: &BoundLifetimes) {
         self.word("for<");
-        for lifetime_def in &bound_lifetimes.lifetimes {
+        for (i, lifetime_def) in bound_lifetimes.lifetimes.iter().enumerate() {
             self.lifetime_def(lifetime_def);
-            self.word(",");
+            if i < bound_lifetimes.lifetimes.len() - 1 {
+                self.word(", ");
+            }
         }
-        self.word(">");
+        self.word("> ");
     }
 
     fn lifetime_def(&mut self, lifetime_def: &LifetimeDef) {

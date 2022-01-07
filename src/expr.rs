@@ -158,10 +158,19 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.func);
         self.word("(");
-        for arg in &expr.args {
+        self.cbox(INDENT);
+        self.zerobreak();
+        for (i, arg) in expr.args.iter().enumerate() {
             self.expr(arg);
-            self.word(",");
+            if i < expr.args.len() - 1 {
+                self.word(",");
+                self.space();
+            } else {
+                self.trailing_comma();
+            }
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 

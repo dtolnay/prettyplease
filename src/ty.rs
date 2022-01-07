@@ -44,7 +44,7 @@ impl Printer {
             self.bound_lifetimes(bound_lifetimes);
         }
         if ty.unsafety.is_some() {
-            self.word("unsafe");
+            self.word("unsafe ");
         }
         if let Some(abi) = &ty.abi {
             self.abi(abi);
@@ -154,7 +154,7 @@ impl Printer {
         match ty {
             ReturnType::Default => {}
             ReturnType::Type(_arrow, ty) => {
-                self.word("->");
+                self.word(" -> ");
                 self.ty(ty);
             }
         }
@@ -175,9 +175,10 @@ impl Printer {
     }
 
     pub fn abi(&mut self, abi: &Abi) {
-        self.word("extern");
+        self.word("extern ");
         if let Some(name) = &abi.name {
             self.lit_str(name);
+            self.nbsp();
         }
     }
 }

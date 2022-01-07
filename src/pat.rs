@@ -144,7 +144,7 @@ impl Printer {
     pub fn pat_type(&mut self, pat: &PatType) {
         self.outer_attrs(&pat.attrs);
         self.pat(&pat.pat);
-        self.word(":");
+        self.word(": ");
         self.ty(&pat.ty);
     }
 

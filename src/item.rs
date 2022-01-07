@@ -98,6 +98,7 @@ impl Printer {
         self.offset(-INDENT);
         self.end();
         self.word("}");
+        self.hardbreak();
     }
 
     fn item_foreign_mod(&mut self, item: &ItemForeignMod) {
@@ -584,13 +585,13 @@ impl Printer {
 
     fn signature(&mut self, signature: &Signature) {
         if signature.constness.is_some() {
-            self.word("const");
+            self.word("const ");
         }
         if signature.asyncness.is_some() {
-            self.word("async");
+            self.word("async ");
         }
         if signature.unsafety.is_some() {
-            self.word("unsafe");
+            self.word("unsafe ");
         }
         if let Some(abi) = &signature.abi {
             self.abi(abi);
