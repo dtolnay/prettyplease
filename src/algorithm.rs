@@ -154,16 +154,15 @@ impl Printer {
             self.left_total = 1;
             self.right_total = 1;
             self.right = self.left;
-            self.buf.truncate(1);
+            self.buf.clear();
         } else {
+            self.check_stack(0);
             self.right += 1;
-            self.buf.advance_right();
         }
-        self.check_stack(0);
-        self.buf[self.right] = BufEntry {
+        self.buf.push(BufEntry {
             token: Token::Break(b),
             size: -self.right_total,
-        };
+        });
         self.scan_stack.push_back(self.right);
         self.right_total += b.blank_space;
     }
