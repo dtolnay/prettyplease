@@ -25,7 +25,7 @@ impl Printer {
     pub fn break_offset(&mut self, n: usize, off: isize) {
         self.scan_break(BreakToken {
             offset: off,
-            blank_space: n as isize,
+            blank_space: n,
         });
     }
 
@@ -61,7 +61,7 @@ impl Printer {
     pub fn hardbreak_tok_offset(off: isize) -> Token {
         Token::Break(BreakToken {
             offset: off,
-            blank_space: algorithm::SIZE_INFINITY,
+            blank_space: algorithm::SIZE_INFINITY as usize,
         })
     }
 }

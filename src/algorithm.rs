@@ -15,7 +15,7 @@ pub enum Breaks {
 #[derive(Clone, Copy)]
 pub struct BreakToken {
     pub offset: isize,
-    pub blank_space: isize,
+    pub blank_space: usize,
 }
 
 #[derive(Clone, Copy)]
@@ -38,7 +38,7 @@ pub enum Token {
 #[derive(Copy, Clone)]
 enum PrintFrame {
     Fits,
-    Broken(isize, Breaks),
+    Broken(usize, Breaks),
 }
 
 pub const SIZE_INFINITY: isize = 0xffff;
@@ -63,8 +63,10 @@ pub struct Printer {
     scan_stack: VecDeque<usize>,
     // Stack of blocks-in-progress being flushed by print
     print_stack: Vec<PrintFrame>,
+    // Level of indentation of current line
+    indent: usize,
     // Buffered indentation to avoid writing trailing whitespace
-    pending_indentation: isize,
+    pending_indentation: usize,
 }
 
 #[derive(Clone)]
@@ -85,6 +87,7 @@ impl Printer {
             right_total: 0,
             scan_stack: VecDeque::new(),
             print_stack: Vec::new(),
+            indent: 0,
             pending_indentation: 0,
         }
     }
@@ -135,7 +138,7 @@ impl Printer {
             size: -self.right_total,
         });
         self.scan_stack.push_back(right);
-        self.right_total += token.blank_space;
+        self.right_total += token.blank_space as isize;
     }
 
     pub fn scan_string(&mut self, string: Cow<'static, str>) {
@@ -172,7 +175,7 @@ impl Printer {
                     self.print_string(string);
                 }
                 Token::Break(token) => {
-                    self.left_total += token.blank_space;
+                    self.left_total += token.blank_space as isize;
                     self.print_break(token, left.size);
                 }
                 Token::Begin(token) => self.print_begin(token, left.size),
@@ -220,42 +223,41 @@ impl Printer {
 
     fn print_begin(&mut self, token: BeginToken, size: isize) {
         if size > self.space {
-            let col = self.margin - self.space + token.offset as isize;
-            self.print_stack.push(PrintFrame::Broken(col, token.breaks));
+            self.print_stack
+                .push(PrintFrame::Broken(self.indent, token.breaks));
+            self.indent += token.offset;
         } else {
             self.print_stack.push(PrintFrame::Fits);
         }
     }
 
     fn print_end(&mut self) {
-        self.print_stack.pop().unwrap();
+        if let PrintFrame::Broken(indent, ..) = self.print_stack.pop().unwrap() {
+            self.indent = indent;
+        }
     }
 
     fn print_break(&mut self, token: BreakToken, size: isize) {
-        if let Some(offset) = match self.get_top() {
-            PrintFrame::Fits => None,
-            PrintFrame::Broken(offset, Breaks::Consistent) => Some(offset),
-            PrintFrame::Broken(offset, Breaks::Inconsistent) => {
-                if size > self.space {
-                    Some(offset)
-                } else {
-                    None
-                }
-            }
-        } {
-            self.out.push('\n');
-            self.pending_indentation = offset + token.offset;
-            self.space = self.margin - self.pending_indentation;
-        } else {
+        let fits = match self.get_top() {
+            PrintFrame::Fits => true,
+            PrintFrame::Broken(.., Breaks::Consistent) => false,
+            PrintFrame::Broken(.., Breaks::Inconsistent) => size <= self.space,
+        };
+        if fits {
             self.pending_indentation += token.blank_space;
-            self.space -= token.blank_space;
+            self.space -= token.blank_space as isize;
+        } else {
+            self.out.push('\n');
+            let indent = self.indent as isize + token.offset;
+            self.pending_indentation = indent as usize;
+            self.space = self.margin - indent;
         }
     }
 
     fn print_string(&mut self, string: Cow<'static, str>) {
-        self.out.reserve(self.pending_indentation as usize);
+        self.out.reserve(self.pending_indentation);
         self.out
-            .extend(iter::repeat(' ').take(self.pending_indentation as usize));
+            .extend(iter::repeat(' ').take(self.pending_indentation));
         self.pending_indentation = 0;
 
         self.out.push_str(&string);
