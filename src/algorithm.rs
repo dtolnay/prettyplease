@@ -229,12 +229,11 @@ impl Printer {
     }
 
     fn get_top(&self) -> PrintStackElem {
-        *self.print_stack.last().unwrap_or({
-            &PrintStackElem {
-                offset: 0,
-                pbreak: PrintStackBreak::Broken(Breaks::Inconsistent),
-            }
-        })
+        const OUTER: PrintStackElem = PrintStackElem {
+            offset: 0,
+            pbreak: PrintStackBreak::Broken(Breaks::Inconsistent),
+        };
+        self.print_stack.last().map_or(OUTER, PrintStackElem::clone)
     }
 
     fn print_begin(&mut self, b: BeginToken, l: isize) {
