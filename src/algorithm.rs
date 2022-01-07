@@ -20,7 +20,7 @@ pub struct BreakToken {
 
 #[derive(Clone, Copy)]
 pub struct BeginToken {
-    pub offset: isize,
+    pub offset: usize,
     pub breaks: Breaks,
 }
 
@@ -220,7 +220,7 @@ impl Printer {
 
     fn print_begin(&mut self, token: BeginToken, size: isize) {
         if size > self.space {
-            let col = self.margin - self.space + token.offset;
+            let col = self.margin - self.space + token.offset as isize;
             self.print_stack.push(PrintFrame::Broken(col, token.breaks));
         } else {
             self.print_stack.push(PrintFrame::Fits);
