@@ -185,27 +185,15 @@ impl Printer {
 
     fn check_stream(&mut self) {
         if self.right_total - self.left_total > self.space {
-            if Some(&self.left) == self.scan_stack.back() {
-                let scanned = self.scan_pop_bottom();
-                self.buf[scanned].size = SIZE_INFINITY;
+            if self.scan_stack.back() == Some(&self.left) {
+                self.scan_stack.pop_back().unwrap();
+                self.buf[self.left].size = SIZE_INFINITY;
             }
             self.advance_left();
             if self.left != self.right {
                 self.check_stream();
             }
         }
-    }
-
-    fn scan_pop(&mut self) -> usize {
-        self.scan_stack.pop_front().unwrap()
-    }
-
-    fn scan_top(&self) -> usize {
-        *self.scan_stack.front().unwrap()
-    }
-
-    fn scan_pop_bottom(&mut self) -> usize {
-        self.scan_stack.pop_back().unwrap()
     }
 
     fn advance_left(&mut self) {
@@ -240,24 +228,23 @@ impl Printer {
     }
 
     fn check_stack(&mut self, k: usize) {
-        if !self.scan_stack.is_empty() {
-            let x = self.scan_top();
+        if let Some(&x) = self.scan_stack.front() {
             match self.buf[x].token {
                 Token::Begin(_) => {
                     if k > 0 {
-                        self.scan_pop();
+                        self.scan_stack.pop_front().unwrap();
                         self.buf[x].size += self.right_total;
                         self.check_stack(k - 1);
                     }
                 }
                 Token::End => {
                     // paper says + not =, but that makes no sense.
-                    self.scan_pop();
+                    self.scan_stack.pop_front().unwrap();
                     self.buf[x].size = 1;
                     self.check_stack(k + 1);
                 }
                 _ => {
-                    self.scan_pop();
+                    self.scan_stack.pop_front().unwrap();
                     self.buf[x].size += self.right_total;
                     if k > 0 {
                         self.check_stack(k);
