@@ -331,8 +331,7 @@ impl Printer {
     }
 
     fn item_verbatim(&mut self, item: &TokenStream) {
-        let _ = item;
-        unimplemented!("Item::Verbatim");
+        unimplemented!("Item::Verbatim `{}`", item);
     }
 
     fn use_tree(&mut self, use_tree: &UseTree) {
@@ -428,8 +427,7 @@ impl Printer {
     }
 
     fn foreign_item_verbatim(&mut self, foreign_item: &TokenStream) {
-        let _ = foreign_item;
-        unimplemented!("ForeignItem::Verbatim");
+        unimplemented!("ForeignItem::Verbatim `{}`", foreign_item);
     }
 
     fn trait_item(&mut self, trait_item: &TraitItem) {
@@ -507,8 +505,7 @@ impl Printer {
     }
 
     fn trait_item_verbatim(&mut self, trait_item: &TokenStream) {
-        let _ = trait_item;
-        unimplemented!("TraitItem::Verbatim");
+        unimplemented!("TraitItem::Verbatim `{}`", trait_item);
     }
 
     fn impl_item(&mut self, impl_item: &ImplItem) {
@@ -590,8 +587,7 @@ impl Printer {
     }
 
     fn impl_item_verbatim(&mut self, impl_item: &TokenStream) {
-        let _ = impl_item;
-        unimplemented!("ImplItem::Verbatim");
+        unimplemented!("ImplItem::Verbatim `{}`", impl_item);
     }
 
     fn maybe_variadic(&mut self, arg: &FnArg) -> bool {

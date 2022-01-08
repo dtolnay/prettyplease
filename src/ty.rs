@@ -147,8 +147,7 @@ impl Printer {
     }
 
     fn type_verbatim(&mut self, ty: &TokenStream) {
-        let _ = ty;
-        unimplemented!("Type::Verbatim");
+        unimplemented!("Type::Verbatim `{}`", ty);
     }
 
     pub fn return_type(&mut self, ty: &ReturnType) {

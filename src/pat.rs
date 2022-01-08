@@ -150,8 +150,7 @@ impl Printer {
     }
 
     fn pat_verbatim(&mut self, pat: &TokenStream) {
-        let _ = pat;
-        unimplemented!("Pat::Verbatim");
+        unimplemented!("Pat::Verbatim `{}`", pat);
     }
 
     fn pat_wild(&mut self, pat: &PatWild) {

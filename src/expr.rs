@@ -440,8 +440,7 @@ impl Printer {
     }
 
     fn expr_verbatim(&mut self, expr: &TokenStream) {
-        let _ = expr;
-        unimplemented!("Expr::Verbatim")
+        unimplemented!("Expr::Verbatim `{}`", expr);
     }
 
     fn expr_while(&mut self, expr: &ExprWhile) {
