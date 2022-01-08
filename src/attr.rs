@@ -21,11 +21,20 @@ impl Printer {
 
     fn attr(&mut self, attr: &Attribute) {
         if let Some(doc) = doc(attr) {
-            self.word(match attr.style {
-                AttrStyle::Outer => "///",
-                AttrStyle::Inner => "//!",
-            });
-            self.word(doc);
+            if doc.contains('\n') {
+                self.word(match attr.style {
+                    AttrStyle::Outer => "/**",
+                    AttrStyle::Inner(_) => "/*!",
+                });
+                self.word(doc);
+                self.word("*/");
+            } else {
+                self.word(match attr.style {
+                    AttrStyle::Outer => "///",
+                    AttrStyle::Inner(_) => "//!",
+                });
+                self.word(doc);
+            }
         } else {
             self.word(match attr.style {
                 AttrStyle::Outer => "#",
