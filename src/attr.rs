@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
-use proc_macro2::TokenTree;
+use crate::INDENT;
+use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use syn::{AttrStyle, Attribute, Lit, PathArguments};
 
 impl Printer {
@@ -51,10 +52,96 @@ impl Printer {
             });
             self.word("[");
             self.path(&attr.path);
-            self.tokens(&attr.tokens);
+            self.attr_tokens(attr.tokens.clone());
             self.word("]");
         }
         self.hardbreak();
+    }
+
+    fn attr_tokens(&mut self, tokens: TokenStream) {
+        let mut stack = Vec::new();
+        stack.push((tokens.into_iter(), Delimiter::None));
+
+        enum State {
+            Word,
+            Punct,
+        }
+
+        use State::*;
+        let mut state = Word;
+
+        while let Some((tokens, delimiter)) = stack.last_mut() {
+            match tokens.next() {
+                Some(TokenTree::Ident(ident)) => {
+                    if let Word = state {
+                        self.space();
+                    }
+                    self.ident(&ident);
+                    state = Word;
+                }
+                Some(TokenTree::Punct(punct)) => {
+                    let ch = punct.as_char();
+                    if let (Word, '=') = (state, ch) {
+                        self.space();
+                    }
+                    self.token_punct(&punct);
+                    if let '=' | ',' = ch {
+                        self.space();
+                    }
+                    state = Punct;
+                }
+                Some(TokenTree::Literal(literal)) => {
+                    if let Word = state {
+                        self.space();
+                    }
+                    self.token_literal(&literal);
+                    state = Word;
+                }
+                Some(TokenTree::Group(group)) => {
+                    let delimiter = group.delimiter();
+                    let stream = group.stream();
+                    match delimiter {
+                        Delimiter::Parenthesis => {
+                            self.word("(");
+                            self.cbox(INDENT);
+                            self.zerobreak();
+                            state = Punct;
+                        }
+                        Delimiter::Brace => {
+                            self.word("{");
+                            state = Punct;
+                        }
+                        Delimiter::Bracket => {
+                            self.word("[");
+                            state = Punct;
+                        }
+                        Delimiter::None => {}
+                    }
+                    stack.push((stream.into_iter(), delimiter));
+                }
+                None => {
+                    match delimiter {
+                        Delimiter::Parenthesis => {
+                            self.zerobreak();
+                            self.offset(-INDENT);
+                            self.end();
+                            self.word(")");
+                            state = Punct;
+                        }
+                        Delimiter::Brace => {
+                            self.word("}");
+                            state = Punct;
+                        }
+                        Delimiter::Bracket => {
+                            self.word("]");
+                            state = Punct;
+                        }
+                        Delimiter::None => {}
+                    }
+                    stack.pop();
+                }
+            }
+        }
     }
 }
 
