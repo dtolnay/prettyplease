@@ -184,7 +184,12 @@ impl Printer {
                 self.scan_stack.pop_front().unwrap();
                 self.buf.first_mut().size = SIZE_INFINITY;
             }
+
             self.advance_left();
+
+            if self.buf.is_empty() {
+                break;
+            }
         }
     }
 
