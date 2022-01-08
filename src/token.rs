@@ -3,7 +3,11 @@ use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, TokenStream, TokenTre
 
 impl Printer {
     pub fn tokens(&mut self, tokens: &TokenStream) {
-        for token in tokens.clone() {
+        self.tokens_owned(tokens.clone());
+    }
+
+    fn tokens_owned(&mut self, tokens: TokenStream) {
+        for token in tokens {
             match token {
                 TokenTree::Group(group) => self.token_group(&group),
                 TokenTree::Ident(ident) => self.ident(&ident),
@@ -21,7 +25,7 @@ impl Printer {
             Delimiter::None => ("", ""),
         };
         self.word(open);
-        self.tokens(&group.stream());
+        self.tokens_owned(group.stream());
         self.word(close);
     }
 
