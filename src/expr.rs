@@ -163,12 +163,7 @@ impl Printer {
         self.zerobreak();
         for arg in expr.args.iter().delimited() {
             self.expr(&arg);
-            if arg.is_last {
-                self.trailing_comma();
-            } else {
-                self.word(",");
-                self.space();
-            }
+            self.trailing_comma(arg.is_last);
         }
         self.offset(-INDENT);
         self.end();

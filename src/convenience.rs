@@ -67,11 +67,16 @@ impl Printer {
         })
     }
 
-    pub fn trailing_comma(&mut self) {
-        self.scan_break(BreakToken {
-            offset: 0,
-            blank_space: 0,
-            trailing_comma: true,
-        });
+    pub fn trailing_comma(&mut self, is_last: bool) {
+        if is_last {
+            self.scan_break(BreakToken {
+                offset: 0,
+                blank_space: 0,
+                trailing_comma: true,
+            });
+        } else {
+            self.word(",");
+            self.space();
+        }
     }
 }

@@ -374,12 +374,7 @@ impl Printer {
             self.zerobreak();
             for use_tree in use_group.items.iter().delimited() {
                 self.use_tree(&use_tree);
-                if use_tree.is_last {
-                    self.trailing_comma();
-                } else {
-                    self.word(",");
-                    self.space();
-                }
+                self.trailing_comma(use_tree.is_last);
             }
             self.offset(-INDENT);
             self.end();

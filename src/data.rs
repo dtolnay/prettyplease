@@ -45,12 +45,7 @@ impl Printer {
         self.zerobreak();
         for field in fields.unnamed.iter().delimited() {
             self.field(&field);
-            if field.is_last {
-                self.trailing_comma();
-            } else {
-                self.word(",");
-                self.space();
-            }
+            self.trailing_comma(field.is_last);
         }
         self.offset(-INDENT);
         self.end();
