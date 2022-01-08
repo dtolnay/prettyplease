@@ -321,7 +321,7 @@ impl Printer {
     fn item_use(&mut self, item: &ItemUse) {
         self.outer_attrs(&item.attrs);
         self.visibility(&item.vis);
-        self.word("use");
+        self.word("use ");
         if item.leading_colon.is_some() {
             self.word("::");
         }
@@ -356,7 +356,7 @@ impl Printer {
 
     fn use_rename(&mut self, use_rename: &UseRename) {
         self.ident(&use_rename.ident);
-        self.word("as");
+        self.word(" as ");
         self.ident(&use_rename.rename);
     }
 
@@ -366,12 +366,25 @@ impl Printer {
     }
 
     fn use_group(&mut self, use_group: &UseGroup) {
-        self.word("{");
-        for use_tree in &use_group.items {
-            self.use_tree(use_tree);
-            self.word(",");
+        if use_group.items.len() == 1 {
+            self.use_tree(&use_group.items[0]);
+        } else {
+            self.word("{");
+            self.cbox(INDENT);
+            self.zerobreak();
+            for use_tree in use_group.items.iter().delimited() {
+                self.use_tree(&use_tree);
+                if use_tree.is_last {
+                    self.trailing_comma();
+                } else {
+                    self.word(",");
+                    self.space();
+                }
+            }
+            self.offset(-INDENT);
+            self.end();
+            self.word("}");
         }
-        self.word("}");
     }
 
     fn foreign_item(&mut self, foreign_item: &ForeignItem) {
