@@ -36,8 +36,14 @@ impl Printer {
                 self.word(doc);
             }
         } else if let Some(comment) = value_of_attribute("comment", attr) {
-            self.word("//");
-            self.word(comment);
+            if comment.contains('\n') {
+                self.word("/*");
+                self.word(comment);
+                self.word("*/");
+            } else {
+                self.word("//");
+                self.word(comment);
+            }
         } else {
             self.word(match attr.style {
                 AttrStyle::Outer => "#",
