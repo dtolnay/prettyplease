@@ -1,6 +1,6 @@
 use crate::algorithm::Printer;
 use crate::INDENT;
-use syn::{Block, Local, Stmt};
+use syn::{Block, Expr, Local, Stmt};
 
 impl Printer {
     pub fn block(&mut self, block: &Block) {
@@ -24,6 +24,11 @@ impl Printer {
                 self.hardbreak();
             }
             Stmt::Semi(expr, _semi) => {
+                if let Expr::Verbatim(tokens) = expr {
+                    if tokens.is_empty() {
+                        return;
+                    }
+                }
                 self.expr(expr);
                 self.word(";");
                 self.hardbreak();
