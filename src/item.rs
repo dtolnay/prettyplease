@@ -120,6 +120,8 @@ impl Printer {
 
     fn item_impl(&mut self, item: &ItemImpl) {
         self.outer_attrs(&item.attrs);
+        self.cbox(INDENT);
+        self.ibox(-INDENT);
         if item.defaultness.is_some() {
             self.word("default ");
         }
@@ -134,12 +136,13 @@ impl Printer {
                 self.word("!");
             }
             self.path(path);
-            self.word(" for ");
+            self.space();
+            self.word("for ");
         }
         self.ty(&item.self_ty);
         self.where_clause(&item.generics.where_clause);
         self.word("{");
-        self.cbox(INDENT);
+        self.end();
         self.hardbreak();
         self.inner_attrs(&item.attrs);
         for impl_item in &item.items {

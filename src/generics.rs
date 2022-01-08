@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::INDENT;
 use syn::{
     BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
     PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
@@ -13,28 +14,32 @@ impl Printer {
         }
 
         self.word("<");
+        self.cbox(INDENT);
+        self.zerobreak();
 
         // Print lifetimes before types and consts, regardless of their
         // order in self.params.
         //
         // TODO: ordering rules for const parameters vs type parameters have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        for param in &generics.params {
-            if let GenericParam::Lifetime(_) = param {
-                self.generic_param(param);
-                self.word(",");
+        for param in generics.params.iter().delimited() {
+            if let GenericParam::Lifetime(_) = *param {
+                self.generic_param(&param);
+                self.trailing_comma(param.is_last);
             }
         }
-        for param in &generics.params {
-            match param {
+        for param in generics.params.iter().delimited() {
+            match *param {
                 GenericParam::Type(_) | GenericParam::Const(_) => {
-                    self.generic_param(param);
-                    self.word(",");
+                    self.generic_param(&param);
+                    self.trailing_comma(param.is_last);
                 }
                 GenericParam::Lifetime(_) => {}
             }
         }
 
+        self.offset(-INDENT);
+        self.end();
         self.word(">");
     }
 
@@ -62,9 +67,9 @@ impl Printer {
         self.lifetime(&lifetime_def.lifetime);
         for lifetime in lifetime_def.bounds.iter().delimited() {
             if lifetime.is_first {
-                self.word(":");
+                self.word(": ");
             } else {
-                self.word("+");
+                self.word(" + ");
             }
             self.lifetime(&lifetime);
         }
@@ -73,18 +78,22 @@ impl Printer {
     fn type_param(&mut self, type_param: &TypeParam) {
         self.outer_attrs(&type_param.attrs);
         self.ident(&type_param.ident);
+        self.ibox(INDENT);
         for type_param_bound in type_param.bounds.iter().delimited() {
             if type_param_bound.is_first {
-                self.word(":");
+                self.word(": ");
             } else {
-                self.word("+");
+                self.space();
+                self.word("+ ");
             }
             self.type_param_bound(&type_param_bound);
         }
         if let Some(default) = &type_param.default {
-            self.word("=");
+            self.space();
+            self.word("= ");
             self.ty(default);
         }
+        self.end();
     }
 
     pub fn type_param_bound(&mut self, type_param_bound: &TypeParamBound) {
