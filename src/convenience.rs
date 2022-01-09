@@ -1,6 +1,4 @@
-#![allow(dead_code)]
-
-use crate::algorithm::{self, BeginToken, BreakToken, Breaks, Printer, Token};
+use crate::algorithm::{self, BeginToken, BreakToken, Breaks, Printer};
 use std::borrow::Cow;
 
 impl Printer {
@@ -57,14 +55,6 @@ impl Printer {
 
     pub fn hardbreak(&mut self) {
         self.spaces(algorithm::SIZE_INFINITY as usize);
-    }
-
-    pub fn hardbreak_tok_offset(off: isize) -> Token {
-        Token::Break(BreakToken {
-            offset: off,
-            blank_space: algorithm::SIZE_INFINITY as usize,
-            trailing_comma: false,
-        })
     }
 
     pub fn trailing_comma(&mut self, is_last: bool) {
