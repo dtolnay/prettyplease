@@ -36,6 +36,7 @@ impl Printer {
                 });
                 self.word(doc);
             }
+            self.hardbreak();
         } else if let Some(comment) = value_of_attribute("comment", attr) {
             if comment.contains('\n') {
                 self.word("/*");
@@ -45,6 +46,7 @@ impl Printer {
                 self.word("//");
                 self.word(comment);
             }
+            self.hardbreak();
         } else {
             self.word(match attr.style {
                 AttrStyle::Outer => "#",
@@ -54,8 +56,8 @@ impl Printer {
             self.path(&attr.path);
             self.attr_tokens(attr.tokens.clone());
             self.word("]");
+            self.space();
         }
-        self.hardbreak();
     }
 
     fn attr_tokens(&mut self, tokens: TokenStream) {

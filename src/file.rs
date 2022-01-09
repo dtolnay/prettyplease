@@ -3,6 +3,7 @@ use syn::File;
 
 impl Printer {
     pub fn file(&mut self, file: &File) {
+        self.cbox(0);
         if let Some(shebang) = &file.shebang {
             self.word(shebang.clone());
             self.hardbreak();
@@ -11,5 +12,6 @@ impl Printer {
         for item in &file.items {
             self.item(item);
         }
+        self.end();
     }
 }
