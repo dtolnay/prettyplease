@@ -7,7 +7,7 @@ impl Printer {
     // "raw box"
     pub fn rbox(&mut self, indent: isize, b: Breaks) {
         self.scan_begin(BeginToken {
-            offset: usize::try_from(indent).unwrap(),
+            offset: indent,
             breaks: b,
         });
     }

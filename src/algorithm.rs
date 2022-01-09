@@ -22,7 +22,7 @@ pub struct BreakToken {
 
 #[derive(Clone, Copy)]
 pub struct BeginToken {
-    pub offset: usize,
+    pub offset: isize,
     pub breaks: Breaks,
 }
 
@@ -254,7 +254,7 @@ impl Printer {
         if size > self.space {
             self.print_stack
                 .push(PrintFrame::Broken(self.indent, token.breaks));
-            self.indent += token.offset;
+            self.indent = usize::try_from(self.indent as isize + token.offset).unwrap();
         } else {
             self.print_stack.push(PrintFrame::Fits);
         }
