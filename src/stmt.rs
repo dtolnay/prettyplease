@@ -6,7 +6,7 @@ impl Printer {
     pub fn block(&mut self, block: &Block) {
         self.word("{");
         self.cbox(INDENT);
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         for stmt in &block.stmts {
             self.stmt(stmt);
         }

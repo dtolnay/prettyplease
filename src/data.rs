@@ -1,10 +1,7 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::INDENT;
-use syn::{
-    Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted,
-    Visibility,
-};
+use syn::{Field, Fields, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted, Visibility};
 
 impl Printer {
     pub fn variant(&mut self, variant: &Variant) {
@@ -37,18 +34,6 @@ impl Printer {
         }
     }
 
-    pub fn fields_named(&mut self, fields: &FieldsNamed) {
-        self.word("{");
-        self.hardbreak();
-        for field in &fields.named {
-            self.field(field);
-            self.word(",");
-            self.hardbreak();
-        }
-        self.offset(-INDENT);
-        self.word("}");
-    }
-
     pub fn fields_unnamed(&mut self, fields: &FieldsUnnamed) {
         self.word("(");
         self.zerobreak();
@@ -60,7 +45,7 @@ impl Printer {
         self.word(")");
     }
 
-    fn field(&mut self, field: &Field) {
+    pub fn field(&mut self, field: &Field) {
         self.outer_attrs(&field.attrs);
         self.visibility(&field.vis);
         if let Some(ident) = &field.ident {

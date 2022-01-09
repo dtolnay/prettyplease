@@ -62,15 +62,16 @@ impl Printer {
         self.generics(&item.generics);
         self.where_clause_for_body(&item.generics.where_clause);
         self.word("{");
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
+        self.inner_attrs(&item.attrs);
         for variant in &item.variants {
             self.variant(variant);
             self.word(",");
             self.hardbreak();
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -94,14 +95,14 @@ impl Printer {
         self.signature(&item.sig);
         self.where_clause_for_body(&item.sig.generics.where_clause);
         self.word("{");
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&item.attrs);
         for stmt in &item.block.stmts {
             self.stmt(stmt);
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -110,14 +111,14 @@ impl Printer {
         self.cbox(INDENT);
         self.abi(&item.abi);
         self.word("{");
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&item.attrs);
         for foreign_item in &item.items {
             self.foreign_item(foreign_item);
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -154,8 +155,8 @@ impl Printer {
             self.impl_item(impl_item);
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -195,17 +196,18 @@ impl Printer {
         self.ident(&item.ident);
         if let Some((_brace, items)) = &item.content {
             self.word(" {");
-            self.hardbreak();
+            self.hardbreak_if_nonempty();
             self.inner_attrs(&item.attrs);
             for item in items {
                 self.item(item);
             }
             self.offset(-INDENT);
+            self.end();
             self.word("}");
         } else {
             self.word(";");
+            self.end();
         }
-        self.end();
         self.hardbreak();
     }
 
@@ -237,17 +239,27 @@ impl Printer {
         match &item.fields {
             Fields::Named(fields) => {
                 self.where_clause_for_body(&item.generics.where_clause);
-                self.fields_named(fields);
+                self.word("{");
+                self.hardbreak_if_nonempty();
+                for field in &fields.named {
+                    self.field(field);
+                    self.word(",");
+                    self.hardbreak();
+                }
+                self.offset(-INDENT);
+                self.end();
+                self.word("}");
             }
             Fields::Unnamed(fields) => {
                 self.fields_unnamed(fields);
                 self.where_clause_semi(&item.generics.where_clause);
+                self.end();
             }
             Fields::Unit => {
                 self.where_clause_semi(&item.generics.where_clause);
+                self.end();
             }
         }
-        self.end();
         self.hardbreak();
     }
 
@@ -274,14 +286,14 @@ impl Printer {
         }
         self.where_clause_for_body(&item.generics.where_clause);
         self.word("{");
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&item.attrs);
         for trait_item in &item.items {
             self.trait_item(trait_item);
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -328,8 +340,16 @@ impl Printer {
         self.ident(&item.ident);
         self.generics(&item.generics);
         self.where_clause_for_body(&item.generics.where_clause);
-        self.fields_named(&item.fields);
+        self.word("{");
+        self.hardbreak_if_nonempty();
+        for field in &item.fields.named {
+            self.field(field);
+            self.word(",");
+            self.hardbreak();
+        }
+        self.offset(-INDENT);
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
@@ -496,17 +516,18 @@ impl Printer {
         if let Some(block) = &trait_item.default {
             self.where_clause_for_body(&trait_item.sig.generics.where_clause);
             self.word("{");
-            self.hardbreak();
+            self.hardbreak_if_nonempty();
             self.inner_attrs(&trait_item.attrs);
             for stmt in &block.stmts {
                 self.stmt(stmt);
             }
             self.offset(-INDENT);
+            self.end();
             self.word("}");
         } else {
             self.where_clause_semi(&trait_item.sig.generics.where_clause);
+            self.end();
         }
-        self.end();
         self.hardbreak();
     }
 
@@ -599,14 +620,14 @@ impl Printer {
         }
         self.where_clause_for_body(&impl_item.sig.generics.where_clause);
         self.word("{");
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&impl_item.attrs);
         for stmt in &impl_item.block.stmts {
             self.stmt(stmt);
         }
         self.offset(-INDENT);
-        self.word("}");
         self.end();
+        self.word("}");
         self.hardbreak();
     }
 
