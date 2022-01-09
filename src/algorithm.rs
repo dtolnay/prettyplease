@@ -40,7 +40,7 @@ pub enum Token {
 
 #[derive(Copy, Clone)]
 enum PrintFrame {
-    Fits,
+    Fits(Breaks),
     Broken(usize, Breaks),
 }
 
@@ -259,33 +259,55 @@ impl Printer {
     }
 
     fn print_begin(&mut self, token: BeginToken, size: isize) {
+        if cfg!(prettyplease_debug) {
+            self.out.push(match token.breaks {
+                Breaks::Consistent => '«',
+                Breaks::Inconsistent => '‹',
+            });
+        }
         if size > self.space {
             self.print_stack
                 .push(PrintFrame::Broken(self.indent, token.breaks));
             self.indent = usize::try_from(self.indent as isize + token.offset).unwrap();
         } else {
-            self.print_stack.push(PrintFrame::Fits);
+            self.print_stack.push(PrintFrame::Fits(token.breaks));
         }
     }
 
     fn print_end(&mut self) {
-        if let PrintFrame::Broken(indent, ..) = self.print_stack.pop().unwrap() {
-            self.indent = indent;
+        let breaks = match self.print_stack.pop().unwrap() {
+            PrintFrame::Broken(indent, breaks) => {
+                self.indent = indent;
+                breaks
+            }
+            PrintFrame::Fits(breaks) => breaks,
+        };
+        if cfg!(prettyplease_debug) {
+            self.out.push(match breaks {
+                Breaks::Consistent => '»',
+                Breaks::Inconsistent => '›',
+            });
         }
     }
 
     fn print_break(&mut self, token: BreakToken, size: isize) {
         let fits = match self.get_top() {
-            PrintFrame::Fits => true,
+            PrintFrame::Fits(..) => true,
             PrintFrame::Broken(.., Breaks::Consistent) => false,
             PrintFrame::Broken(.., Breaks::Inconsistent) => size <= self.space,
         };
         if fits {
             self.pending_indentation += token.blank_space;
             self.space -= token.blank_space as isize;
+            if cfg!(prettyplease_debug) {
+                self.out.push('·');
+            }
         } else {
             if token.trailing_comma {
                 self.out.push(',');
+            }
+            if cfg!(prettyplease_debug) {
+                self.out.push('·');
             }
             self.out.push('\n');
             let indent = self.indent as isize + token.offset;
