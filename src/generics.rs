@@ -213,13 +213,10 @@ impl Printer {
             self.space();
             for predicate in where_clause.predicates.iter().delimited() {
                 self.where_predicate(&predicate);
-                if !predicate.is_last {
-                    self.word(",");
-                    self.space();
-                } else if semi {
+                if predicate.is_last && semi {
                     self.word(";");
                 } else {
-                    self.trailing_comma_or_space();
+                    self.trailing_comma_or_space(predicate.is_last);
                 }
             }
             if !semi {

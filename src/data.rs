@@ -10,18 +10,30 @@ impl Printer {
     pub fn variant(&mut self, variant: &Variant) {
         self.outer_attrs(&variant.attrs);
         self.ident(&variant.ident);
-        self.fields(&variant.fields);
+        match &variant.fields {
+            Fields::Named(fields) => {
+                self.nbsp();
+                self.word("{");
+                self.cbox(INDENT);
+                self.space();
+                for field in fields.named.iter().delimited() {
+                    self.field(&field);
+                    self.trailing_comma_or_space(field.is_last);
+                }
+                self.offset(-INDENT);
+                self.end();
+                self.word("}");
+            }
+            Fields::Unnamed(fields) => {
+                self.cbox(INDENT);
+                self.fields_unnamed(fields);
+                self.end();
+            }
+            Fields::Unit => {}
+        }
         if let Some((_eq_token, discriminant)) = &variant.discriminant {
             self.word(" = ");
             self.expr(discriminant);
-        }
-    }
-
-    fn fields(&mut self, fields: &Fields) {
-        match fields {
-            Fields::Named(fields) => self.fields_named(fields),
-            Fields::Unnamed(fields) => self.fields_unnamed(fields),
-            Fields::Unit => {}
         }
     }
 
