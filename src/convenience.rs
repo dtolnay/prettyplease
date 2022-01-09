@@ -31,6 +31,7 @@ impl Printer {
             blank_space: n,
             trailing_comma: false,
             if_nonempty: false,
+            never_break: false,
         });
     }
 
@@ -56,6 +57,7 @@ impl Printer {
             blank_space: 1,
             trailing_comma: false,
             if_nonempty: true,
+            never_break: false,
         });
     }
 
@@ -65,6 +67,7 @@ impl Printer {
             blank_space: algorithm::SIZE_INFINITY as usize,
             trailing_comma: false,
             if_nonempty: true,
+            never_break: false,
         });
     }
 
@@ -75,6 +78,7 @@ impl Printer {
                 blank_space: 0,
                 trailing_comma: true,
                 if_nonempty: false,
+                never_break: false,
             });
         } else {
             self.word(",");
@@ -89,10 +93,21 @@ impl Printer {
                 blank_space: 1,
                 trailing_comma: true,
                 if_nonempty: false,
+                never_break: false,
             });
         } else {
             self.word(",");
             self.space();
         }
+    }
+
+    pub fn neverbreak(&mut self) {
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: 0,
+            trailing_comma: false,
+            if_nonempty: false,
+            never_break: true,
+        });
     }
 }

@@ -19,6 +19,7 @@ pub struct BreakToken {
     pub blank_space: usize,
     pub trailing_comma: bool,
     pub if_nonempty: bool,
+    pub never_break: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -320,11 +321,12 @@ impl Printer {
     }
 
     fn print_break(&mut self, token: BreakToken, size: isize) {
-        let fits = match self.get_top() {
-            PrintFrame::Fits(..) => true,
-            PrintFrame::Broken(.., Breaks::Consistent) => false,
-            PrintFrame::Broken(.., Breaks::Inconsistent) => size <= self.space,
-        };
+        let fits = token.never_break
+            || match self.get_top() {
+                PrintFrame::Fits(..) => true,
+                PrintFrame::Broken(.., Breaks::Consistent) => false,
+                PrintFrame::Broken(.., Breaks::Inconsistent) => size <= self.space,
+            };
         if fits {
             self.pending_indentation += token.blank_space;
             self.space -= token.blank_space as isize;
