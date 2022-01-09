@@ -186,6 +186,35 @@ impl Printer {
         }
     }
 
+    pub fn end_with_max_width(&mut self, max: isize) {
+        let mut depth = 1;
+        for &index in self.scan_stack.iter().rev() {
+            let entry = &self.buf[index];
+            match entry.token {
+                Token::Begin(_) => {
+                    depth -= 1;
+                    if depth == 0 {
+                        if entry.size < 0 {
+                            let actual_width = entry.size + self.right_total;
+                            if actual_width > max {
+                                self.buf.push(BufEntry {
+                                    token: Token::String(Cow::Borrowed("")),
+                                    size: SIZE_INFINITY,
+                                });
+                                self.right_total += SIZE_INFINITY;
+                            }
+                        }
+                        break;
+                    }
+                }
+                Token::End => depth += 1,
+                Token::Break(_) => {}
+                Token::String(_) => unreachable!(),
+            }
+        }
+        self.scan_end();
+    }
+
     fn check_stream(&mut self) {
         while self.right_total - self.left_total > self.space {
             if *self.scan_stack.front().unwrap() == self.buf.index_of_first() {
@@ -207,7 +236,7 @@ impl Printer {
 
             match left.token {
                 Token::String(string) => {
-                    self.left_total += string.len() as isize;
+                    self.left_total += left.size;
                     self.print_string(string);
                 }
                 Token::Break(token) => {

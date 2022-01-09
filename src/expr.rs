@@ -454,7 +454,7 @@ impl Printer {
             self.space();
         }
         self.offset(-INDENT);
-        self.end();
+        self.end_with_max_width(34);
         self.word("}");
     }
 
