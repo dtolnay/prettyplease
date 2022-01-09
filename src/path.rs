@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::INDENT;
 use std::cmp;
 use syn::{
     AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
@@ -60,17 +61,19 @@ impl Printer {
             self.word("::");
         }
         self.word("<");
+        self.cbox(INDENT);
+        self.zerobreak();
 
         // Print lifetimes before types and consts, all before bindings,
         // regardless of their order in self.args.
         //
         // TODO: ordering rules for const arguments vs type arguments have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        for arg in &generic.args {
-            match arg {
+        for arg in generic.args.iter().delimited() {
+            match *arg {
                 GenericArgument::Lifetime(_) => {
-                    self.generic_argument(arg);
-                    self.word(",");
+                    self.generic_argument(&arg);
+                    self.trailing_comma(arg.is_last);
                 }
                 GenericArgument::Type(_)
                 | GenericArgument::Binding(_)
@@ -78,22 +81,22 @@ impl Printer {
                 | GenericArgument::Const(_) => {}
             }
         }
-        for arg in &generic.args {
-            match arg {
+        for arg in generic.args.iter().delimited() {
+            match *arg {
                 GenericArgument::Type(_) | GenericArgument::Const(_) => {
-                    self.generic_argument(arg);
-                    self.word(",");
+                    self.generic_argument(&arg);
+                    self.trailing_comma(arg.is_last);
                 }
                 GenericArgument::Lifetime(_)
                 | GenericArgument::Binding(_)
                 | GenericArgument::Constraint(_) => {}
             }
         }
-        for arg in &generic.args {
-            match arg {
+        for arg in generic.args.iter().delimited() {
+            match *arg {
                 GenericArgument::Binding(_) | GenericArgument::Constraint(_) => {
-                    self.generic_argument(arg);
-                    self.word(",");
+                    self.generic_argument(&arg);
+                    self.trailing_comma(arg.is_last);
                 }
                 GenericArgument::Lifetime(_)
                 | GenericArgument::Type(_)
@@ -101,32 +104,44 @@ impl Printer {
             }
         }
 
+        self.offset(-INDENT);
+        self.end();
         self.word(">");
     }
 
     fn binding(&mut self, binding: &Binding) {
         self.ident(&binding.ident);
-        self.word("=");
+        self.word(" = ");
         self.ty(&binding.ty);
     }
 
     fn constraint(&mut self, constraint: &Constraint) {
         self.ident(&constraint.ident);
-        self.word(":");
-        for bound in &constraint.bounds {
-            self.type_param_bound(bound);
-            self.word("+");
+        self.ibox(INDENT);
+        for bound in constraint.bounds.iter().delimited() {
+            if bound.is_first {
+                self.word(": ");
+            } else {
+                self.space();
+                self.word("+ ");
+            }
+            self.type_param_bound(&bound);
         }
+        self.end();
     }
 
     fn parenthesized_generic_arguments(&mut self, arguments: &ParenthesizedGenericArguments) {
+        self.cbox(INDENT);
         self.word("(");
-        for ty in &arguments.inputs {
-            self.ty(ty);
-            self.word(",");
+        self.zerobreak();
+        for ty in arguments.inputs.iter().delimited() {
+            self.ty(&ty);
+            self.trailing_comma(ty.is_last);
         }
+        self.offset(-INDENT);
         self.word(")");
         self.return_type(&arguments.output);
+        self.end();
     }
 
     pub fn qpath(&mut self, qself: &Option<QSelf>, path: &Path) {
@@ -144,7 +159,7 @@ impl Printer {
         let pos = cmp::min(qself.position, path.segments.len());
         let mut segments = path.segments.iter();
         if pos > 0 {
-            self.word("as");
+            self.word(" as ");
             for segment in segments.by_ref().take(pos).delimited() {
                 if !segment.is_first || path.leading_colon.is_some() {
                     self.word("::");

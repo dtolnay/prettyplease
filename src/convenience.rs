@@ -80,4 +80,13 @@ impl Printer {
             self.space();
         }
     }
+
+    pub fn trailing_comma_or_space(&mut self) {
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: 1,
+            trailing_comma: true,
+            if_nonempty: false,
+        });
+    }
 }

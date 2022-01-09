@@ -289,7 +289,7 @@ impl Printer {
             }
             self.out.push('\n');
             let indent = self.indent as isize + token.offset;
-            self.pending_indentation = indent as usize;
+            self.pending_indentation = usize::try_from(indent).unwrap();
             self.space = cmp::max(MARGIN - indent, MIN_SPACE);
         }
     }

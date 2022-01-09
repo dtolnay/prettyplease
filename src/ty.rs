@@ -67,10 +67,10 @@ impl Printer {
     }
 
     fn type_impl_trait(&mut self, ty: &TypeImplTrait) {
-        self.word("impl");
+        self.word("impl ");
         for type_param_bound in ty.bounds.iter().delimited() {
             if !type_param_bound.is_first {
-                self.word("+");
+                self.word(" + ");
             }
             self.type_param_bound(&type_param_bound);
         }
@@ -128,10 +128,10 @@ impl Printer {
     }
 
     fn type_trait_object(&mut self, ty: &TypeTraitObject) {
-        self.word("dyn");
+        self.word("dyn ");
         for type_param_bound in ty.bounds.iter().delimited() {
             if !type_param_bound.is_first {
-                self.word("+");
+                self.word(" + ");
             }
             self.type_param_bound(&type_param_bound);
         }

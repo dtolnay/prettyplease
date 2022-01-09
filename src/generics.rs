@@ -14,7 +14,7 @@ impl Printer {
         }
 
         self.word("<");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
 
         // Print lifetimes before types and consts, regardless of their
@@ -109,7 +109,7 @@ impl Printer {
         }
         let skip = match trait_bound.path.segments.first() {
             Some(segment) if segment.ident == "const" => {
-                self.word("~const");
+                self.word("~const ");
                 1
             }
             _ => 0,
@@ -138,24 +138,92 @@ impl Printer {
 
     fn const_param(&mut self, const_param: &ConstParam) {
         self.outer_attrs(&const_param.attrs);
-        self.word("const");
+        self.word("const ");
         self.ident(&const_param.ident);
-        self.word(":");
+        self.word(": ");
         self.ty(&const_param.ty);
         if let Some(default) = &const_param.default {
-            self.word("=");
+            self.word(" = ");
             self.expr(default);
         }
     }
 
-    pub fn where_clause(&mut self, where_clause: &Option<WhereClause>) {
-        if let Some(where_clause) = where_clause {
-            if !where_clause.predicates.is_empty() {
-                self.word("where");
-                for predicate in &where_clause.predicates {
-                    self.where_predicate(predicate);
-                    self.word(",");
+    pub fn where_clause_for_body(&mut self, where_clause: &Option<WhereClause>) {
+        let hardbreaks = true;
+        let semi = false;
+        self.where_clause_impl(where_clause, hardbreaks, semi);
+    }
+
+    pub fn where_clause_semi(&mut self, where_clause: &Option<WhereClause>) {
+        let hardbreaks = true;
+        let semi = true;
+        self.where_clause_impl(where_clause, hardbreaks, semi);
+    }
+
+    pub fn where_clause_oneline(&mut self, where_clause: &Option<WhereClause>) {
+        let hardbreaks = false;
+        let semi = false;
+        self.where_clause_impl(where_clause, hardbreaks, semi);
+    }
+
+    pub fn where_clause_oneline_semi(&mut self, where_clause: &Option<WhereClause>) {
+        let hardbreaks = false;
+        let semi = true;
+        self.where_clause_impl(where_clause, hardbreaks, semi);
+    }
+
+    fn where_clause_impl(
+        &mut self,
+        where_clause: &Option<WhereClause>,
+        hardbreaks: bool,
+        semi: bool,
+    ) {
+        let where_clause = match where_clause {
+            Some(where_clause) if !where_clause.predicates.is_empty() => where_clause,
+            _ => {
+                if semi {
+                    self.word(";");
+                } else {
+                    self.nbsp();
                 }
+                return;
+            }
+        };
+        if hardbreaks {
+            self.hardbreak();
+            self.offset(-INDENT);
+            self.word("where");
+            self.hardbreak();
+            for predicate in where_clause.predicates.iter().delimited() {
+                self.where_predicate(&predicate);
+                if predicate.is_last && semi {
+                    self.word(";");
+                } else {
+                    self.word(",");
+                    self.hardbreak();
+                }
+            }
+            if !semi {
+                self.offset(-INDENT);
+            }
+        } else {
+            self.space();
+            self.offset(-INDENT);
+            self.word("where");
+            self.space();
+            for predicate in where_clause.predicates.iter().delimited() {
+                self.where_predicate(&predicate);
+                if !predicate.is_last {
+                    self.word(",");
+                    self.space();
+                } else if semi {
+                    self.word(";");
+                } else {
+                    self.trailing_comma_or_space();
+                }
+            }
+            if !semi {
+                self.offset(-INDENT);
             }
         }
     }
@@ -174,28 +242,38 @@ impl Printer {
         }
         self.ty(&predicate.bounded_ty);
         self.word(":");
+        self.ibox(INDENT);
         for type_param_bound in predicate.bounds.iter().delimited() {
-            if !type_param_bound.is_first {
-                self.word("+");
+            if type_param_bound.is_first {
+                self.nbsp();
+            } else {
+                self.space();
+                self.word("+ ");
             }
             self.type_param_bound(&type_param_bound);
         }
+        self.end();
     }
 
     fn predicate_lifetime(&mut self, predicate: &PredicateLifetime) {
         self.lifetime(&predicate.lifetime);
         self.word(":");
+        self.ibox(INDENT);
         for lifetime in predicate.bounds.iter().delimited() {
-            if !lifetime.is_first {
-                self.word("+");
+            if lifetime.is_first {
+                self.nbsp();
+            } else {
+                self.space();
+                self.word("+ ");
             }
             self.lifetime(&lifetime);
         }
+        self.end();
     }
 
     fn predicate_eq(&mut self, predicate: &PredicateEq) {
         self.ty(&predicate.lhs_ty);
-        self.word("=");
+        self.word(" = ");
         self.ty(&predicate.rhs_ty);
     }
 }

@@ -26,8 +26,7 @@ impl Printer {
     }
 
     pub fn fields_named(&mut self, fields: &FieldsNamed) {
-        self.word(" {");
-        self.cbox(INDENT);
+        self.word("{");
         self.hardbreak();
         for field in &fields.named {
             self.field(field);
@@ -35,20 +34,17 @@ impl Printer {
             self.hardbreak();
         }
         self.offset(-INDENT);
-        self.end();
         self.word("}");
     }
 
     pub fn fields_unnamed(&mut self, fields: &FieldsUnnamed) {
         self.word("(");
-        self.cbox(INDENT);
         self.zerobreak();
         for field in fields.unnamed.iter().delimited() {
             self.field(&field);
             self.trailing_comma(field.is_last);
         }
         self.offset(-INDENT);
-        self.end();
         self.word(")");
     }
 
