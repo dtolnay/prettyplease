@@ -18,6 +18,7 @@ pub struct BreakToken {
     pub offset: isize,
     pub blank_space: usize,
     pub trailing_comma: bool,
+    pub if_nonempty: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -120,15 +121,22 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.print_end();
         } else {
-            if self.buf.len() >= 2 {
+            if self.buf.len() >= 1 {
                 if let Token::Break(break_token) = self.buf.last().token {
-                    if let Token::Begin(_) = self.buf.second_last().token {
+                    if self.buf.len() >= 2 {
+                        if let Token::Begin(_) = self.buf.second_last().token {
+                            self.buf.pop_last();
+                            self.buf.pop_last();
+                            self.scan_stack.pop_back();
+                            self.scan_stack.pop_back();
+                            self.right_total -= break_token.blank_space as isize;
+                            return;
+                        }
+                    }
+                    if break_token.if_nonempty {
                         self.buf.pop_last();
-                        self.buf.pop_last();
-                        self.scan_stack.pop_back();
                         self.scan_stack.pop_back();
                         self.right_total -= break_token.blank_space as isize;
-                        return;
                     }
                 }
             }

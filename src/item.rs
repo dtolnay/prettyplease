@@ -143,7 +143,7 @@ impl Printer {
         self.where_clause(&item.generics.where_clause);
         self.word("{");
         self.end();
-        self.hardbreak();
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&item.attrs);
         for impl_item in &item.items {
             self.impl_item(impl_item);

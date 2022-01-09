@@ -25,6 +25,7 @@ impl Printer {
             offset: off,
             blank_space: n,
             trailing_comma: false,
+            if_nonempty: false,
         });
     }
 
@@ -57,12 +58,22 @@ impl Printer {
         self.spaces(algorithm::SIZE_INFINITY as usize);
     }
 
+    pub fn hardbreak_if_nonempty(&mut self) {
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: algorithm::SIZE_INFINITY as usize,
+            trailing_comma: false,
+            if_nonempty: true,
+        });
+    }
+
     pub fn trailing_comma(&mut self, is_last: bool) {
         if is_last {
             self.scan_break(BreakToken {
                 offset: 0,
                 blank_space: 0,
                 trailing_comma: true,
+                if_nonempty: false,
             });
         } else {
             self.word(",");
