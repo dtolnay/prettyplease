@@ -78,7 +78,7 @@ impl Printer {
     fn expr_array(&mut self, expr: &ExprArray) {
         self.outer_attrs(&expr.attrs);
         self.word("[");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
         self.inner_attrs(&expr.attrs);
         for element in expr.elems.iter().delimited() {
@@ -100,7 +100,9 @@ impl Printer {
     fn expr_assign_op(&mut self, expr: &ExprAssignOp) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.left);
+        self.nbsp();
         self.binary_operator(&expr.op);
+        self.nbsp();
         self.expr(&expr.right);
     }
 
@@ -122,7 +124,9 @@ impl Printer {
     fn expr_binary(&mut self, expr: &ExprBinary) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.left);
+        self.space();
         self.binary_operator(&expr.op);
+        self.nbsp();
         self.expr(&expr.right);
     }
 
@@ -132,7 +136,7 @@ impl Printer {
             self.label(label);
         }
         self.word("{");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.hardbreak();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.block.stmts {
@@ -166,7 +170,7 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.func);
         self.word("(");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
         for arg in expr.args.iter().delimited() {
             self.expr(&arg);
@@ -232,7 +236,7 @@ impl Printer {
         self.word(" in ");
         self.wrap_exterior_struct(&expr.expr);
         self.word(" {");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
@@ -250,14 +254,45 @@ impl Printer {
 
     fn expr_if(&mut self, expr: &ExprIf) {
         self.outer_attrs(&expr.attrs);
-        self.cbox(INDENT);
+        self.cbox(0);
         self.word("if ");
         self.wrap_exterior_struct(&expr.cond);
         self.nbsp();
-        self.small_block(&expr.then_branch);
         if let Some((_else_token, else_branch)) = &expr.else_branch {
-            self.word(" else ");
-            self.maybe_wrap_else(else_branch);
+            let mut else_branch = &**else_branch;
+            self.small_block(&expr.then_branch);
+            loop {
+                self.word(" else ");
+                match else_branch {
+                    Expr::If(expr) => {
+                        self.word("if ");
+                        self.wrap_exterior_struct(&expr.cond);
+                        self.nbsp();
+                        self.small_block(&expr.then_branch);
+                        if let Some((_else_token, next)) = &expr.else_branch {
+                            else_branch = next;
+                            continue;
+                        }
+                    }
+                    Expr::Block(expr) => {
+                        self.small_block(&expr.block);
+                    }
+                    // If not one of the valid expressions to exist in an else
+                    // clause, wrap in a block.
+                    other => {
+                        self.word("{");
+                        self.space();
+                        self.expr(other);
+                        self.space();
+                        self.offset(-INDENT);
+                        self.word("}");
+                        self.end();
+                    }
+                }
+                break;
+            }
+        } else {
+            self.block(&expr.then_branch);
         }
         self.end();
     }
@@ -289,7 +324,7 @@ impl Printer {
             self.label(label);
         }
         self.word("loop {");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
@@ -310,7 +345,7 @@ impl Printer {
         self.word("match ");
         self.wrap_exterior_struct(&expr.expr);
         self.word(" {");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for arm in &expr.arms {
@@ -334,7 +369,7 @@ impl Printer {
             self.method_turbofish(turbofish);
         }
         self.word("(");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
         for arg in expr.args.iter().delimited() {
             self.expr(&arg);
@@ -402,7 +437,7 @@ impl Printer {
 
     fn expr_struct(&mut self, expr: &ExprStruct) {
         self.outer_attrs(&expr.attrs);
-        self.cbox(INDENT);
+        self.cbox(0);
         self.path(&expr.path);
         self.word(" {");
         self.space_if_nonempty();
@@ -436,7 +471,7 @@ impl Printer {
     fn expr_tuple(&mut self, expr: &ExprTuple) {
         self.outer_attrs(&expr.attrs);
         self.word("(");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
         self.inner_attrs(&expr.attrs);
         for elem in expr.elems.iter().delimited() {
@@ -464,7 +499,7 @@ impl Printer {
     fn expr_unsafe(&mut self, expr: &ExprUnsafe) {
         self.outer_attrs(&expr.attrs);
         self.word("unsafe {");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.space_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in expr.block.stmts.iter().delimited() {
@@ -496,7 +531,7 @@ impl Printer {
         self.word("while ");
         self.wrap_exterior_struct(&expr.cond);
         self.word(" {");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
@@ -532,21 +567,40 @@ impl Printer {
 
     fn arm(&mut self, arm: &Arm) {
         self.outer_attrs(&arm.attrs);
-        self.ibox(INDENT);
+        self.ibox(0);
         self.pat(&arm.pat);
         if let Some((_if_token, guard)) = &arm.guard {
             self.word(" if ");
             self.expr(guard);
         }
         self.word(" =>");
-        self.space();
-        self.expr(&arm.body);
-        self.end();
+        if let Expr::Block(body) = &*arm.body {
+            self.nbsp();
+            self.word("{");
+            self.hardbreak();
+            self.offset(INDENT);
+            self.cbox(INDENT);
+            self.inner_attrs(&body.attrs);
+            for stmt in &body.block.stmts {
+                self.stmt(stmt);
+            }
+            self.offset(-INDENT);
+            self.end();
+            self.word("}");
+            self.end();
+        } else {
+            self.space();
+            self.offset(INDENT);
+            self.ibox(2 * INDENT);
+            self.expr(&arm.body);
+            self.end();
+            self.end();
+        }
     }
 
     fn method_turbofish(&mut self, turbofish: &MethodTurbofish) {
         self.word("::<");
-        self.cbox(INDENT);
+        self.cbox(0);
         self.zerobreak();
         for arg in turbofish.args.iter().delimited() {
             self.generic_method_argument(&arg);
@@ -566,32 +620,17 @@ impl Printer {
 
     fn small_block(&mut self, block: &Block) {
         self.word("{");
-        self.cbox(0);
         self.space_if_nonempty();
-        for stmt in &block.stmts {
-            self.stmt(stmt);
-        }
-        self.offset(-INDENT);
-        self.end();
-        self.word("}");
-    }
-
-    fn maybe_wrap_else(&mut self, expr: &Expr) {
-        // If not one of the valid expressions to exist in an else clause, wrap
-        // in a block.
-        match expr {
-            Expr::If(_) => self.expr(expr),
-            Expr::Block(expr) => self.small_block(&expr.block),
-            _ => {
-                self.word("{");
-                self.cbox(INDENT);
-                self.space();
-                self.expr(expr);
-                self.space();
-                self.offset(-INDENT);
-                self.word("}");
+        if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
+            self.expr(expr);
+            self.space();
+        } else {
+            for stmt in &block.stmts {
+                self.stmt(stmt);
             }
         }
+        self.offset(-INDENT);
+        self.word("}");
     }
 
     pub fn member(&mut self, member: &Member) {
@@ -606,7 +645,6 @@ impl Printer {
     }
 
     fn binary_operator(&mut self, op: &BinOp) {
-        self.nbsp();
         self.word(match op {
             BinOp::Add(_) => "+",
             BinOp::Sub(_) => "-",
@@ -637,7 +675,6 @@ impl Printer {
             BinOp::ShlEq(_) => "<<=",
             BinOp::ShrEq(_) => ">>=",
         });
-        self.nbsp();
     }
 
     fn unary_operator(&mut self, op: &UnOp) {

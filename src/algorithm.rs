@@ -179,10 +179,10 @@ impl Printer {
     }
 
     pub fn offset(&mut self, offset: isize) {
-        if let Token::Break(token) = &mut self.buf.last_mut().token {
-            token.offset += offset;
-        } else {
-            unreachable!();
+        match &mut self.buf.last_mut().token {
+            Token::Break(token) => token.offset += offset,
+            Token::Begin(_) => {}
+            Token::String(_) | Token::End => unreachable!(),
         }
     }
 

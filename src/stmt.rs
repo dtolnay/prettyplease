@@ -20,7 +20,9 @@ impl Printer {
             Stmt::Local(local) => self.local(local),
             Stmt::Item(item) => self.item(item),
             Stmt::Expr(expr) => {
+                self.ibox(INDENT);
                 self.expr(expr);
+                self.end();
                 self.hardbreak();
             }
             Stmt::Semi(expr, _semi) => {
@@ -29,8 +31,10 @@ impl Printer {
                         return;
                     }
                 }
+                self.ibox(INDENT);
                 self.expr(expr);
                 self.word(";");
+                self.end();
                 self.hardbreak();
             }
         }
@@ -38,6 +42,7 @@ impl Printer {
 
     fn local(&mut self, local: &Local) {
         self.outer_attrs(&local.attrs);
+        self.ibox(INDENT);
         self.word("let ");
         self.pat(&local.pat);
         if let Some((_eq, init)) = &local.init {
@@ -45,6 +50,7 @@ impl Printer {
             self.expr(init);
         }
         self.word(";");
+        self.end();
         self.hardbreak();
     }
 }
