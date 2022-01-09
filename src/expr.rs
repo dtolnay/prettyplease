@@ -64,13 +64,14 @@ impl Printer {
 
     // If the given expression is a bare `ExprStruct`, wraps it in parenthesis
     // before appending it to `TokenStream`.
-    fn wrap_bare_struct(&mut self, expr: &Expr) {
-        if let Expr::Struct(_) = expr {
+    fn wrap_exterior_struct(&mut self, expr: &Expr) {
+        let needs_paren = contains_exterior_struct_lit(expr);
+        if needs_paren {
             self.word("(");
-            self.expr(expr);
+        }
+        self.expr(expr);
+        if needs_paren {
             self.word(")");
-        } else {
-            self.expr(expr);
         }
     }
 
@@ -229,7 +230,7 @@ impl Printer {
         self.word("for ");
         self.pat(&expr.pat);
         self.word(" in ");
-        self.wrap_bare_struct(&expr.expr);
+        self.wrap_exterior_struct(&expr.expr);
         self.word(" {");
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
@@ -251,7 +252,7 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
         self.word("if ");
-        self.wrap_bare_struct(&expr.cond);
+        self.wrap_exterior_struct(&expr.cond);
         self.nbsp();
         self.small_block(&expr.then_branch);
         if let Some((_else_token, else_branch)) = &expr.else_branch {
@@ -274,7 +275,7 @@ impl Printer {
         self.word("let ");
         self.pat(&expr.pat);
         self.word(" = ");
-        self.wrap_bare_struct(&expr.expr);
+        self.wrap_exterior_struct(&expr.expr);
     }
 
     pub fn expr_lit(&mut self, expr: &ExprLit) {
@@ -307,7 +308,7 @@ impl Printer {
     fn expr_match(&mut self, expr: &ExprMatch) {
         self.outer_attrs(&expr.attrs);
         self.word("match ");
-        self.wrap_bare_struct(&expr.expr);
+        self.wrap_exterior_struct(&expr.expr);
         self.word(" {");
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
@@ -493,7 +494,7 @@ impl Printer {
             self.label(label);
         }
         self.word("while ");
-        self.wrap_bare_struct(&expr.cond);
+        self.wrap_exterior_struct(&expr.cond);
         self.word(" {");
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
@@ -661,5 +662,36 @@ pub fn requires_terminator(expr: &Expr) -> bool {
         | Expr::Async(_)
         | Expr::TryBlock(_) => false,
         _ => true,
+    }
+}
+
+// Expressions that syntactically contain an "exterior" struct literal i.e. not
+// surrounded by any parens or other delimiters. For example `X { y: 1 }`, `X {
+// y: 1 }.method()`, `foo == X { y: 1 }` and `X { y: 1 } == foo` all do, but `(X
+// { y: 1 }) == foo` does not.
+fn contains_exterior_struct_lit(expr: &Expr) -> bool {
+    match expr {
+        Expr::Struct(_) => true,
+
+        Expr::Assign(ExprAssign { left, right, .. })
+        | Expr::AssignOp(ExprAssignOp { left, right, .. })
+        | Expr::Binary(ExprBinary { left, right, .. }) => {
+            // X { y: 1 } + X { y: 2 }
+            contains_exterior_struct_lit(left) || contains_exterior_struct_lit(right)
+        }
+
+        Expr::Await(ExprAwait { base: e, .. })
+        | Expr::Cast(ExprCast { expr: e, .. })
+        | Expr::Field(ExprField { base: e, .. })
+        | Expr::Index(ExprIndex { expr: e, .. })
+        | Expr::MethodCall(ExprMethodCall { receiver: e, .. })
+        | Expr::Reference(ExprReference { expr: e, .. })
+        | Expr::Type(ExprType { expr: e, .. })
+        | Expr::Unary(ExprUnary { expr: e, .. }) => {
+            // &X { y: 1 }, X { y: 1 }.y
+            contains_exterior_struct_lit(e)
+        }
+
+        _ => false,
     }
 }
