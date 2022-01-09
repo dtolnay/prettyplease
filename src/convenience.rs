@@ -2,30 +2,17 @@ use crate::algorithm::{self, BeginToken, BreakToken, Breaks, Printer};
 use std::borrow::Cow;
 
 impl Printer {
-    // "raw box"
-    pub fn rbox(&mut self, indent: isize, b: Breaks) {
+    pub fn ibox(&mut self, indent: isize) {
         self.scan_begin(BeginToken {
             offset: indent,
-            breaks: b,
+            breaks: Breaks::Inconsistent,
         });
     }
 
-    // Inconsistent breaking box
-    pub fn ibox(&mut self, indent: isize) {
-        self.rbox(indent, Breaks::Inconsistent);
-    }
-
-    // Consistent breaking box
     pub fn cbox(&mut self, indent: isize) {
-        self.rbox(indent, Breaks::Consistent);
-    }
-
-    pub fn break_offset(&mut self, n: usize, off: isize) {
-        self.scan_break(BreakToken {
-            offset: off,
-            blank_space: n,
-            trailing_comma: false,
-            if_nonempty: false,
+        self.scan_begin(BeginToken {
+            offset: indent,
+            breaks: Breaks::Consistent,
         });
     }
 
@@ -39,7 +26,12 @@ impl Printer {
     }
 
     fn spaces(&mut self, n: usize) {
-        self.break_offset(n, 0);
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: n,
+            trailing_comma: false,
+            if_nonempty: false,
+        });
     }
 
     pub fn zerobreak(&mut self) {
