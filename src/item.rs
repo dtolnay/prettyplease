@@ -731,6 +731,7 @@ impl Printer {
             self.word("&");
             if let Some(lifetime) = lifetime {
                 self.lifetime(lifetime);
+                self.nbsp();
             }
         }
         if receiver.mutability.is_some() {

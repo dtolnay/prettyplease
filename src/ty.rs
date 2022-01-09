@@ -103,9 +103,9 @@ impl Printer {
     fn type_ptr(&mut self, ty: &TypePtr) {
         self.word("*");
         if ty.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         } else {
-            self.word("const");
+            self.word("const ");
         }
         self.ty(&ty.elem);
     }
@@ -114,9 +114,10 @@ impl Printer {
         self.word("&");
         if let Some(lifetime) = &ty.lifetime {
             self.lifetime(lifetime);
+            self.nbsp();
         }
         if ty.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.ty(&ty.elem);
     }

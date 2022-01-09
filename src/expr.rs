@@ -3,13 +3,13 @@ use crate::iter::IterDelimited;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
-    Arm, BinOp, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait, ExprBinary,
+    Arm, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait, ExprBinary,
     ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprContinue, ExprField,
     ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprLet, ExprLit, ExprLoop, ExprMacro, ExprMatch,
     ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference, ExprRepeat, ExprReturn,
     ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary, ExprUnsafe, ExprWhile,
     ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member, MethodTurbofish,
-    RangeLimits, UnOp,
+    RangeLimits, Stmt, UnOp,
 };
 
 impl Printer {
@@ -77,18 +77,22 @@ impl Printer {
     fn expr_array(&mut self, expr: &ExprArray) {
         self.outer_attrs(&expr.attrs);
         self.word("[");
+        self.cbox(INDENT);
+        self.zerobreak();
         self.inner_attrs(&expr.attrs);
-        for element in &expr.elems {
-            self.expr(element);
-            self.word(",");
+        for element in expr.elems.iter().delimited() {
+            self.expr(&element);
+            self.trailing_comma(element.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("]");
     }
 
     fn expr_assign(&mut self, expr: &ExprAssign) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.left);
-        self.word("=");
+        self.word(" = ");
         self.expr(&expr.right);
     }
 
@@ -140,7 +144,7 @@ impl Printer {
 
     fn expr_box(&mut self, expr: &ExprBox) {
         self.outer_attrs(&expr.attrs);
-        self.word("box");
+        self.word("box ");
         self.expr(&expr.expr);
     }
 
@@ -148,9 +152,11 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.word("break");
         if let Some(lifetime) = &expr.label {
+            self.nbsp();
             self.lifetime(lifetime);
         }
         if let Some(value) = &expr.expr {
+            self.nbsp();
             self.expr(value);
         }
     }
@@ -173,28 +179,29 @@ impl Printer {
     fn expr_cast(&mut self, expr: &ExprCast) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.expr);
-        self.word("as");
+        self.word(" as ");
         self.ty(&expr.ty);
     }
 
     fn expr_closure(&mut self, expr: &ExprClosure) {
         self.outer_attrs(&expr.attrs);
         if expr.asyncness.is_some() {
-            self.word("async");
+            self.word("async ");
         }
         if expr.movability.is_some() {
-            self.word("static");
+            self.word("static ");
         }
         if expr.capture.is_some() {
-            self.word("move");
+            self.word("move ");
         }
         self.word("|");
-        for pat in &expr.inputs {
-            self.pat(pat);
-            self.word(",");
+        for pat in expr.inputs.iter().delimited() {
+            self.pat(&pat);
+            self.trailing_comma(pat.is_last);
         }
         self.word("|");
         self.return_type(&expr.output);
+        self.nbsp();
         self.expr(&expr.body);
     }
 
@@ -202,6 +209,7 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.word("continue");
         if let Some(lifetime) = &expr.label {
+            self.nbsp();
             self.lifetime(lifetime);
         }
     }
@@ -218,15 +226,19 @@ impl Printer {
         if let Some(label) = &expr.label {
             self.label(label);
         }
-        self.word("for");
+        self.word("for ");
         self.pat(&expr.pat);
-        self.word("in");
+        self.word(" in ");
         self.wrap_bare_struct(&expr.expr);
-        self.word("{");
+        self.word(" {");
+        self.cbox(INDENT);
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
             self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -237,13 +249,16 @@ impl Printer {
 
     fn expr_if(&mut self, expr: &ExprIf) {
         self.outer_attrs(&expr.attrs);
-        self.word("if");
+        self.cbox(INDENT);
+        self.word("if ");
         self.wrap_bare_struct(&expr.cond);
-        self.block(&expr.then_branch);
+        self.nbsp();
+        self.small_block(&expr.then_branch);
         if let Some((_else_token, else_branch)) = &expr.else_branch {
-            self.word("else");
+            self.word(" else ");
             self.maybe_wrap_else(else_branch);
         }
+        self.end();
     }
 
     fn expr_index(&mut self, expr: &ExprIndex) {
@@ -256,9 +271,9 @@ impl Printer {
 
     fn expr_let(&mut self, expr: &ExprLet) {
         self.outer_attrs(&expr.attrs);
-        self.word("let");
+        self.word("let ");
         self.pat(&expr.pat);
-        self.word("=");
+        self.word(" = ");
         self.wrap_bare_struct(&expr.expr);
     }
 
@@ -272,12 +287,15 @@ impl Printer {
         if let Some(label) = &expr.label {
             self.label(label);
         }
-        self.word("loop");
-        self.word("{");
+        self.word("loop {");
+        self.cbox(INDENT);
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
             self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -288,16 +306,21 @@ impl Printer {
 
     fn expr_match(&mut self, expr: &ExprMatch) {
         self.outer_attrs(&expr.attrs);
-        self.word("match");
+        self.word("match ");
         self.wrap_bare_struct(&expr.expr);
-        self.word("{");
+        self.word(" {");
+        self.cbox(INDENT);
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for arm in &expr.arms {
             self.arm(arm);
             if requires_terminator(&arm.body) {
                 self.word(",");
             }
+            self.hardbreak();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -310,10 +333,14 @@ impl Printer {
             self.method_turbofish(turbofish);
         }
         self.word("(");
-        for arg in &expr.args {
-            self.expr(arg);
-            self.word(",");
+        self.cbox(INDENT);
+        self.zerobreak();
+        for arg in expr.args.iter().delimited() {
+            self.expr(&arg);
+            self.trailing_comma(arg.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 
@@ -348,7 +375,7 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.word("&");
         if expr.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.expr(&expr.expr);
     }
@@ -358,7 +385,7 @@ impl Printer {
         self.word("[");
         self.inner_attrs(&expr.attrs);
         self.expr(&expr.expr);
-        self.word(";");
+        self.word("; ");
         self.expr(&expr.len);
         self.word("]");
     }
@@ -367,23 +394,29 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.word("return");
         if let Some(value) = &expr.expr {
+            self.nbsp();
             self.expr(value);
         }
     }
 
     fn expr_struct(&mut self, expr: &ExprStruct) {
         self.outer_attrs(&expr.attrs);
+        self.cbox(INDENT);
         self.path(&expr.path);
-        self.word("{");
+        self.word(" {");
+        self.space_if_nonempty();
         self.inner_attrs(&expr.attrs);
-        for field_value in &expr.fields {
-            self.field_value(field_value);
-            self.word(",");
+        for field_value in expr.fields.iter().delimited() {
+            self.field_value(&field_value);
+            self.trailing_comma_or_space(field_value.is_last && expr.rest.is_none());
         }
         if let Some(rest) = &expr.rest {
             self.word("..");
             self.expr(rest);
+            self.space();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -395,25 +428,29 @@ impl Printer {
 
     fn expr_try_block(&mut self, expr: &ExprTryBlock) {
         self.outer_attrs(&expr.attrs);
-        self.word("try");
+        self.word("try ");
         self.block(&expr.block);
     }
 
     fn expr_tuple(&mut self, expr: &ExprTuple) {
         self.outer_attrs(&expr.attrs);
         self.word("(");
+        self.cbox(INDENT);
+        self.zerobreak();
         self.inner_attrs(&expr.attrs);
-        for elem in &expr.elems {
-            self.expr(elem);
-            self.word(",");
+        for elem in expr.elems.iter().delimited() {
+            self.expr(&elem);
+            self.trailing_comma(elem.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 
     fn expr_type(&mut self, expr: &ExprType) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.expr);
-        self.word(":");
+        self.word(" : ");
         self.ty(&expr.ty);
     }
 
@@ -425,12 +462,22 @@ impl Printer {
 
     fn expr_unsafe(&mut self, expr: &ExprUnsafe) {
         self.outer_attrs(&expr.attrs);
-        self.word("unsafe");
-        self.word("{");
+        self.word("unsafe {");
+        self.cbox(INDENT);
+        self.space_if_nonempty();
         self.inner_attrs(&expr.attrs);
-        for stmt in &expr.block.stmts {
-            self.stmt(stmt);
+        for stmt in expr.block.stmts.iter().delimited() {
+            if stmt.is_first && stmt.is_last {
+                if let Stmt::Expr(expr) = &*stmt {
+                    self.expr(expr);
+                    self.space();
+                    continue;
+                }
+            }
+            self.stmt(&stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -445,13 +492,17 @@ impl Printer {
         if let Some(label) = &expr.label {
             self.label(label);
         }
-        self.word("while");
+        self.word("while ");
         self.wrap_bare_struct(&expr.cond);
-        self.word("{");
+        self.word(" {");
+        self.cbox(INDENT);
+        self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
         for stmt in &expr.body.stmts {
             self.stmt(stmt);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
@@ -459,40 +510,49 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.word("yield");
         if let Some(value) = &expr.expr {
+            self.nbsp();
             self.expr(value);
         }
     }
 
     fn label(&mut self, label: &Label) {
         self.lifetime(&label.name);
-        self.word(":");
+        self.word(": ");
     }
 
     fn field_value(&mut self, field_value: &FieldValue) {
         self.outer_attrs(&field_value.attrs);
         self.member(&field_value.member);
         if field_value.colon_token.is_some() {
-            self.word(":");
+            self.word(": ");
             self.expr(&field_value.expr);
         }
     }
 
     fn arm(&mut self, arm: &Arm) {
         self.outer_attrs(&arm.attrs);
+        self.ibox(INDENT);
         self.pat(&arm.pat);
         if let Some((_if_token, guard)) = &arm.guard {
-            self.word("if");
+            self.word(" if ");
             self.expr(guard);
         }
-        self.word("=>");
+        self.word(" =>");
+        self.space();
         self.expr(&arm.body);
+        self.end();
     }
 
     fn method_turbofish(&mut self, turbofish: &MethodTurbofish) {
         self.word("::<");
-        for arg in &turbofish.args {
-            self.generic_method_argument(arg);
+        self.cbox(INDENT);
+        self.zerobreak();
+        for arg in turbofish.args.iter().delimited() {
+            self.generic_method_argument(&arg);
+            self.trailing_comma(arg.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(">");
     }
 
@@ -503,16 +563,31 @@ impl Printer {
         }
     }
 
+    fn small_block(&mut self, block: &Block) {
+        self.word("{");
+        self.cbox(0);
+        self.space_if_nonempty();
+        for stmt in &block.stmts {
+            self.stmt(stmt);
+        }
+        self.offset(-INDENT);
+        self.end();
+        self.word("}");
+    }
+
     fn maybe_wrap_else(&mut self, expr: &Expr) {
         // If not one of the valid expressions to exist in an else clause, wrap
         // in a block.
         match expr {
-            Expr::If(_) | Expr::Block(_) => {
-                self.expr(expr);
-            }
+            Expr::If(_) => self.expr(expr),
+            Expr::Block(expr) => self.small_block(&expr.block),
             _ => {
                 self.word("{");
+                self.cbox(INDENT);
+                self.space();
                 self.expr(expr);
+                self.space();
+                self.offset(-INDENT);
                 self.word("}");
             }
         }
@@ -530,6 +605,7 @@ impl Printer {
     }
 
     fn binary_operator(&mut self, op: &BinOp) {
+        self.nbsp();
         self.word(match op {
             BinOp::Add(_) => "+",
             BinOp::Sub(_) => "-",
@@ -560,6 +636,7 @@ impl Printer {
             BinOp::ShlEq(_) => "<<=",
             BinOp::ShrEq(_) => ">>=",
         });
+        self.nbsp();
     }
 
     fn unary_operator(&mut self, op: &UnOp) {

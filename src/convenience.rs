@@ -58,6 +58,15 @@ impl Printer {
         self.spaces(algorithm::SIZE_INFINITY as usize);
     }
 
+    pub fn space_if_nonempty(&mut self) {
+        self.scan_break(BreakToken {
+            offset: 0,
+            blank_space: 1,
+            trailing_comma: false,
+            if_nonempty: true,
+        });
+    }
+
     pub fn hardbreak_if_nonempty(&mut self) {
         self.scan_break(BreakToken {
             offset: 0,

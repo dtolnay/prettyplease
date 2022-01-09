@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     FieldPat, Pat, PatBox, PatIdent, PatLit, PatMacro, PatOr, PatPath, PatRange, PatReference,
@@ -34,21 +35,21 @@ impl Printer {
 
     fn pat_box(&mut self, pat: &PatBox) {
         self.outer_attrs(&pat.attrs);
-        self.word("box");
+        self.word("box ");
         self.pat(&pat.pat);
     }
 
     fn pat_ident(&mut self, pat: &PatIdent) {
         self.outer_attrs(&pat.attrs);
         if pat.by_ref.is_some() {
-            self.word("ref");
+            self.word("ref ");
         }
         if pat.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.ident(&pat.ident);
         if let Some((_at_token, subpat)) = &pat.subpat {
-            self.word("@");
+            self.word(" @ ");
             self.pat(subpat);
         }
     }
@@ -67,7 +68,7 @@ impl Printer {
         self.outer_attrs(&pat.attrs);
         for case in pat.cases.iter().delimited() {
             if !case.is_first {
-                self.word("|");
+                self.word(" | ");
             }
             self.pat(&case);
         }
@@ -92,7 +93,7 @@ impl Printer {
         self.outer_attrs(&pat.attrs);
         self.word("&");
         if pat.mutability.is_some() {
-            self.word("mut");
+            self.word("mut ");
         }
         self.pat(&pat.pat);
     }
@@ -105,34 +106,43 @@ impl Printer {
     fn pat_slice(&mut self, pat: &PatSlice) {
         self.outer_attrs(&pat.attrs);
         self.word("[");
-        for elem in &pat.elems {
-            self.pat(elem);
-            self.word(",");
+        for elem in pat.elems.iter().delimited() {
+            self.pat(&elem);
+            self.trailing_comma(elem.is_last);
         }
         self.word("]");
     }
 
     fn pat_struct(&mut self, pat: &PatStruct) {
         self.outer_attrs(&pat.attrs);
+        self.cbox(INDENT);
         self.path(&pat.path);
-        self.word("{");
-        for field in &pat.fields {
-            self.field_pat(field);
-            self.word(",");
+        self.word(" {");
+        self.space_if_nonempty();
+        for field in pat.fields.iter().delimited() {
+            self.field_pat(&field);
+            self.trailing_comma_or_space(field.is_last && pat.dot2_token.is_none());
         }
         if pat.dot2_token.is_some() {
             self.word("..");
+            self.space();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word("}");
     }
 
     fn pat_tuple(&mut self, pat: &PatTuple) {
         self.outer_attrs(&pat.attrs);
         self.word("(");
-        for elem in &pat.elems {
-            self.pat(elem);
-            self.word(",");
+        self.cbox(INDENT);
+        self.zerobreak();
+        for elem in pat.elems.iter().delimited() {
+            self.pat(&elem);
+            self.trailing_comma(elem.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 
@@ -162,7 +172,7 @@ impl Printer {
         self.outer_attrs(&field_pat.attrs);
         if field_pat.colon_token.is_some() {
             self.member(&field_pat.member);
-            self.word(":");
+            self.word(": ");
         }
         self.pat(&field_pat.pat);
     }
