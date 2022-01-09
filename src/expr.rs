@@ -282,7 +282,9 @@ impl Printer {
                     other => {
                         self.word("{");
                         self.space();
+                        self.ibox(INDENT);
                         self.expr(other);
+                        self.end();
                         self.space();
                         self.offset(-INDENT);
                         self.word("}");
@@ -622,7 +624,9 @@ impl Printer {
         self.word("{");
         self.space_if_nonempty();
         if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
+            self.ibox(INDENT);
             self.expr(expr);
+            self.end();
             self.space();
         } else {
             for stmt in &block.stmts {
