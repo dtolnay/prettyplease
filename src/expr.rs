@@ -122,12 +122,27 @@ impl Printer {
     }
 
     fn expr_binary(&mut self, expr: &ExprBinary) {
+        let is_nonassociative = match expr.op {
+            BinOp::Eq(_)
+            | BinOp::Lt(_)
+            | BinOp::Le(_)
+            | BinOp::Ne(_)
+            | BinOp::Ge(_)
+            | BinOp::Gt(_) => true,
+            _ => false,
+        };
         self.outer_attrs(&expr.attrs);
+        if is_nonassociative {
+            self.ibox(0);
+        }
         self.expr(&expr.left);
         self.space();
         self.binary_operator(&expr.op);
         self.nbsp();
         self.expr(&expr.right);
+        if is_nonassociative {
+            self.end();
+        }
     }
 
     pub fn expr_block(&mut self, expr: &ExprBlock) {
