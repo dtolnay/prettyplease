@@ -28,15 +28,9 @@ impl Printer {
         }
     }
 
-    pub fn token_group(&mut self, group: &Group) {
+    fn token_group(&mut self, group: &Group) {
         let delimiter = group.delimiter();
-        let (open, close) = match delimiter {
-            Delimiter::Parenthesis => ("(", ")"),
-            Delimiter::Brace => ("{", "}"),
-            Delimiter::Bracket => ("[", "]"),
-            Delimiter::None => ("", ""),
-        };
-        self.word(open);
+        self.delimiter_open(delimiter);
         let stream = group.stream();
         if !stream.is_empty() {
             if delimiter == Delimiter::Brace {
@@ -47,7 +41,7 @@ impl Printer {
                 self.space();
             }
         }
-        self.word(close);
+        self.delimiter_close(delimiter);
     }
 
     pub fn ident(&mut self, ident: &Ident) {
@@ -60,5 +54,23 @@ impl Printer {
 
     pub fn token_literal(&mut self, literal: &Literal) {
         self.word(literal.to_string());
+    }
+
+    pub fn delimiter_open(&mut self, delimiter: Delimiter) {
+        self.word(match delimiter {
+            Delimiter::Parenthesis => "(",
+            Delimiter::Brace => "{",
+            Delimiter::Bracket => "[",
+            Delimiter::None => return,
+        });
+    }
+
+    pub fn delimiter_close(&mut self, delimiter: Delimiter) {
+        self.word(match delimiter {
+            Delimiter::Parenthesis => ")",
+            Delimiter::Brace => "}",
+            Delimiter::Bracket => "]",
+            Delimiter::None => return,
+        });
     }
 }

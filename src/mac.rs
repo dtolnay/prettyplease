@@ -65,7 +65,20 @@ impl Printer {
         for token in rules.clone() {
             match (state, token) {
                 (Start, TokenTree::Group(group)) => {
-                    self.token_group(&group);
+                    let delimiter = group.delimiter();
+                    self.delimiter_open(delimiter);
+                    let stream = group.stream();
+                    if !stream.is_empty() {
+                        self.cbox(INDENT);
+                        self.zerobreak();
+                        self.ibox(0);
+                        self.tokens_owned(stream);
+                        self.end();
+                        self.zerobreak();
+                        self.offset(-INDENT);
+                        self.end();
+                    }
+                    self.delimiter_close(delimiter);
                     state = Matcher;
                 }
                 (Matcher, TokenTree::Punct(punct))
