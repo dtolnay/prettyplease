@@ -52,6 +52,8 @@ fn main() -> Result<()> {
         .arg("--config=normalize_doc_attributes=true")
         .arg("--emit=stdout")
         .arg("--quiet")
+        .arg("--unstable-features")
+        .arg("--skip-children")
         .arg(&input_path)
         .stdin(Stdio::null())
         .stdout(output_file)
