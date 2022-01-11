@@ -1,6 +1,5 @@
 use crate::algorithm::Printer;
-use crate::iter::IterDelimited;
-use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
 
 impl Printer {
     pub fn tokens(&mut self, tokens: &TokenStream) {
@@ -8,17 +7,22 @@ impl Printer {
     }
 
     fn tokens_owned(&mut self, tokens: TokenStream) {
-        for token in tokens.into_iter().delimited() {
-            if !token.is_first {
-                match &*token {
+        let mut previous_is_joint = true;
+        for token in tokens {
+            if !previous_is_joint {
+                match &token {
                     TokenTree::Punct(punct) if punct.as_char() == ',' => {}
                     _ => self.space(),
                 }
             }
-            match &*token {
+            previous_is_joint = false;
+            match token {
                 TokenTree::Group(group) => self.token_group(&group),
                 TokenTree::Ident(ident) => self.ident(&ident),
-                TokenTree::Punct(punct) => self.token_punct(&punct),
+                TokenTree::Punct(punct) => {
+                    previous_is_joint = punct.spacing() == Spacing::Joint;
+                    self.token_punct(&punct);
+                }
                 TokenTree::Literal(literal) => self.token_literal(&literal),
             }
         }
