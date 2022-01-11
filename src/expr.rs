@@ -255,30 +255,33 @@ impl Printer {
         }
         self.cbox(INDENT);
         self.word("|");
-        self.zerobreak();
         for pat in expr.inputs.iter().delimited() {
+            if pat.is_first {
+                self.zerobreak();
+            }
             self.pat(&pat);
-            if pat.is_last {
-                match &expr.output {
-                    ReturnType::Default => {
-                        self.word("|");
-                        self.space();
-                        self.offset(-INDENT);
-                        self.end();
-                    }
-                    ReturnType::Type(_arrow, ty) => {
-                        self.trailing_comma(true);
-                        self.offset(-INDENT);
-                        self.word("|");
-                        self.end();
-                        self.word(" -> ");
-                        self.ty(ty);
-                        self.nbsp();
-                    }
-                }
-            } else {
+            if !pat.is_last {
                 self.word(",");
                 self.space();
+            }
+        }
+        match &expr.output {
+            ReturnType::Default => {
+                self.word("|");
+                self.space();
+                self.offset(-INDENT);
+                self.end();
+            }
+            ReturnType::Type(_arrow, ty) => {
+                if !expr.inputs.is_empty() {
+                    self.trailing_comma(true);
+                    self.offset(-INDENT);
+                }
+                self.word("|");
+                self.end();
+                self.word(" -> ");
+                self.ty(ty);
+                self.nbsp();
             }
         }
         self.neverbreak();
