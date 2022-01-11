@@ -142,6 +142,8 @@ impl Printer {
             DollarParenSep,
             Pound,
             PoundBang,
+            Dot,
+            Ident,
             Other,
         }
 
@@ -190,12 +192,20 @@ impl Printer {
                     (false, Other)
                 }
                 (_, TokenTree::Group(_)) => (true, Other),
-                (_, TokenTree::Punct(punct)) if punct.as_char() == ',' => (false, Other),
-                (_, TokenTree::Punct(punct)) if punct.as_char() == '$' => (state != Start, Dollar),
-                (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (state != Start, Pound),
-                (_, _) => (state != Start, Other),
+                (_, TokenTree::Ident(_) | TokenTree::Literal(_)) => (state != Dot, Ident),
+                (_, TokenTree::Punct(punct))
+                    if punct.as_char() == ',' || punct.as_char() == ';' =>
+                {
+                    (false, Other)
+                }
+                (_, TokenTree::Punct(punct)) if !matcher && punct.as_char() == '.' => {
+                    (state != Ident, Dot)
+                }
+                (_, TokenTree::Punct(punct)) if punct.as_char() == '$' => (true, Dollar),
+                (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (true, Pound),
+                (_, _) => (true, Other),
             };
-            if needs_space {
+            if state != Start && needs_space {
                 self.space();
             }
             self.single_token(

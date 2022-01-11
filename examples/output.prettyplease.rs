@@ -109,7 +109,7 @@ impl Ipv4Addr {
         }
     }
     pub const fn is_link_local(&self) -> bool {
-        matches!(self . octets (), [169, 254, . .])
+        matches!(self.octets (), [169, 254, . .])
     }
     pub const fn is_global(&self) -> bool {
         if u32::from_be_bytes(self.octets()) == 0xc0000009
@@ -138,7 +138,7 @@ impl Ipv4Addr {
         u32::from_be_bytes(self.octets()) == u32::from_be_bytes(Self::BROADCAST.octets())
     }
     pub const fn is_documentation(&self) -> bool {
-        matches!(self . octets (), [192, 0, 2, _] | [198, 51, 100, _] | [203, 0, 113, _])
+        matches!(self.octets (), [192, 0, 2, _] | [198, 51, 100, _] | [203, 0, 113, _])
     }
     pub const fn to_ipv6_compatible(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
