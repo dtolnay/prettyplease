@@ -644,6 +644,7 @@ impl Printer {
         self.word("while ");
         self.wrap_exterior_struct(&expr.cond);
         self.word("{");
+        self.neverbreak();
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
