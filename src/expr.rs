@@ -2,6 +2,7 @@ use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::INDENT;
 use proc_macro2::TokenStream;
+use syn::punctuated::Punctuated;
 use syn::{
     Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait,
     ExprBinary, ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprContinue,
@@ -9,7 +10,7 @@ use syn::{
     ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference, ExprRepeat,
     ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary, ExprUnsafe,
     ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member, MethodTurbofish,
-    RangeLimits, ReturnType, Stmt, UnOp,
+    RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -203,30 +204,12 @@ impl Printer {
     fn expr_call(&mut self, expr: &ExprCall) {
         self.outer_attrs(&expr.attrs);
         self.expr(&expr.func);
-        self.word("(");
-        self.cbox(INDENT);
-        self.zerobreak();
-        for arg in expr.args.iter().delimited() {
-            self.expr(&arg);
-            self.trailing_comma(arg.is_last);
-        }
-        self.offset(-INDENT);
-        self.end();
-        self.word(")");
+        self.call_args(&expr.args);
     }
 
     fn subexpr_call(&mut self, expr: &ExprCall) {
         self.subexpr(&expr.func);
-        self.word("(");
-        self.cbox(INDENT);
-        self.zerobreak();
-        for arg in expr.args.iter().delimited() {
-            self.expr(&arg);
-            self.trailing_comma(arg.is_last);
-        }
-        self.offset(-INDENT);
-        self.end();
-        self.word(")");
+        self.call_args(&expr.args);
     }
 
     fn expr_cast(&mut self, expr: &ExprCast) {
@@ -498,16 +481,7 @@ impl Printer {
         if let Some(turbofish) = &expr.turbofish {
             self.method_turbofish(turbofish);
         }
-        self.word("(");
-        self.cbox(INDENT);
-        self.zerobreak();
-        for arg in expr.args.iter().delimited() {
-            self.expr(&arg);
-            self.trailing_comma(arg.is_last);
-        }
-        self.offset(-INDENT);
-        self.end();
-        self.word(")");
+        self.call_args(&expr.args);
     }
 
     fn expr_paren(&mut self, expr: &ExprParen) {
@@ -760,6 +734,24 @@ impl Printer {
             GenericMethodArgument::Type(arg) => self.ty(arg),
             GenericMethodArgument::Const(arg) => self.expr(arg),
         }
+    }
+
+    fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
+        self.word("(");
+        let mut iter = args.iter();
+        if let (Some(Expr::Closure(expr)), None) = (iter.next(), iter.next()) {
+            self.expr_closure(expr);
+        } else {
+            self.cbox(INDENT);
+            self.zerobreak();
+            for arg in args.iter().delimited() {
+                self.expr(&arg);
+                self.trailing_comma(arg.is_last);
+            }
+            self.offset(-INDENT);
+            self.end();
+        }
+        self.word(")");
     }
 
     fn small_block(&mut self, block: &Block, attrs: &[Attribute]) {
