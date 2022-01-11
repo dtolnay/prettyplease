@@ -22,6 +22,9 @@ impl Printer {
             Stmt::Expr(expr) => {
                 self.ibox(0);
                 self.expr(expr);
+                if add_semi(expr) {
+                    self.word(";");
+                }
                 self.end();
                 self.hardbreak();
             }
@@ -33,7 +36,7 @@ impl Printer {
                 }
                 self.ibox(0);
                 self.expr(expr);
-                if !meaningless_semi(expr) {
+                if !remove_semi(expr) {
                     self.word(";");
                 }
                 self.end();
@@ -43,12 +46,25 @@ impl Printer {
     }
 }
 
-fn meaningless_semi(expr: &Expr) -> bool {
+fn add_semi(expr: &Expr) -> bool {
+    match expr {
+        Expr::Assign(_)
+        | Expr::AssignOp(_)
+        | Expr::Break(_)
+        | Expr::Continue(_)
+        | Expr::Return(_)
+        | Expr::Yield(_) => true,
+        Expr::Group(group) => add_semi(&group.expr),
+        _ => false,
+    }
+}
+
+fn remove_semi(expr: &Expr) -> bool {
     match expr {
         Expr::ForLoop(_) | Expr::While(_) => true,
-        Expr::Group(group) => meaningless_semi(&group.expr),
+        Expr::Group(group) => remove_semi(&group.expr),
         Expr::If(expr) => match &expr.else_branch {
-            Some((_else_token, else_branch)) => meaningless_semi(else_branch),
+            Some((_else_token, else_branch)) => remove_semi(else_branch),
             None => true,
         },
         _ => false,
