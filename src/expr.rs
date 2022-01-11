@@ -689,8 +689,22 @@ impl Printer {
             self.expr(guard);
         }
         self.word(" =>");
-        if let Expr::Block(body) = &*arm.body {
+        let mut body = &*arm.body;
+        while let Expr::Block(expr) = body {
+            if expr.attrs.is_empty() && expr.label.is_none() {
+                let mut stmts = expr.block.stmts.iter();
+                if let (Some(Stmt::Expr(inner)), None) = (stmts.next(), stmts.next()) {
+                    body = inner;
+                    continue;
+                }
+            }
+            break;
+        }
+        if let Expr::Block(body) = body {
             self.nbsp();
+            if let Some(label) = &body.label {
+                self.label(label);
+            }
             self.word("{");
             self.neverbreak();
             self.cbox(INDENT);
@@ -708,8 +722,8 @@ impl Printer {
             self.neverbreak();
             self.cbox(INDENT);
             self.optional_open_brace();
-            self.expr(&arm.body);
-            if requires_terminator(&arm.body) {
+            self.expr(body);
+            if requires_terminator(body) {
                 self.optional_close_brace_or_comma();
             } else {
                 self.optional_close_brace();
