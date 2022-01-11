@@ -166,27 +166,30 @@ impl Printer {
         self.path(&item.mac.path);
         self.word("!");
         if let Some(ident) = &item.ident {
+            self.nbsp();
             self.ident(ident);
         }
         let (open, close) = match item.mac.delimiter {
             MacroDelimiter::Paren(_) => ("(", ")"),
-            MacroDelimiter::Brace(_) => ("{", "}"),
+            MacroDelimiter::Brace(_) => (" {", "}"),
             MacroDelimiter::Bracket(_) => ("[", "]"),
         };
         self.word(open);
+        self.cbox(INDENT);
+        self.zerobreak();
+        self.ibox(0);
         self.tokens(&item.mac.tokens);
+        self.end();
+        self.zerobreak();
+        self.offset(-INDENT);
+        self.end();
         self.word(close);
         self.mac_semi_if_needed(&item.mac.delimiter);
         self.hardbreak();
     }
 
     fn item_macro2(&mut self, item: &ItemMacro2) {
-        self.outer_attrs(&item.attrs);
-        self.visibility(&item.vis);
-        self.word("macro ");
-        self.ident(&item.ident);
-        self.tokens(&item.rules);
-        self.hardbreak();
+        unimplemented!("Item::Macro2 `macro {} {}`", item.ident, item.rules);
     }
 
     fn item_mod(&mut self, item: &ItemMod) {
