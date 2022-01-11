@@ -21,18 +21,18 @@ impl Printer {
             self.nbsp();
             self.ident(ident);
         }
-        let (open, close) = match mac.delimiter {
-            MacroDelimiter::Paren(_) => ("(", ")"),
-            MacroDelimiter::Brace(_) => (" {", "}"),
-            MacroDelimiter::Bracket(_) => ("[", "]"),
+        let (open, close, delimiter_break) = match mac.delimiter {
+            MacroDelimiter::Paren(_) => ("(", ")", Self::zerobreak as fn(&mut Self)),
+            MacroDelimiter::Brace(_) => (" {", "}", Self::hardbreak as fn(&mut Self)),
+            MacroDelimiter::Bracket(_) => ("[", "]", Self::zerobreak as fn(&mut Self)),
         };
         self.word(open);
         self.cbox(INDENT);
-        self.zerobreak();
+        delimiter_break(self);
         self.ibox(0);
-        self.tokens(&mac.tokens);
+        self.macro_rules_tokens(mac.tokens.clone(), false);
         self.end();
-        self.zerobreak();
+        delimiter_break(self);
         self.offset(-INDENT);
         self.end();
         self.word(close);

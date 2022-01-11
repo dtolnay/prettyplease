@@ -67,10 +67,10 @@ impl IpAddr {
         }
     }
     pub const fn is_ipv4(&self) -> bool {
-        matches!(self, IpAddr :: V4 (_))
+        matches!(self, IpAddr : : V4 (_))
     }
     pub const fn is_ipv6(&self) -> bool {
-        matches!(self, IpAddr :: V6 (_))
+        matches!(self, IpAddr : : V6 (_))
     }
     pub const fn to_canonical(&self) -> IpAddr {
         match self {
@@ -109,7 +109,7 @@ impl Ipv4Addr {
         }
     }
     pub const fn is_link_local(&self) -> bool {
-        matches!(self . octets (), [169, 254, ..])
+        matches!(self . octets (), [169, 254, . .])
     }
     pub const fn is_global(&self) -> bool {
         if u32::from_be_bytes(self.octets()) == 0xc0000009
