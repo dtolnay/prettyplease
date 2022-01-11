@@ -143,6 +143,8 @@ impl Printer {
             Pound,
             PoundBang,
             Dot,
+            Colon,
+            Colon2,
             Ident,
             Other,
         }
@@ -198,8 +200,11 @@ impl Printer {
                 {
                     (false, Other)
                 }
+                (Colon, TokenTree::Punct(punct)) if punct.as_char() == ':' => (false, Colon2),
                 (_, TokenTree::Group(_)) => (true, Other),
-                (_, TokenTree::Ident(ident)) if !is_keyword(ident) => (state != Dot, Ident),
+                (_, TokenTree::Ident(ident)) if !is_keyword(ident) => {
+                    (state != Dot && state != Colon2, Ident)
+                }
                 (_, TokenTree::Literal(_)) => (state != Dot, Ident),
                 (_, TokenTree::Punct(punct))
                     if punct.as_char() == ',' || punct.as_char() == ';' =>
@@ -208,6 +213,11 @@ impl Printer {
                 }
                 (_, TokenTree::Punct(punct)) if !matcher && punct.as_char() == '.' => {
                     (state != Ident, Dot)
+                }
+                (_, TokenTree::Punct(punct))
+                    if punct.as_char() == ':' && punct.spacing() == Spacing::Joint =>
+                {
+                    (state != Ident, Colon)
                 }
                 (_, TokenTree::Punct(punct)) if punct.as_char() == '$' => (true, Dollar),
                 (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (true, Pound),

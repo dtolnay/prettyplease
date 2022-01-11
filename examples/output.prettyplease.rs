@@ -67,10 +67,10 @@ impl IpAddr {
         }
     }
     pub const fn is_ipv4(&self) -> bool {
-        matches!(self, IpAddr :: V4(_))
+        matches!(self, IpAddr::V4(_))
     }
     pub const fn is_ipv6(&self) -> bool {
-        matches!(self, IpAddr :: V6(_))
+        matches!(self, IpAddr::V6(_))
     }
     pub const fn to_canonical(&self) -> IpAddr {
         match self {
