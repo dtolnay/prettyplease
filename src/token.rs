@@ -6,7 +6,7 @@ impl Printer {
         self.tokens_owned(tokens.clone());
     }
 
-    fn tokens_owned(&mut self, tokens: TokenStream) {
+    pub fn tokens_owned(&mut self, tokens: TokenStream) {
         let mut previous_is_joint = true;
         for token in tokens {
             if !previous_is_joint {
