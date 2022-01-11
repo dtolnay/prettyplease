@@ -293,10 +293,10 @@ impl Printer {
             if cfg!(prettyplease_debug_indent) {
                 self.out
                     .extend(token.offset.to_string().chars().map(|ch| match ch {
-                        '0'..='9' => ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
+                        '0'..='9' => ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
                             [(ch as u8 - b'0') as usize]
                             as char,
-                        '-' => '⁻',
+                        '-' => '₋',
                         _ => unreachable!(),
                     }));
             }
