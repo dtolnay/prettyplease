@@ -67,10 +67,10 @@ impl IpAddr {
         }
     }
     pub const fn is_ipv4(&self) -> bool {
-        matches!(self, IpAddr :: V4 (_))
+        matches!(self, IpAddr :: V4(_))
     }
     pub const fn is_ipv6(&self) -> bool {
-        matches!(self, IpAddr :: V6 (_))
+        matches!(self, IpAddr :: V6(_))
     }
     pub const fn to_canonical(&self) -> IpAddr {
         match self {
@@ -109,7 +109,7 @@ impl Ipv4Addr {
         }
     }
     pub const fn is_link_local(&self) -> bool {
-        matches!(self.octets (), [169, 254, ..])
+        matches!(self.octets(), [169, 254, ..])
     }
     pub const fn is_global(&self) -> bool {
         if u32::from_be_bytes(self.octets()) == 0xc0000009
@@ -139,7 +139,7 @@ impl Ipv4Addr {
         u32::from_be_bytes(self.octets()) == u32::from_be_bytes(Self::BROADCAST.octets())
     }
     pub const fn is_documentation(&self) -> bool {
-        matches!(self.octets (), [192, 0, 2, _] | [198, 51, 100, _] | [203, 0, 113, _])
+        matches!(self.octets(), [192, 0, 2, _] | [198, 51, 100, _] | [203, 0, 113, _])
     }
     pub const fn to_ipv6_compatible(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
@@ -185,14 +185,12 @@ impl fmt::Display for Ipv4Addr {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let octets = self.octets();
         if fmt.precision().is_none() && fmt.width().is_none() {
-            write!(fmt, "{}.{}.{}.{}", octets [0], octets [1], octets [2], octets [3])
+            write!(fmt, "{}.{}.{}.{}", octets[0], octets[1], octets[2], octets[3])
         } else {
             const IPV4_BUF_LEN: usize = 15;
             let mut buf = [0u8; IPV4_BUF_LEN];
             let mut buf_slice = &mut buf[..];
-            write!(
-                buf_slice, "{}.{}.{}.{}", octets [0], octets [1], octets [2], octets [3]
-            )
+            write!(buf_slice, "{}.{}.{}.{}", octets[0], octets[1], octets[2], octets[3])
                 .unwrap();
             let len = IPV4_BUF_LEN - buf_slice.len();
             let buf = unsafe { crate::str::from_utf8_unchecked(&buf[..len]) };

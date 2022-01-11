@@ -192,8 +192,15 @@ impl Printer {
                 {
                     (false, Other)
                 }
+                (Ident, TokenTree::Group(group))
+                    if group.delimiter() == Delimiter::Parenthesis
+                        || group.delimiter() == Delimiter::Bracket =>
+                {
+                    (false, Other)
+                }
                 (_, TokenTree::Group(_)) => (true, Other),
-                (_, TokenTree::Ident(_) | TokenTree::Literal(_)) => (state != Dot, Ident),
+                (_, TokenTree::Ident(ident)) if !is_keyword(ident) => (state != Dot, Ident),
+                (_, TokenTree::Literal(_)) => (state != Dot, Ident),
                 (_, TokenTree::Punct(punct))
                     if punct.as_char() == ',' || punct.as_char() == ';' =>
                 {
@@ -224,5 +231,15 @@ impl Printer {
             );
             state = next_state;
         }
+    }
+}
+
+fn is_keyword(ident: &Ident) -> bool {
+    match ident.to_string().as_str() {
+        "as" | "box" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
+        | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "macro" | "match" | "mod"
+        | "move" | "mut" | "pub" | "ref" | "return" | "static" | "struct" | "trait" | "type"
+        | "unsafe" | "use" | "where" | "while" | "yield" => true,
+        _ => false,
     }
 }
