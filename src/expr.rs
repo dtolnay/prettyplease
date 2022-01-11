@@ -707,10 +707,13 @@ impl Printer {
             self.word("}");
             self.end();
         } else {
-            self.space();
-            self.offset(INDENT);
-            self.ibox(2 * INDENT);
+            self.nbsp();
+            self.neverbreak();
+            self.cbox(INDENT);
+            self.optional_open_brace();
             self.expr(&arm.body);
+            self.optional_close_brace();
+            self.offset(-INDENT);
             self.end();
             self.end();
         }

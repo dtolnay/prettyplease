@@ -67,7 +67,7 @@ impl Printer {
     pub fn trailing_comma(&mut self, is_last: bool) {
         if is_last {
             self.scan_break(BreakToken {
-                trailing_comma: true,
+                pre_break: Some(','),
                 ..BreakToken::default()
             });
         } else {
@@ -80,13 +80,27 @@ impl Printer {
         if is_last {
             self.scan_break(BreakToken {
                 blank_space: 1,
-                trailing_comma: true,
+                pre_break: Some(','),
                 ..BreakToken::default()
             });
         } else {
             self.word(",");
             self.space();
         }
+    }
+
+    pub fn optional_open_brace(&mut self) {
+        self.scan_break(BreakToken {
+            pre_break: Some('{'),
+            ..BreakToken::default()
+        });
+    }
+
+    pub fn optional_close_brace(&mut self) {
+        self.scan_break(BreakToken {
+            post_break: Some('}'),
+            ..BreakToken::default()
+        });
     }
 
     pub fn neverbreak(&mut self) {

@@ -18,7 +18,8 @@ pub enum Breaks {
 pub struct BreakToken {
     pub offset: isize,
     pub blank_space: usize,
-    pub trailing_comma: bool,
+    pub pre_break: Option<char>,
+    pub post_break: Option<char>,
     pub if_nonempty: bool,
     pub never_break: bool,
 }
@@ -340,8 +341,8 @@ impl Printer {
                 self.out.push('·');
             }
         } else {
-            if token.trailing_comma {
-                self.out.push(',');
+            if let Some(pre_break) = token.pre_break {
+                self.out.push(pre_break);
             }
             if cfg!(prettyplease_debug) {
                 self.out.push('·');
@@ -350,16 +351,24 @@ impl Printer {
             let indent = self.indent as isize + token.offset;
             self.pending_indentation = usize::try_from(indent).unwrap();
             self.space = cmp::max(MARGIN - indent, MIN_SPACE);
+            if let Some(post_break) = token.post_break {
+                self.print_indent();
+                self.out.push(post_break);
+                self.space -= post_break.len_utf8() as isize;
+            }
         }
     }
 
     fn print_string(&mut self, string: Cow<'static, str>) {
+        self.print_indent();
+        self.out.push_str(&string);
+        self.space -= string.len() as isize;
+    }
+
+    fn print_indent(&mut self) {
         self.out.reserve(self.pending_indentation);
         self.out
             .extend(iter::repeat(' ').take(self.pending_indentation));
         self.pending_indentation = 0;
-
-        self.out.push_str(&string);
-        self.space -= string.len() as isize;
     }
 }
