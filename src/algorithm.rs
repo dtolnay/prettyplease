@@ -290,6 +290,16 @@ impl Printer {
                 Breaks::Consistent => '«',
                 Breaks::Inconsistent => '‹',
             });
+            if cfg!(prettyplease_debug_indent) {
+                self.out
+                    .extend(token.offset.to_string().chars().map(|ch| match ch {
+                        '0'..='9' => ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
+                            [(ch as u8 - b'0') as usize]
+                            as char,
+                        '-' => '⁻',
+                        _ => unreachable!(),
+                    }));
+            }
         }
         if size > self.space {
             self.print_stack
