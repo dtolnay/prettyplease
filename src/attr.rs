@@ -63,6 +63,7 @@ impl Printer {
     fn attr_tokens(&mut self, tokens: TokenStream) {
         let mut stack = Vec::new();
         stack.push((tokens.into_iter(), Delimiter::None));
+        let mut space = Self::nbsp as fn(&mut Self);
 
         enum State {
             Word,
@@ -76,7 +77,7 @@ impl Printer {
             match tokens.next() {
                 Some(TokenTree::Ident(ident)) => {
                     if let Word = state {
-                        self.space();
+                        space(self);
                     }
                     self.ident(&ident);
                     state = Word;
@@ -84,17 +85,17 @@ impl Printer {
                 Some(TokenTree::Punct(punct)) => {
                     let ch = punct.as_char();
                     if let (Word, '=') = (state, ch) {
-                        self.space();
+                        space(self);
                     }
                     self.token_punct(&punct);
                     if let '=' | ',' = ch {
-                        self.space();
+                        space(self);
                     }
                     state = Punct;
                 }
                 Some(TokenTree::Literal(literal)) => {
                     if let Word = state {
-                        self.space();
+                        space(self);
                     }
                     self.token_literal(&literal);
                     state = Word;
@@ -120,6 +121,7 @@ impl Printer {
                         Delimiter::None => {}
                     }
                     stack.push((stream.into_iter(), delimiter));
+                    space = Self::space;
                 }
                 None => {
                     match delimiter {
@@ -141,6 +143,9 @@ impl Printer {
                         Delimiter::None => {}
                     }
                     stack.pop();
+                    if stack.is_empty() {
+                        space = Self::nbsp;
+                    }
                 }
             }
         }
