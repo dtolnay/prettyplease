@@ -1,6 +1,6 @@
 use crate::algorithm::Printer;
 use crate::INDENT;
-use proc_macro2::{Spacing, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Spacing, TokenStream, TokenTree};
 use syn::{Ident, Macro, MacroDelimiter, PathArguments};
 
 impl Printer {
@@ -51,7 +51,7 @@ impl Printer {
             Matcher,
             Equal,
             Greater,
-            Rule,
+            Expander,
         }
 
         use State::*;
@@ -72,7 +72,7 @@ impl Printer {
                         self.cbox(INDENT);
                         self.zerobreak();
                         self.ibox(0);
-                        self.tokens_owned(stream);
+                        self.macro_rules_tokens(stream, true);
                         self.end();
                         self.zerobreak();
                         self.offset(-INDENT);
@@ -95,21 +95,22 @@ impl Printer {
                 }
                 (Greater, TokenTree::Group(group)) => {
                     self.word(" {");
+                    self.neverbreak();
                     let stream = group.stream();
                     if !stream.is_empty() {
                         self.cbox(INDENT);
                         self.hardbreak();
                         self.ibox(0);
-                        self.tokens_owned(stream);
+                        self.macro_rules_tokens(stream, false);
                         self.end();
                         self.hardbreak();
                         self.offset(-INDENT);
                         self.end();
                     }
                     self.word("}");
-                    state = Rule;
+                    state = Expander;
                 }
-                (Rule, TokenTree::Punct(punct)) if punct.as_char() == ';' => {
+                (Expander, TokenTree::Punct(punct)) if punct.as_char() == ';' => {
                     self.word(";");
                     self.hardbreak();
                     state = Start;
@@ -119,7 +120,7 @@ impl Printer {
         }
         match state {
             Start => {}
-            Rule => {
+            Expander => {
                 self.word(";");
                 self.hardbreak();
             }
@@ -128,5 +129,84 @@ impl Printer {
         self.offset(-INDENT);
         self.end();
         self.word("}");
+    }
+
+    fn macro_rules_tokens(&mut self, stream: TokenStream, matcher: bool) {
+        #[derive(PartialEq)]
+        enum State {
+            Start,
+            Dollar,
+            DollarIdent,
+            DollarIdentColon,
+            DollarParen,
+            DollarParenSep,
+            Pound,
+            PoundBang,
+            Other,
+        }
+
+        use State::*;
+
+        let mut state = Start;
+        for token in stream {
+            let (needs_space, next_state) = match (&state, &token) {
+                (Dollar, TokenTree::Ident(_)) => (false, if matcher { DollarIdent } else { Other }),
+                (DollarIdent, TokenTree::Punct(punct))
+                    if punct.as_char() == ':' && punct.spacing() == Spacing::Alone =>
+                {
+                    (false, DollarIdentColon)
+                }
+                (DollarIdentColon, TokenTree::Ident(_)) => (false, Other),
+                (DollarParen, TokenTree::Punct(punct))
+                    if (punct.as_char() == '+'
+                        || punct.as_char() == '*'
+                        || punct.as_char() == '?')
+                        && punct.spacing() == Spacing::Alone =>
+                {
+                    (false, Other)
+                }
+                (DollarParen, TokenTree::Ident(_)) | (DollarParen, TokenTree::Literal(_)) => {
+                    (false, DollarParenSep)
+                }
+                (DollarParen, TokenTree::Punct(punct)) => match punct.spacing() {
+                    Spacing::Joint => (false, DollarParen),
+                    Spacing::Alone => (false, DollarParenSep),
+                },
+                (DollarParenSep, TokenTree::Punct(punct))
+                    if punct.as_char() == '+' || punct.as_char() == '*' =>
+                {
+                    (false, Other)
+                }
+                (Pound, TokenTree::Punct(punct)) if punct.as_char() == '!' => (false, PoundBang),
+                (Start, TokenTree::Group(_)) => (false, Other),
+                (Dollar, TokenTree::Group(group))
+                    if group.delimiter() == Delimiter::Parenthesis =>
+                {
+                    (false, DollarParen)
+                }
+                (Pound, TokenTree::Group(group)) | (PoundBang, TokenTree::Group(group))
+                    if group.delimiter() == Delimiter::Bracket =>
+                {
+                    (false, Other)
+                }
+                (_, TokenTree::Group(_)) => (true, Other),
+                (_, TokenTree::Punct(punct)) if punct.as_char() == ',' => (false, Other),
+                (_, TokenTree::Punct(punct)) if punct.as_char() == '$' => (state != Start, Dollar),
+                (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (state != Start, Pound),
+                (_, _) => (state != Start, Other),
+            };
+            if needs_space {
+                self.space();
+            }
+            self.single_token(
+                token,
+                if matcher {
+                    |printer, stream| printer.macro_rules_tokens(stream, true)
+                } else {
+                    |printer, stream| printer.macro_rules_tokens(stream, false)
+                },
+            );
+            state = next_state;
+        }
     }
 }
