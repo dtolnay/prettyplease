@@ -1,6 +1,7 @@
 // Derived from https://github.com/rust-lang/rust/blob/1.57.0/compiler/rustc_ast_pretty/src/pp.rs
 
 use crate::ring::RingBuffer;
+use crate::{MARGIN, MIN_SPACE};
 use std::borrow::Cow;
 use std::cmp;
 use std::collections::VecDeque;
@@ -46,11 +47,6 @@ enum PrintFrame {
 }
 
 pub const SIZE_INFINITY: isize = 0xffff;
-
-// Target line width.
-const MARGIN: isize = 79;
-// Every line is allowed at least this much space, even if highly indented.
-const MIN_SPACE: isize = 60;
 
 pub struct Printer {
     out: String,

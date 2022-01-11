@@ -31,7 +31,14 @@ mod ty;
 use crate::algorithm::Printer;
 use syn::File;
 
+// Target line width.
+const MARGIN: isize = 89;
+
+// Number of spaces increment at each level of block indentation.
 const INDENT: isize = 4;
+
+// Every line is allowed at least this much space, even if highly indented.
+const MIN_SPACE: isize = 60;
 
 pub fn unparse(file: &File) -> String {
     let mut p = Printer::new();
