@@ -27,11 +27,8 @@ impl Printer {
 
     fn spaces(&mut self, n: usize) {
         self.scan_break(BreakToken {
-            offset: 0,
             blank_space: n,
-            trailing_comma: false,
-            if_nonempty: false,
-            never_break: false,
+            ..BreakToken::default()
         });
     }
 
@@ -53,32 +50,25 @@ impl Printer {
 
     pub fn space_if_nonempty(&mut self) {
         self.scan_break(BreakToken {
-            offset: 0,
             blank_space: 1,
-            trailing_comma: false,
             if_nonempty: true,
-            never_break: false,
+            ..BreakToken::default()
         });
     }
 
     pub fn hardbreak_if_nonempty(&mut self) {
         self.scan_break(BreakToken {
-            offset: 0,
             blank_space: algorithm::SIZE_INFINITY as usize,
-            trailing_comma: false,
             if_nonempty: true,
-            never_break: false,
+            ..BreakToken::default()
         });
     }
 
     pub fn trailing_comma(&mut self, is_last: bool) {
         if is_last {
             self.scan_break(BreakToken {
-                offset: 0,
-                blank_space: 0,
                 trailing_comma: true,
-                if_nonempty: false,
-                never_break: false,
+                ..BreakToken::default()
             });
         } else {
             self.word(",");
@@ -89,11 +79,9 @@ impl Printer {
     pub fn trailing_comma_or_space(&mut self, is_last: bool) {
         if is_last {
             self.scan_break(BreakToken {
-                offset: 0,
                 blank_space: 1,
                 trailing_comma: true,
-                if_nonempty: false,
-                never_break: false,
+                ..BreakToken::default()
             });
         } else {
             self.word(",");
@@ -103,11 +91,8 @@ impl Printer {
 
     pub fn neverbreak(&mut self) {
         self.scan_break(BreakToken {
-            offset: 0,
-            blank_space: 0,
-            trailing_comma: false,
-            if_nonempty: false,
             never_break: true,
+            ..BreakToken::default()
         });
     }
 }

@@ -14,7 +14,7 @@ pub enum Breaks {
     Inconsistent,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct BreakToken {
     pub offset: isize,
     pub blank_space: usize,
