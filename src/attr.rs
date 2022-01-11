@@ -87,7 +87,7 @@ impl Printer {
                     if let (Word, '=') = (state, ch) {
                         space(self);
                     }
-                    self.token_punct(&punct);
+                    self.token_punct(ch);
                     if let '=' | ',' = ch {
                         space(self);
                     }

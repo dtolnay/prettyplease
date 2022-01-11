@@ -1,6 +1,7 @@
 use crate::algorithm::Printer;
+use crate::token::Token;
 use crate::INDENT;
-use proc_macro2::{Delimiter, Spacing, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Spacing, TokenStream};
 use syn::{Ident, Macro, MacroDelimiter, PathArguments};
 
 impl Printer {
@@ -62,12 +63,11 @@ impl Printer {
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
         let mut state = State::Start;
-        for token in rules.clone() {
+        for tt in rules.clone() {
+            let token = Token::from(tt);
             match (state, token) {
-                (Start, TokenTree::Group(group)) => {
-                    let delimiter = group.delimiter();
+                (Start, Token::Group(delimiter, stream)) => {
                     self.delimiter_open(delimiter);
-                    let stream = group.stream();
                     if !stream.is_empty() {
                         self.cbox(INDENT);
                         self.zerobreak();
@@ -81,22 +81,17 @@ impl Printer {
                     self.delimiter_close(delimiter);
                     state = Matcher;
                 }
-                (Matcher, TokenTree::Punct(punct))
-                    if punct.as_char() == '=' && punct.spacing() == Spacing::Joint =>
-                {
+                (Matcher, Token::Punct('=', Spacing::Joint)) => {
                     self.word(" =");
                     state = Equal;
                 }
-                (Equal, TokenTree::Punct(punct))
-                    if punct.as_char() == '>' && punct.spacing() == Spacing::Alone =>
-                {
+                (Equal, Token::Punct('>', Spacing::Alone)) => {
                     self.word(">");
                     state = Greater;
                 }
-                (Greater, TokenTree::Group(group)) => {
+                (Greater, Token::Group(_delimiter, stream)) => {
                     self.word(" {");
                     self.neverbreak();
-                    let stream = group.stream();
                     if !stream.is_empty() {
                         self.cbox(INDENT);
                         self.hardbreak();
@@ -110,7 +105,7 @@ impl Printer {
                     self.word("}");
                     state = Expander;
                 }
-                (Expander, TokenTree::Punct(punct)) if punct.as_char() == ';' => {
+                (Expander, Token::Punct(';', Spacing::Alone)) => {
                     self.word(";");
                     self.hardbreak();
                     state = Start;
@@ -153,83 +148,45 @@ impl Printer {
 
         let mut state = Start;
         let mut previous_is_joint = true;
-        for token in stream {
+        for tt in stream {
+            let token = Token::from(tt);
             let (needs_space, next_state) = match (&state, &token) {
-                (Dollar, TokenTree::Ident(_)) => (false, if matcher { DollarIdent } else { Other }),
-                (DollarIdent, TokenTree::Punct(punct))
-                    if punct.as_char() == ':' && punct.spacing() == Spacing::Alone =>
-                {
-                    (false, DollarIdentColon)
-                }
-                (DollarIdentColon, TokenTree::Ident(_)) => (false, Other),
-                (DollarParen, TokenTree::Punct(punct))
-                    if (punct.as_char() == '+'
-                        || punct.as_char() == '*'
-                        || punct.as_char() == '?')
-                        && punct.spacing() == Spacing::Alone =>
-                {
-                    (false, Other)
-                }
-                (DollarParen, TokenTree::Ident(_)) | (DollarParen, TokenTree::Literal(_)) => {
+                (Dollar, Token::Ident(_)) => (false, if matcher { DollarIdent } else { Other }),
+                (DollarIdent, Token::Punct(':', Spacing::Alone)) => (false, DollarIdentColon),
+                (DollarIdentColon, Token::Ident(_)) => (false, Other),
+                (DollarParen, Token::Punct('+' | '*' | '?', Spacing::Alone)) => (false, Other),
+                (DollarParen, Token::Ident(_)) | (DollarParen, Token::Literal(_)) => {
                     (false, DollarParenSep)
                 }
-                (DollarParen, TokenTree::Punct(punct)) => match punct.spacing() {
-                    Spacing::Joint => (false, DollarParen),
-                    Spacing::Alone => (false, DollarParenSep),
-                },
-                (DollarParenSep, TokenTree::Punct(punct))
-                    if punct.as_char() == '+' || punct.as_char() == '*' =>
-                {
+                (DollarParen, Token::Punct(_, Spacing::Joint)) => (false, DollarParen),
+                (DollarParen, Token::Punct(_, Spacing::Alone)) => (false, DollarParenSep),
+                (DollarParenSep, Token::Punct('+' | '*', _)) => (false, Other),
+                (Pound, Token::Punct('!', _)) => (false, PoundBang),
+                (Start, Token::Group(..)) => (false, Other),
+                (Dollar, Token::Group(Delimiter::Parenthesis, _)) => (false, DollarParen),
+                (Pound | PoundBang, Token::Group(Delimiter::Bracket, _)) => (false, Other),
+                (Ident, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => {
                     (false, Other)
                 }
-                (Pound, TokenTree::Punct(punct)) if punct.as_char() == '!' => (false, PoundBang),
-                (Start, TokenTree::Group(_)) => (false, Other),
-                (Dollar, TokenTree::Group(group))
-                    if group.delimiter() == Delimiter::Parenthesis =>
-                {
-                    (false, DollarParen)
-                }
-                (Pound, TokenTree::Group(group)) | (PoundBang, TokenTree::Group(group))
-                    if group.delimiter() == Delimiter::Bracket =>
-                {
-                    (false, Other)
-                }
-                (Ident, TokenTree::Group(group))
-                    if group.delimiter() == Delimiter::Parenthesis
-                        || group.delimiter() == Delimiter::Bracket =>
-                {
-                    (false, Other)
-                }
-                (Colon, TokenTree::Punct(punct)) if punct.as_char() == ':' => (false, Colon2),
-                (_, TokenTree::Group(_)) => (true, Other),
-                (_, TokenTree::Ident(ident)) if !is_keyword(ident) => {
+                (Colon, Token::Punct(':', _)) => (false, Colon2),
+                (_, Token::Group(..)) => (true, Other),
+                (_, Token::Ident(ident)) if !is_keyword(ident) => {
                     (state != Dot && state != Colon2, Ident)
                 }
-                (_, TokenTree::Literal(_)) => (state != Dot, Ident),
-                (_, TokenTree::Punct(punct))
-                    if punct.as_char() == ',' || punct.as_char() == ';' =>
-                {
-                    (false, Other)
-                }
-                (_, TokenTree::Punct(punct)) if !matcher && punct.as_char() == '.' => {
-                    (state != Ident, Dot)
-                }
-                (_, TokenTree::Punct(punct))
-                    if punct.as_char() == ':' && punct.spacing() == Spacing::Joint =>
-                {
-                    (state != Ident, Colon)
-                }
-                (_, TokenTree::Punct(punct)) if punct.as_char() == '$' => (true, Dollar),
-                (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (true, Pound),
+                (_, Token::Literal(_)) => (state != Dot, Ident),
+                (_, Token::Punct(',' | ';', _)) => (false, Other),
+                (_, Token::Punct('.', _)) if !matcher => (state != Ident, Dot),
+                (_, Token::Punct(':', Spacing::Joint)) => (state != Ident, Colon),
+                (_, Token::Punct('$', _)) => (true, Dollar),
+                (_, Token::Punct('#', _)) => (true, Pound),
                 (_, _) => (true, Other),
             };
             if !previous_is_joint && needs_space {
                 self.space();
             }
-            previous_is_joint = if let TokenTree::Punct(punct) = &token {
-                punct.spacing() == Spacing::Joint || punct.as_char() == '$'
-            } else {
-                false
+            previous_is_joint = match token {
+                Token::Punct(_, Spacing::Joint) | Token::Punct('$', _) => true,
+                _ => false,
             };
             self.single_token(
                 token,

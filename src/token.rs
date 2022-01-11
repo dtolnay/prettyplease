@@ -1,20 +1,23 @@
 use crate::algorithm::Printer;
-use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Ident, Literal, Spacing, TokenStream, TokenTree};
 
 impl Printer {
-    pub fn single_token(&mut self, token: TokenTree, group_contents: fn(&mut Self, TokenStream)) {
+    pub fn single_token(&mut self, token: Token, group_contents: fn(&mut Self, TokenStream)) {
         match token {
-            TokenTree::Group(group) => self.token_group(&group, group_contents),
-            TokenTree::Ident(ident) => self.ident(&ident),
-            TokenTree::Punct(punct) => self.token_punct(&punct),
-            TokenTree::Literal(literal) => self.token_literal(&literal),
+            Token::Group(delimiter, stream) => self.token_group(delimiter, stream, group_contents),
+            Token::Ident(ident) => self.ident(&ident),
+            Token::Punct(ch, _spacing) => self.token_punct(ch),
+            Token::Literal(literal) => self.token_literal(&literal),
         }
     }
 
-    fn token_group(&mut self, group: &Group, group_contents: fn(&mut Self, TokenStream)) {
-        let delimiter = group.delimiter();
+    fn token_group(
+        &mut self,
+        delimiter: Delimiter,
+        stream: TokenStream,
+        group_contents: fn(&mut Self, TokenStream),
+    ) {
         self.delimiter_open(delimiter);
-        let stream = group.stream();
         if !stream.is_empty() {
             if delimiter == Delimiter::Brace {
                 self.space();
@@ -31,8 +34,8 @@ impl Printer {
         self.word(ident.to_string());
     }
 
-    pub fn token_punct(&mut self, punct: &Punct) {
-        self.word(punct.as_char().to_string());
+    pub fn token_punct(&mut self, ch: char) {
+        self.word(ch.to_string());
     }
 
     pub fn token_literal(&mut self, literal: &Literal) {
@@ -55,5 +58,23 @@ impl Printer {
             Delimiter::Bracket => "]",
             Delimiter::None => return,
         });
+    }
+}
+
+pub enum Token {
+    Group(Delimiter, TokenStream),
+    Ident(Ident),
+    Punct(char, Spacing),
+    Literal(Literal),
+}
+
+impl From<TokenTree> for Token {
+    fn from(tt: TokenTree) -> Self {
+        match tt {
+            TokenTree::Group(group) => Token::Group(group.delimiter(), group.stream()),
+            TokenTree::Ident(ident) => Token::Ident(ident),
+            TokenTree::Punct(punct) => Token::Punct(punct.as_char(), punct.spacing()),
+            TokenTree::Literal(literal) => Token::Literal(literal),
+        }
     }
 }
