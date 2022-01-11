@@ -33,10 +33,24 @@ impl Printer {
                 }
                 self.ibox(0);
                 self.expr(expr);
-                self.word(";");
+                if !meaningless_semi(expr) {
+                    self.word(";");
+                }
                 self.end();
                 self.hardbreak();
             }
         }
+    }
+}
+
+fn meaningless_semi(expr: &Expr) -> bool {
+    match expr {
+        Expr::ForLoop(_) | Expr::While(_) => true,
+        Expr::Group(group) => meaningless_semi(&group.expr),
+        Expr::If(expr) => match &expr.else_branch {
+            Some((_else_token, else_branch)) => meaningless_semi(else_branch),
+            None => true,
+        },
+        _ => false,
     }
 }
