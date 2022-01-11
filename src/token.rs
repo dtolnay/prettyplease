@@ -29,14 +29,24 @@ impl Printer {
     }
 
     pub fn token_group(&mut self, group: &Group) {
-        let (open, close) = match group.delimiter() {
+        let delimiter = group.delimiter();
+        let (open, close) = match delimiter {
             Delimiter::Parenthesis => ("(", ")"),
             Delimiter::Brace => ("{", "}"),
             Delimiter::Bracket => ("[", "]"),
             Delimiter::None => ("", ""),
         };
         self.word(open);
-        self.tokens_owned(group.stream());
+        let stream = group.stream();
+        if !stream.is_empty() {
+            if delimiter == Delimiter::Brace {
+                self.space();
+            }
+            self.tokens_owned(stream);
+            if delimiter == Delimiter::Brace {
+                self.space();
+            }
+        }
         self.word(close);
     }
 
