@@ -8,3 +8,6 @@ autoexamples = false
 [dependencies]
 proc-macro2 = { version = "1.0", default-features = false }
 syn = { version = "1.0.85", default-features = false, features = ["full"] }
+
+[workspace]
+members = ["examples/update"]
