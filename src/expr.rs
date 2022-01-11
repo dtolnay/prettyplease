@@ -4,13 +4,13 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::punctuated::Punctuated;
 use syn::{
-    Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait,
-    ExprBinary, ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprContinue,
-    ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprLet, ExprLit, ExprLoop, ExprMacro,
-    ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference, ExprRepeat,
-    ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary, ExprUnsafe,
-    ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member, MethodTurbofish,
-    RangeLimits, ReturnType, Stmt, Token, UnOp,
+    token, Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync,
+    ExprAwait, ExprBinary, ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure,
+    ExprContinue, ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprLet, ExprLit, ExprLoop,
+    ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
+    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary,
+    ExprUnsafe, ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member,
+    MethodTurbofish, RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -688,6 +688,7 @@ impl Printer {
             self.expr(guard);
         }
         self.word(" =>");
+        let empty_block;
         let mut body = &*arm.body;
         while let Expr::Block(expr) = body {
             if expr.attrs.is_empty() && expr.label.is_none() {
@@ -698,6 +699,19 @@ impl Printer {
                 }
             }
             break;
+        }
+        if let Expr::Tuple(expr) = body {
+            if expr.elems.is_empty() && expr.attrs.is_empty() {
+                empty_block = Expr::Block(ExprBlock {
+                    attrs: Vec::new(),
+                    label: None,
+                    block: Block {
+                        brace_token: token::Brace::default(),
+                        stmts: Vec::new(),
+                    },
+                });
+                body = &empty_block;
+            }
         }
         if let Expr::Block(body) = body {
             self.nbsp();
