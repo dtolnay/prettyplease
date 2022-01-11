@@ -47,6 +47,7 @@ impl Printer {
         self.word(": ");
         self.ty(&item.ty);
         self.word(" = ");
+        self.neverbreak();
         self.expr(&item.expr);
         self.word(";");
         self.end();
@@ -223,6 +224,7 @@ impl Printer {
         self.word(": ");
         self.ty(&item.ty);
         self.word(" = ");
+        self.neverbreak();
         self.expr(&item.expr);
         self.word(";");
         self.end();
@@ -305,6 +307,7 @@ impl Printer {
         self.ident(&item.ident);
         self.generics(&item.generics);
         self.word(" = ");
+        self.neverbreak();
         for bound in item.bounds.iter().delimited() {
             if !bound.is_first {
                 self.space();
@@ -326,6 +329,7 @@ impl Printer {
         self.generics(&item.generics);
         self.where_clause_oneline(&item.generics.where_clause);
         self.word("= ");
+        self.neverbreak();
         self.ty(&item.ty);
         self.word(";");
         self.end();
@@ -502,6 +506,7 @@ impl Printer {
         self.ty(&trait_item.ty);
         if let Some((_eq_token, default)) = &trait_item.default {
             self.word(" = ");
+            self.neverbreak();
             self.expr(default);
         }
         self.word(";");
@@ -549,6 +554,7 @@ impl Printer {
         if let Some((_eq_token, default)) = &trait_item.default {
             self.where_clause_oneline(&trait_item.generics.where_clause);
             self.word("= ");
+            self.neverbreak();
             self.ty(default);
         } else {
             self.where_clause_oneline_semi(&trait_item.generics.where_clause);
@@ -594,6 +600,7 @@ impl Printer {
         self.word(": ");
         self.ty(&impl_item.ty);
         self.word(" = ");
+        self.neverbreak();
         self.expr(&impl_item.expr);
         self.word(";");
         self.end();
@@ -605,7 +612,7 @@ impl Printer {
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
         if impl_item.defaultness.is_some() {
-            self.word("default");
+            self.word("default ");
         }
         self.signature(&impl_item.sig);
         if impl_item.block.stmts.len() == 1 {
@@ -636,13 +643,14 @@ impl Printer {
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
         if impl_item.defaultness.is_some() {
-            self.word("default");
+            self.word("default ");
         }
         self.word("type ");
         self.ident(&impl_item.ident);
         self.generics(&impl_item.generics);
         self.where_clause_oneline(&impl_item.generics.where_clause);
         self.word("= ");
+        self.neverbreak();
         self.ty(&impl_item.ty);
         self.word(";");
         self.end();
@@ -704,6 +712,7 @@ impl Printer {
         self.ident(&signature.ident);
         self.generics(&signature.generics);
         self.word("(");
+        self.neverbreak();
         self.cbox(0);
         self.zerobreak();
         let mut last_is_variadic = false;
