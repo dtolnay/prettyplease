@@ -361,14 +361,12 @@ impl Printer {
                         self.space();
                         self.offset(-INDENT);
                         self.word("}");
-                        self.end();
                     }
                 }
                 break;
             }
         } else if expr.then_branch.stmts.is_empty() {
             self.word("{}");
-            self.end();
         } else {
             self.word("{");
             self.hardbreak();
@@ -376,9 +374,9 @@ impl Printer {
                 self.stmt(stmt);
             }
             self.offset(-INDENT);
-            self.end();
             self.word("}");
         }
+        self.end();
     }
 
     fn expr_index(&mut self, expr: &ExprIndex) {
