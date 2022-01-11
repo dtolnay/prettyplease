@@ -718,9 +718,9 @@ impl Printer {
         if let Expr::Block(body) = &*arm.body {
             self.nbsp();
             self.word("{");
-            self.hardbreak();
-            self.offset(INDENT);
+            self.neverbreak();
             self.cbox(INDENT);
+            self.hardbreak_if_nonempty();
             self.inner_attrs(&body.attrs);
             for stmt in &body.block.stmts {
                 self.stmt(stmt);
