@@ -150,6 +150,7 @@ impl Printer {
         use State::*;
 
         let mut state = Start;
+        let mut previous_is_joint = true;
         for token in stream {
             let (needs_space, next_state) = match (&state, &token) {
                 (Dollar, TokenTree::Ident(_)) => (false, if matcher { DollarIdent } else { Other }),
@@ -205,9 +206,14 @@ impl Printer {
                 (_, TokenTree::Punct(punct)) if punct.as_char() == '#' => (true, Pound),
                 (_, _) => (true, Other),
             };
-            if state != Start && needs_space {
+            if !previous_is_joint && needs_space {
                 self.space();
             }
+            previous_is_joint = if let TokenTree::Punct(punct) = &token {
+                punct.spacing() == Spacing::Joint || punct.as_char() == '$'
+            } else {
+                false
+            };
             self.single_token(
                 token,
                 if matcher {
