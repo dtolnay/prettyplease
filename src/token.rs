@@ -20,7 +20,7 @@ impl Printer {
                 TokenTree::Group(group) => self.token_group(&group),
                 TokenTree::Ident(ident) => self.ident(&ident),
                 TokenTree::Punct(punct) => {
-                    previous_is_joint = punct.spacing() == Spacing::Joint;
+                    previous_is_joint = punct.spacing() == Spacing::Joint || punct.as_char() == '$';
                     self.token_punct(&punct);
                 }
                 TokenTree::Literal(literal) => self.token_literal(&literal),
