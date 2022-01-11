@@ -100,12 +100,10 @@ impl<'a> Iterator for Utf8LossyChunksIter<'a> {
         let (inspected, remaining) = unsafe { self.source.split_at_unchecked(i) };
         self.source = remaining;
         let (valid, broken) = unsafe { inspected.split_at_unchecked(valid_up_to) };
-        Some(
-            Utf8LossyChunk {
-                valid: unsafe { from_utf8_unchecked(valid) },
-                broken,
-            },
-        )
+        Some(Utf8LossyChunk {
+            valid: unsafe { from_utf8_unchecked(valid) },
+            broken,
+        })
     }
 }
 impl fmt::Display for Utf8Lossy {
