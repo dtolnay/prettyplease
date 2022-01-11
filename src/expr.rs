@@ -440,7 +440,7 @@ impl Printer {
 
     fn expr_macro(&mut self, expr: &ExprMacro) {
         self.outer_attrs(&expr.attrs);
-        self.mac(&expr.mac);
+        self.mac(&expr.mac, None);
     }
 
     fn expr_match(&mut self, expr: &ExprMatch) {

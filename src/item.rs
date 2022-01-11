@@ -6,9 +6,9 @@ use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
     ForeignItemType, ImplItem, ImplItemConst, ImplItemMacro, ImplItemMethod, ImplItemType, Item,
     ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMacro2,
-    ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse,
-    MacroDelimiter, Pat, Receiver, Signature, Stmt, TraitItem, TraitItemConst, TraitItemMacro,
-    TraitItemMethod, TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree,
+    ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Pat,
+    Receiver, Signature, Stmt, TraitItem, TraitItemConst, TraitItemMacro, TraitItemMethod,
+    TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree,
 };
 
 impl Printer {
@@ -163,27 +163,7 @@ impl Printer {
 
     fn item_macro(&mut self, item: &ItemMacro) {
         self.outer_attrs(&item.attrs);
-        self.path(&item.mac.path);
-        self.word("!");
-        if let Some(ident) = &item.ident {
-            self.nbsp();
-            self.ident(ident);
-        }
-        let (open, close) = match item.mac.delimiter {
-            MacroDelimiter::Paren(_) => ("(", ")"),
-            MacroDelimiter::Brace(_) => (" {", "}"),
-            MacroDelimiter::Bracket(_) => ("[", "]"),
-        };
-        self.word(open);
-        self.cbox(INDENT);
-        self.zerobreak();
-        self.ibox(0);
-        self.tokens(&item.mac.tokens);
-        self.end();
-        self.zerobreak();
-        self.offset(-INDENT);
-        self.end();
-        self.word(close);
+        self.mac(&item.mac, item.ident.as_ref());
         self.mac_semi_if_needed(&item.mac.delimiter);
         self.hardbreak();
     }
@@ -477,7 +457,7 @@ impl Printer {
 
     fn foreign_item_macro(&mut self, foreign_item: &ForeignItemMacro) {
         self.outer_attrs(&foreign_item.attrs);
-        self.mac(&foreign_item.mac);
+        self.mac(&foreign_item.mac, None);
         self.mac_semi_if_needed(&foreign_item.mac.delimiter);
         self.hardbreak();
     }
@@ -568,7 +548,7 @@ impl Printer {
 
     fn trait_item_macro(&mut self, trait_item: &TraitItemMacro) {
         self.outer_attrs(&trait_item.attrs);
-        self.mac(&trait_item.mac);
+        self.mac(&trait_item.mac, None);
         self.mac_semi_if_needed(&trait_item.mac.delimiter);
         self.hardbreak();
     }
@@ -662,7 +642,7 @@ impl Printer {
 
     fn impl_item_macro(&mut self, impl_item: &ImplItemMacro) {
         self.outer_attrs(&impl_item.attrs);
-        self.mac(&impl_item.mac);
+        self.mac(&impl_item.mac, None);
         self.mac_semi_if_needed(&impl_item.mac.delimiter);
         self.hardbreak();
     }

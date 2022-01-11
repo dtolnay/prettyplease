@@ -88,7 +88,7 @@ impl Printer {
     }
 
     fn type_macro(&mut self, ty: &TypeMacro) {
-        self.mac(&ty.mac);
+        self.mac(&ty.mac, None);
     }
 
     fn type_never(&mut self, ty: &TypeNever) {

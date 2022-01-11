@@ -1,11 +1,15 @@
 use crate::algorithm::Printer;
 use crate::INDENT;
-use syn::{Macro, MacroDelimiter};
+use syn::{Ident, Macro, MacroDelimiter};
 
 impl Printer {
-    pub fn mac(&mut self, mac: &Macro) {
+    pub fn mac(&mut self, mac: &Macro, ident: Option<&Ident>) {
         self.path(&mac.path);
         self.word("!");
+        if let Some(ident) = ident {
+            self.nbsp();
+            self.ident(ident);
+        }
         let (open, close) = match mac.delimiter {
             MacroDelimiter::Paren(_) => ("(", ")"),
             MacroDelimiter::Brace(_) => (" {", "}"),
@@ -18,6 +22,7 @@ impl Printer {
         self.tokens(&mac.tokens);
         self.end();
         self.zerobreak();
+        self.offset(-INDENT);
         self.end();
         self.word(close);
     }

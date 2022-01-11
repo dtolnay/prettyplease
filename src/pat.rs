@@ -61,7 +61,7 @@ impl Printer {
 
     fn pat_macro(&mut self, pat: &PatMacro) {
         self.outer_attrs(&pat.attrs);
-        self.mac(&pat.mac);
+        self.mac(&pat.mac, None);
     }
 
     fn pat_or(&mut self, pat: &PatOr) {
