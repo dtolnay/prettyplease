@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait, TypeInfer,
@@ -35,7 +36,7 @@ impl Printer {
     fn type_array(&mut self, ty: &TypeArray) {
         self.word("[");
         self.ty(&ty.elem);
-        self.word(";");
+        self.word("; ");
         self.expr(&ty.len);
         self.word("]");
     }
@@ -51,13 +52,18 @@ impl Printer {
             self.abi(abi);
         }
         self.word("fn(");
-        for bare_fn_arg in &ty.inputs {
-            self.bare_fn_arg(bare_fn_arg);
-            self.word(",");
+        self.cbox(INDENT);
+        self.zerobreak();
+        for bare_fn_arg in ty.inputs.iter().delimited() {
+            self.bare_fn_arg(&bare_fn_arg);
+            self.trailing_comma(bare_fn_arg.is_last && !ty.variadic.is_some());
         }
         if let Some(variadic) = &ty.variadic {
             self.variadic(variadic);
+            self.zerobreak();
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
         self.return_type(&ty.output);
     }
@@ -140,10 +146,14 @@ impl Printer {
 
     fn type_tuple(&mut self, ty: &TypeTuple) {
         self.word("(");
-        for elem in &ty.elems {
-            self.ty(elem);
-            self.word(",");
+        self.cbox(INDENT);
+        self.zerobreak();
+        for elem in ty.elems.iter().delimited() {
+            self.ty(&elem);
+            self.trailing_comma(elem.is_last);
         }
+        self.offset(-INDENT);
+        self.end();
         self.word(")");
     }
 
@@ -165,7 +175,7 @@ impl Printer {
         self.outer_attrs(&bare_fn_arg.attrs);
         if let Some((name, _colon)) = &bare_fn_arg.name {
             self.ident(name);
-            self.word(":");
+            self.word(": ");
         }
         self.ty(&bare_fn_arg.ty);
     }
