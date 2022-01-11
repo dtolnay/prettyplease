@@ -113,7 +113,8 @@ impl Ipv4Addr {
     }
     pub const fn is_global(&self) -> bool {
         if u32::from_be_bytes(self.octets()) == 0xc0000009
-            || u32::from_be_bytes(self.octets()) == 0xc000000a {
+            || u32::from_be_bytes(self.octets()) == 0xc000000a
+        {
             return true;
         }
         !self.is_private() && !self.is_loopback() && !self.is_link_local()

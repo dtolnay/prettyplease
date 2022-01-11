@@ -86,13 +86,17 @@ impl Printer {
         if needs_paren {
             self.word("(");
         }
-        self.ibox(0);
+        self.cbox(0);
         self.expr(expr);
-        self.end();
         if needs_paren {
             self.word(")");
         }
-        self.nbsp();
+        if needs_newline_if_wrap(expr) {
+            self.space();
+        } else {
+            self.nbsp();
+        }
+        self.end();
     }
 
     fn expr_array(&mut self, expr: &ExprArray) {
@@ -890,6 +894,7 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
         }
 
         Expr::Await(ExprAwait { base: e, .. })
+        | Expr::Box(ExprBox { expr: e, .. })
         | Expr::Cast(ExprCast { expr: e, .. })
         | Expr::Field(ExprField { base: e, .. })
         | Expr::Index(ExprIndex { expr: e, .. })
@@ -901,6 +906,62 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
             contains_exterior_struct_lit(e)
         }
 
+        _ => false,
+    }
+}
+
+fn needs_newline_if_wrap(expr: &Expr) -> bool {
+    match expr {
+        Expr::Array(_)
+        | Expr::Async(_)
+        | Expr::Block(_)
+        | Expr::Break(ExprBreak { expr: None, .. })
+        | Expr::Closure(_)
+        | Expr::Continue(_)
+        | Expr::ForLoop(_)
+        | Expr::If(_)
+        | Expr::Lit(_)
+        | Expr::Loop(_)
+        | Expr::Macro(_)
+        | Expr::Match(_)
+        | Expr::Path(_)
+        | Expr::Range(ExprRange { to: None, .. })
+        | Expr::Repeat(_)
+        | Expr::Return(ExprReturn { expr: None, .. })
+        | Expr::Struct(_)
+        | Expr::TryBlock(_)
+        | Expr::Tuple(_)
+        | Expr::Unsafe(_)
+        | Expr::Verbatim(_)
+        | Expr::While(_)
+        | Expr::Yield(ExprYield { expr: None, .. }) => false,
+
+        Expr::Assign(_)
+        | Expr::AssignOp(_)
+        | Expr::Await(_)
+        | Expr::Binary(_)
+        | Expr::Cast(_)
+        | Expr::Field(_)
+        | Expr::Index(_)
+        | Expr::MethodCall(_)
+        | Expr::Type(_) => true,
+
+        Expr::Box(ExprBox { expr: e, .. })
+        | Expr::Break(ExprBreak { expr: Some(e), .. })
+        | Expr::Call(ExprCall { func: e, .. })
+        | Expr::Group(ExprGroup { expr: e, .. })
+        | Expr::Let(ExprLet { expr: e, .. })
+        | Expr::Paren(ExprParen { expr: e, .. })
+        | Expr::Range(ExprRange { to: Some(e), .. })
+        | Expr::Reference(ExprReference { expr: e, .. })
+        | Expr::Return(ExprReturn { expr: Some(e), .. })
+        | Expr::Try(ExprTry { expr: e, .. })
+        | Expr::Unary(ExprUnary { expr: e, .. })
+        | Expr::Yield(ExprYield { expr: Some(e), .. }) => needs_newline_if_wrap(e),
+
+        #[cfg(test)]
+        Expr::__TestExhaustive(_) => unreachable!(),
+        #[cfg(not(test))]
         _ => false,
     }
 }
