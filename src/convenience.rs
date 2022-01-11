@@ -103,6 +103,14 @@ impl Printer {
         });
     }
 
+    pub fn optional_close_brace_or_comma(&mut self) {
+        self.scan_break(BreakToken {
+            post_break: Some('}'),
+            no_break: Some(','),
+            ..BreakToken::default()
+        });
+    }
+
     pub fn neverbreak(&mut self) {
         self.scan_break(BreakToken {
             never_break: true,

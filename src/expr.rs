@@ -455,9 +455,6 @@ impl Printer {
         self.inner_attrs(&expr.attrs);
         for arm in &expr.arms {
             self.arm(arm);
-            if requires_terminator(&arm.body) {
-                self.word(",");
-            }
             self.hardbreak();
         }
         self.offset(-INDENT);
@@ -712,7 +709,11 @@ impl Printer {
             self.cbox(INDENT);
             self.optional_open_brace();
             self.expr(&arm.body);
-            self.optional_close_brace();
+            if requires_terminator(&arm.body) {
+                self.optional_close_brace_or_comma();
+            } else {
+                self.optional_close_brace();
+            }
             self.offset(-INDENT);
             self.end();
             self.end();

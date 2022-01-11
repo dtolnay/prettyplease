@@ -20,6 +20,7 @@ pub struct BreakToken {
     pub blank_space: usize,
     pub pre_break: Option<char>,
     pub post_break: Option<char>,
+    pub no_break: Option<char>,
     pub if_nonempty: bool,
     pub never_break: bool,
 }
@@ -337,6 +338,10 @@ impl Printer {
         if fits {
             self.pending_indentation += token.blank_space;
             self.space -= token.blank_space as isize;
+            if let Some(no_break) = token.no_break {
+                self.out.push(no_break);
+                self.space -= no_break.len_utf8() as isize;
+            }
             if cfg!(prettyplease_debug) {
                 self.out.push('·');
             }
