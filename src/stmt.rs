@@ -46,7 +46,7 @@ impl Printer {
     }
 }
 
-fn add_semi(expr: &Expr) -> bool {
+pub fn add_semi(expr: &Expr) -> bool {
     match expr {
         Expr::Assign(_)
         | Expr::AssignOp(_)

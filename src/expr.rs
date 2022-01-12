@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::stmt;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::punctuated::Punctuated;
@@ -737,10 +738,11 @@ impl Printer {
             self.cbox(INDENT);
             self.optional_open_brace();
             self.expr(body);
-            if requires_terminator(body) {
-                self.optional_close_brace_or_comma();
-            } else {
-                self.optional_close_brace();
+            match (requires_terminator(body), stmt::add_semi(body)) {
+                (false, false) => self.optional_close_brace(),
+                (false, true) => self.optional_close_brace_semi(),
+                (true, false) => self.optional_close_brace_or_comma(),
+                (true, true) => self.optional_close_brace_semi_or_comma(),
             }
             self.offset(-INDENT);
             self.end();
