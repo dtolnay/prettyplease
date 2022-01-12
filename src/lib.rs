@@ -64,9 +64,9 @@
 //!
 //! # Comparison to rustfmt
 //!
-//! - [input.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/input.rs)
-//! - [output.prettyplease.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/output.prettyplease.rs)
-//! - [output.rustfmt.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/output.rustfmt.rs)
+//! - [input.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/input.rs)
+//! - [output.prettyplease.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/output.prettyplease.rs)
+//! - [output.rustfmt.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/output.rustfmt.rs)
 //!
 //! If you weren't told which output file is which, it would be practically
 //! impossible to tell &mdash; **except** for line 435 in the rustfmt output,
@@ -105,9 +105,9 @@
 //!
 //! # Comparison to rustc_ast_pretty
 //!
-//! - [input.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/input.rs)
-//! - [output.prettyplease.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/output.prettyplease.rs)
-//! - [output.rustc.rs](https://github.com/dtolnay/prettyplease/blob/master/examples/output.rustc.rs)
+//! - [input.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/input.rs)
+//! - [output.prettyplease.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/output.prettyplease.rs)
+//! - [output.rustc.rs](https://github.com/dtolnay/prettyplease/blob/0.1.0/examples/output.rustc.rs)
 //!
 //! This is the pretty-printer that gets used when rustc prints source code,
 //! such as `rustc -Zunpretty=expanded`. It's used also by the standard
