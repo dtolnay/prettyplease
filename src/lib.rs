@@ -179,7 +179,7 @@
 //!
 //! ```
 //! // [dependencies]
-//! // prettyplease = "0"
+//! // prettyplease = "0.1"
 //! // syn = { version = "1", default-features = false, features = ["full", "parsing"] }
 //!
 //! const INPUT: &str = stringify! {
