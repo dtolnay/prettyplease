@@ -24,6 +24,17 @@ jobs:
       - run: cargo check
       - run: cargo test
 
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustc-dev, rustfmt
+      - run: cargo run --manifest-path examples/update/Cargo.toml
+      - run: git diff --exit-code
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
