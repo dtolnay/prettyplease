@@ -396,20 +396,22 @@ impl Printer {
             self.zerobreak();
             self.ibox(0);
             for use_tree in use_group.items.iter().delimited() {
-                self.cbox(0);
                 self.use_tree(&use_tree);
-                if use_tree.is_last {
-                    self.end();
-                    self.trailing_comma(true);
-                } else {
+                if !use_tree.is_last {
                     self.word(",");
-                    self.space();
-                    self.end();
-                    self.zerobreak();
+                    let mut use_tree = *use_tree;
+                    while let UseTree::Path(use_path) = use_tree {
+                        use_tree = &use_path.tree;
+                    }
+                    if let UseTree::Group(_) = use_tree {
+                        self.hardbreak();
+                    } else {
+                        self.space();
+                    }
                 }
             }
             self.end();
-            self.zerobreak();
+            self.trailing_comma(true);
             self.offset(-INDENT);
             self.word("}");
             self.end();
