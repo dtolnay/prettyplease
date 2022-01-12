@@ -1,4 +1,5 @@
-// Derived from https://github.com/rust-lang/rust/blob/1.57.0/compiler/rustc_ast_pretty/src/pp.rs
+// Adapted from https://github.com/rust-lang/rust/blob/1.57.0/compiler/rustc_ast_pretty/src/pp.rs.
+// See "Algorithm notes" in the crate-level rustdoc.
 
 use crate::ring::RingBuffer;
 use crate::{MARGIN, MIN_SPACE};
@@ -7,7 +8,6 @@ use std::cmp;
 use std::collections::VecDeque;
 use std::iter;
 
-// How to break. Described in more detail in the module docs.
 #[derive(Clone, Copy, PartialEq)]
 pub enum Breaks {
     Consistent,
@@ -33,9 +33,6 @@ pub struct BeginToken {
 
 #[derive(Clone)]
 pub enum Token {
-    // In practice a string token contains either a `&'static str` or a
-    // `String`. `Cow` is overkill for this because we never modify the data,
-    // but it's more convenient than rolling our own more specialized type.
     String(Cow<'static, str>),
     Break(BreakToken),
     Begin(BeginToken),
@@ -56,15 +53,15 @@ pub struct Printer {
     space: isize,
     // Ring-buffer of tokens and calculated sizes
     buf: RingBuffer<BufEntry>,
-    // Running size of stream "...left"
+    // Total size of tokens already printed
     left_total: isize,
-    // Running size of stream "...right"
+    // Total size of tokens enqueued, including printed and not yet printed
     right_total: isize,
-    // Pseudo-stack, really a ring too. Holds the primary-ring-buffers index of
-    // the Begin that started the current block, possibly with the most recent
-    // Break after that Begin (if there is any) on top of it. Stuff is flushed
-    // off the bottom as it becomes irrelevant due to the primary ring-buffer
-    // advancing.
+    // Holds the ring-buffer index of the Begin that started the current block,
+    // possibly with the most recent Break after that Begin (if there is any) on
+    // top of it. Values are pushed and popped on the back of the queue using it
+    // like stack, and elsewhere old values are popped from the front of the
+    // queue as they become irrelevant due to the primary ring-buffer advancing.
     scan_stack: VecDeque<usize>,
     // Stack of blocks-in-progress being flushed by print
     print_stack: Vec<PrintFrame>,
