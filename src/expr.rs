@@ -1,4 +1,4 @@
-use crate::algorithm::Printer;
+use crate::algorithm::{BreakToken, Printer};
 use crate::iter::IterDelimited;
 use crate::stmt;
 use crate::INDENT;
@@ -736,15 +736,18 @@ impl Printer {
             self.nbsp();
             self.neverbreak();
             self.cbox(INDENT);
-            self.optional_open_brace();
+            self.scan_break(BreakToken {
+                pre_break: Some('{'),
+                ..BreakToken::default()
+            });
             self.expr(body);
-            match (requires_terminator(body), stmt::add_semi(body)) {
-                (false, false) => self.optional_close_brace(),
-                (false, true) => self.optional_close_brace_semi(),
-                (true, false) => self.optional_close_brace_or_comma(),
-                (true, true) => self.optional_close_brace_semi_or_comma(),
-            }
-            self.offset(-INDENT);
+            self.scan_break(BreakToken {
+                offset: -INDENT,
+                pre_break: stmt::add_semi(body).then(|| ';'),
+                post_break: Some('}'),
+                no_break: requires_terminator(body).then(|| ','),
+                ..BreakToken::default()
+            });
             self.end();
             self.end();
         }
