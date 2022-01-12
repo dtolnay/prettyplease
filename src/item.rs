@@ -342,7 +342,6 @@ impl Printer {
 
     fn item_use(&mut self, item: &ItemUse) {
         self.outer_attrs(&item.attrs);
-        self.cbox(INDENT);
         self.visibility(&item.vis);
         self.word("use ");
         if item.leading_colon.is_some() {
@@ -350,7 +349,6 @@ impl Printer {
         }
         self.use_tree(&item.tree);
         self.word(";");
-        self.end();
         self.hardbreak();
     }
 
@@ -393,14 +391,28 @@ impl Printer {
         if use_group.items.len() == 1 {
             self.use_tree(&use_group.items[0]);
         } else {
+            self.cbox(INDENT);
             self.word("{");
             self.zerobreak();
+            self.ibox(0);
             for use_tree in use_group.items.iter().delimited() {
+                self.cbox(0);
                 self.use_tree(&use_tree);
-                self.trailing_comma(use_tree.is_last);
+                if use_tree.is_last {
+                    self.end();
+                    self.trailing_comma(true);
+                } else {
+                    self.word(",");
+                    self.space();
+                    self.end();
+                    self.zerobreak();
+                }
             }
+            self.end();
+            self.zerobreak();
             self.offset(-INDENT);
             self.word("}");
+            self.end();
         }
     }
 
