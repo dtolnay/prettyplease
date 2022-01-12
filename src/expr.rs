@@ -116,12 +116,9 @@ impl Printer {
 
     fn expr_assign(&mut self, expr: &ExprAssign) {
         self.outer_attrs(&expr.attrs);
-        self.ibox(INDENT);
-        self.ibox(-INDENT);
+        self.ibox(0);
         self.expr(&expr.left);
-        self.end();
-        self.space();
-        self.word("= ");
+        self.word(" = ");
         self.expr(&expr.right);
         self.end();
     }
