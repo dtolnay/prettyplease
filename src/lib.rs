@@ -305,6 +305,7 @@
 #![allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
+    clippy::doc_markdown,
     clippy::enum_glob_use,
     clippy::items_after_statements,
     clippy::match_like_matches_macro,
