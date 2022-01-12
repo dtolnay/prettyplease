@@ -1,12 +1,16 @@
 #![allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
+    clippy::enum_glob_use,
+    clippy::items_after_statements,
     clippy::match_like_matches_macro,
+    clippy::match_same_arms,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::needless_pass_by_value,
     clippy::similar_names,
-    clippy::unused_self
+    clippy::unused_self,
+    clippy::vec_init_then_push
 )]
 
 mod algorithm;

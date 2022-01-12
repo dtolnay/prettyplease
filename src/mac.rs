@@ -155,9 +155,7 @@ impl Printer {
                 (DollarIdent, Token::Punct(':', Spacing::Alone)) => (false, DollarIdentColon),
                 (DollarIdentColon, Token::Ident(_)) => (false, Other),
                 (DollarParen, Token::Punct('+' | '*' | '?', Spacing::Alone)) => (false, Other),
-                (DollarParen, Token::Ident(_)) | (DollarParen, Token::Literal(_)) => {
-                    (false, DollarParenSep)
-                }
+                (DollarParen, Token::Ident(_) | Token::Literal(_)) => (false, DollarParenSep),
                 (DollarParen, Token::Punct(_, Spacing::Joint)) => (false, DollarParen),
                 (DollarParen, Token::Punct(_, Spacing::Alone)) => (false, DollarParenSep),
                 (DollarParenSep, Token::Punct('+' | '*', _)) => (false, Other),

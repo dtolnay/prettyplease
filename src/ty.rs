@@ -56,7 +56,7 @@ impl Printer {
         self.zerobreak();
         for bare_fn_arg in ty.inputs.iter().delimited() {
             self.bare_fn_arg(&bare_fn_arg);
-            self.trailing_comma(bare_fn_arg.is_last && !ty.variadic.is_some());
+            self.trailing_comma(bare_fn_arg.is_last && ty.variadic.is_none());
         }
         if let Some(variadic) = &ty.variadic {
             self.variadic(variadic);

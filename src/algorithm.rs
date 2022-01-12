@@ -120,7 +120,7 @@ impl Printer {
         if self.scan_stack.is_empty() {
             self.print_end();
         } else {
-            if self.buf.len() >= 1 {
+            if !self.buf.is_empty() {
                 if let Token::Break(break_token) = self.buf.last().token {
                     if self.buf.len() >= 2 {
                         if let Token::Begin(_) = self.buf.second_last().token {
