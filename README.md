@@ -97,6 +97,16 @@ The prettyplease library is designed to have no pathological cases that force a
 bail out; the entire input you give it will get formatted in some "good enough"
 form.
 
+Separately, rustfmt can be problematic to integrate into projects. It's written
+using rustc's internal syntax tree, so it can't be built by a stable compiler.
+Its releases are not regularly published to crates.io, so in Cargo builds you'd
+need to depend on it as a git dependency, which precludes publishing your crate
+to crates.io also. You can shell out to a `rustfmt` binary, but that'll be
+whatever rustfmt version is installed on each developer's system (if any), which
+can lead to spurious diffs in checked-in generated code formatted by different
+versions. In contrast prettyplease is designed to be easy to pull in as a
+library, and compiles fast.
+
 <br>
 
 ## Comparison to rustc_ast_pretty
