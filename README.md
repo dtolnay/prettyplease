@@ -35,8 +35,8 @@ have slightly different linebreak decisions, but still clearly follow the
 dominant modern Rust style.
 
 The tradeoffs made by this crate are a good fit for generated code that you will
-*not* spend your career staring at. For example, the output of `cbindgen`, or
-the output of `cargo-expand`. In those cases it's more important that the whole
+*not* spend your career staring at. For example, the output of `bindgen`, or the
+output of `cargo-expand`. In those cases it's more important that the whole
 thing be formattable without the formatter giving up, than that it be flawless.
 
 <br>
