@@ -137,6 +137,7 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
+        self.inner_attrs(&pat.attrs);
         for elem in pat.elems.iter().delimited() {
             self.pat(&elem);
             self.trailing_comma(elem.is_last);
