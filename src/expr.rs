@@ -584,7 +584,12 @@ impl Printer {
         self.inner_attrs(&expr.attrs);
         for elem in expr.elems.iter().delimited() {
             self.expr(&elem);
-            self.trailing_comma(elem.is_last);
+            if expr.elems.len() == 1 {
+                self.word(",");
+                self.zerobreak();
+            } else {
+                self.trailing_comma(elem.is_last);
+            }
         }
         self.offset(-INDENT);
         self.end();

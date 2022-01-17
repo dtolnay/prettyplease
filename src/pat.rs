@@ -140,7 +140,12 @@ impl Printer {
         self.inner_attrs(&pat.attrs);
         for elem in pat.elems.iter().delimited() {
             self.pat(&elem);
-            self.trailing_comma(elem.is_last);
+            if pat.elems.len() == 1 {
+                self.word(",");
+                self.zerobreak();
+            } else {
+                self.trailing_comma(elem.is_last);
+            }
         }
         self.offset(-INDENT);
         self.end();
@@ -150,7 +155,17 @@ impl Printer {
     fn pat_tuple_struct(&mut self, pat: &PatTupleStruct) {
         self.outer_attrs(&pat.attrs);
         self.path(&pat.path);
-        self.pat_tuple(&pat.pat);
+        self.word("(");
+        self.cbox(INDENT);
+        self.zerobreak();
+        self.inner_attrs(&pat.attrs);
+        for elem in pat.pat.elems.iter().delimited() {
+            self.pat(&elem);
+            self.trailing_comma(elem.is_last);
+        }
+        self.offset(-INDENT);
+        self.end();
+        self.word(")");
     }
 
     pub fn pat_type(&mut self, pat: &PatType) {

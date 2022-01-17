@@ -150,7 +150,12 @@ impl Printer {
         self.zerobreak();
         for elem in ty.elems.iter().delimited() {
             self.ty(&elem);
-            self.trailing_comma(elem.is_last);
+            if ty.elems.len() == 1 {
+                self.word(",");
+                self.zerobreak();
+            } else {
+                self.trailing_comma(elem.is_last);
+            }
         }
         self.offset(-INDENT);
         self.end();
