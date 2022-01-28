@@ -539,7 +539,9 @@ impl Printer {
     fn expr_struct(&mut self, expr: &ExprStruct) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
+        self.ibox(-INDENT);
         self.path(&expr.path);
+        self.end();
         self.word(" {");
         self.space_if_nonempty();
         self.inner_attrs(&expr.attrs);
