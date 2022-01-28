@@ -1,4 +1,5 @@
 use crate::algorithm::{BreakToken, Printer};
+use crate::attr;
 use crate::iter::IterDelimited;
 use crate::stmt;
 use crate::INDENT;
@@ -783,19 +784,27 @@ impl Printer {
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
         self.word("(");
         let mut iter = args.iter();
-        if let (Some(expr @ (Expr::Closure(_) | Expr::Struct(_) | Expr::Block(_))), None) =
-            (iter.next(), iter.next())
-        {
-            self.expr(expr);
-        } else {
-            self.cbox(INDENT);
-            self.zerobreak();
-            for arg in args.iter().delimited() {
-                self.expr(&arg);
-                self.trailing_comma(arg.is_last);
+        match (iter.next(), iter.next()) {
+            (
+                Some(
+                    expr @ (Expr::Closure(ExprClosure { attrs, .. })
+                    | Expr::Struct(ExprStruct { attrs, .. })
+                    | Expr::Block(ExprBlock { attrs, .. })),
+                ),
+                None,
+            ) if !attr::has_outer(attrs) => {
+                self.expr(expr);
             }
-            self.offset(-INDENT);
-            self.end();
+            _ => {
+                self.cbox(INDENT);
+                self.zerobreak();
+                for arg in args.iter().delimited() {
+                    self.expr(&arg);
+                    self.trailing_comma(arg.is_last);
+                }
+                self.offset(-INDENT);
+                self.end();
+            }
         }
         self.word(")");
     }
