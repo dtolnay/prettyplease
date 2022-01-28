@@ -186,3 +186,12 @@ pub fn has_outer(attrs: &[Attribute]) -> bool {
     }
     false
 }
+
+pub fn has_inner(attrs: &[Attribute]) -> bool {
+    for attr in attrs {
+        if let AttrStyle::Inner(_) = attr.style {
+            return true;
+        }
+    }
+    false
+}

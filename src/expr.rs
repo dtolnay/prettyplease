@@ -811,19 +811,21 @@ impl Printer {
 
     fn small_block(&mut self, block: &Block, attrs: &[Attribute]) {
         self.word("{");
-        self.space_if_nonempty();
-        self.inner_attrs(attrs);
-        if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
-            self.ibox(0);
-            self.expr(expr);
-            self.end();
+        if attr::has_inner(attrs) || !block.stmts.is_empty() {
             self.space();
-        } else {
-            for stmt in &block.stmts {
-                self.stmt(stmt);
+            self.inner_attrs(attrs);
+            if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
+                self.ibox(0);
+                self.expr(expr);
+                self.end();
+                self.space();
+            } else {
+                for stmt in &block.stmts {
+                    self.stmt(stmt);
+                }
             }
+            self.offset(-INDENT);
         }
-        self.offset(-INDENT);
         self.word("}");
     }
 
