@@ -783,7 +783,7 @@ impl Printer {
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
         self.word("(");
         let mut iter = args.iter();
-        if let (Some(expr @ (Expr::Closure(_) | Expr::Struct(_))), None) =
+        if let (Some(expr @ (Expr::Closure(_) | Expr::Struct(_) | Expr::Block(_))), None) =
             (iter.next(), iter.next())
         {
             self.expr(expr);
