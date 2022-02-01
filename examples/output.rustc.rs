@@ -75,7 +75,7 @@ impl IpAddr {
 impl Ipv4Addr {
     pub const fn new(a: u8, b: u8, c: u8, d: u8) -> Ipv4Addr {
         Ipv4Addr{inner:
-                     c::in_addr{s_addr: u32::from_ne_bytes([a, b, c, d]),},}
+                c::in_addr{s_addr: u32::from_ne_bytes([a, b, c, d]),},}
     }
     pub const LOCALHOST: Self = Ipv4Addr::new(127, 0, 0, 1);
     #[doc(alias = "INADDR_ANY")]
@@ -97,15 +97,17 @@ impl Ipv4Addr {
     }
     pub const fn is_global(&self) -> bool {
         if u32::from_be_bytes(self.octets()) == 0xc0000009 ||
-               u32::from_be_bytes(self.octets()) == 0xc000000a {
-            return true;
-        }
+                    u32::from_be_bytes(self.octets()) == 0xc000000a {
+                return true;
+            }
         !self.is_private() && !self.is_loopback() && !self.is_link_local() &&
-            !self.is_broadcast() && !self.is_documentation() &&
-            !self.is_shared() &&
-            !(self.octets()[0] == 192 && self.octets()[1] == 0 &&
-                  self.octets()[2] == 0) && !self.is_reserved() &&
-            !self.is_benchmarking() && self.octets()[0] != 0
+                                    !self.is_broadcast() &&
+                                !self.is_documentation() && !self.is_shared()
+                        &&
+                        !(self.octets()[0] == 192 && self.octets()[1] == 0 &&
+                                    self.octets()[2] == 0) &&
+                    !self.is_reserved() && !self.is_benchmarking() &&
+            self.octets()[0] != 0
     }
     pub const fn is_shared(&self) -> bool {
         self.octets()[0] == 100 &&
@@ -126,21 +128,20 @@ impl Ipv4Addr {
     }
     pub const fn is_documentation(&self) -> bool {
         matches!(self.octets(), [192, 0, 2, _] | [198, 51, 100, _] |
-                 [203, 0, 113, _])
+            [203, 0, 113, _])
     }
     pub const fn to_ipv6_compatible(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
         Ipv6Addr{inner:
-                     c::in6_addr{s6_addr:
-                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a,
-                                      b, c, d],},}
+                c::in6_addr{s6_addr:
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, c, d],},}
     }
     pub const fn to_ipv6_mapped(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
         Ipv6Addr{inner:
-                     c::in6_addr{s6_addr:
-                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF,
-                                      0xFF, a, b, c, d],},}
+                c::in6_addr{s6_addr:
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c,
+                                d],},}
     }
 }
 impl fmt::Display for IpAddr {
@@ -166,18 +167,19 @@ impl fmt::Display for Ipv4Addr {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let octets = self.octets();
         if fmt.precision().is_none() && fmt.width().is_none() {
-            write!(fmt, "{}.{}.{}.{}", octets [0], octets [1], octets [2],
-                   octets [3])
-        } else {
-            const IPV4_BUF_LEN: usize = 15;
-            let mut buf = [0u8; IPV4_BUF_LEN];
-            let mut buf_slice = &mut buf[..];
-            write!(buf_slice, "{}.{}.{}.{}", octets [0], octets [1], octets
-                   [2], octets [3]).unwrap();
-            let len = IPV4_BUF_LEN - buf_slice.len();
-            let buf = unsafe { crate::str::from_utf8_unchecked(&buf[..len]) };
-            fmt.pad(buf)
-        }
+                write!(fmt, "{}.{}.{}.{}", octets [0], octets [1], octets [2],
+                    octets [3])
+            } else {
+               const IPV4_BUF_LEN: usize = 15;
+               let mut buf = [0u8; IPV4_BUF_LEN];
+               let mut buf_slice = &mut buf[..];
+               write!(buf_slice, "{}.{}.{}.{}", octets [0], octets [1], octets
+                       [2], octets [3]).unwrap();
+               let len = IPV4_BUF_LEN - buf_slice.len();
+               let buf =
+                   unsafe { crate::str::from_utf8_unchecked(&buf[..len]) };
+               fmt.pad(buf)
+           }
     }
 }
 impl fmt::Debug for Ipv4Addr {
@@ -257,15 +259,13 @@ impl From<[u8; 4]> for IpAddr {
 }
 impl Ipv6Addr {
     pub const fn new(a: u16, b: u16, c: u16, d: u16, e: u16, f: u16, g: u16,
-                     h: u16) -> Ipv6Addr {
+        h: u16) -> Ipv6Addr {
         let addr16 =
             [a.to_be(), b.to_be(), c.to_be(), d.to_be(), e.to_be(), f.to_be(),
-             g.to_be(), h.to_be()];
+                    g.to_be(), h.to_be()];
         Ipv6Addr{inner:
-                     c::in6_addr{s6_addr:
-                                     unsafe {
-                                         transmute::<_, [u8; 16]>(addr16)
-                                     },},}
+                c::in6_addr{s6_addr:
+                        unsafe { transmute::<_, [u8; 16]>(addr16) },},}
     }
     pub const LOCALHOST: Self = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
     pub const UNSPECIFIED: Self = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
@@ -273,7 +273,8 @@ impl Ipv6Addr {
         let [a, b, c, d, e, f, g, h] =
             unsafe { transmute::<_, [u16; 8]>(self.inner.s6_addr) };
         [u16::from_be(a), u16::from_be(b), u16::from_be(c), u16::from_be(d),
-         u16::from_be(e), u16::from_be(f), u16::from_be(g), u16::from_be(h)]
+                u16::from_be(e), u16::from_be(f), u16::from_be(g),
+                u16::from_be(h)]
     }
     pub const fn is_unspecified(&self) -> bool {
         u128::from_be_bytes(self.octets()) ==
@@ -306,22 +307,23 @@ impl Ipv6Addr {
     }
     pub const fn is_unicast_global(&self) -> bool {
         self.is_unicast() && !self.is_loopback() &&
-            !self.is_unicast_link_local() && !self.is_unique_local() &&
-            !self.is_unspecified() && !self.is_documentation()
+                        !self.is_unicast_link_local() &&
+                    !self.is_unique_local() && !self.is_unspecified() &&
+            !self.is_documentation()
     }
     pub const fn multicast_scope(&self) -> Option<Ipv6MulticastScope> {
         if self.is_multicast() {
-            match self.segments()[0] & 0x000f {
-                1 => Some(Ipv6MulticastScope::InterfaceLocal),
-                2 => Some(Ipv6MulticastScope::LinkLocal),
-                3 => Some(Ipv6MulticastScope::RealmLocal),
-                4 => Some(Ipv6MulticastScope::AdminLocal),
-                5 => Some(Ipv6MulticastScope::SiteLocal),
-                8 => Some(Ipv6MulticastScope::OrganizationLocal),
-                14 => Some(Ipv6MulticastScope::Global),
-                _ => None,
-            }
-        } else { None }
+                match self.segments()[0] & 0x000f {
+                    1 => Some(Ipv6MulticastScope::InterfaceLocal),
+                    2 => Some(Ipv6MulticastScope::LinkLocal),
+                    3 => Some(Ipv6MulticastScope::RealmLocal),
+                    4 => Some(Ipv6MulticastScope::AdminLocal),
+                    5 => Some(Ipv6MulticastScope::SiteLocal),
+                    8 => Some(Ipv6MulticastScope::OrganizationLocal),
+                    14 => Some(Ipv6MulticastScope::Global),
+                    _ => None,
+                }
+            } else { None }
     }
     pub const fn is_multicast(&self) -> bool {
         (self.segments()[0] & 0xff00) == 0xff00
@@ -336,15 +338,15 @@ impl Ipv6Addr {
     }
     pub const fn to_ipv4(&self) -> Option<Ipv4Addr> {
         if let [0, 0, 0, 0, 0, 0 | 0xffff, ab, cd] = self.segments() {
-            let [a, b] = ab.to_be_bytes();
-            let [c, d] = cd.to_be_bytes();
-            Some(Ipv4Addr::new(a, b, c, d))
-        } else { None }
+                let [a, b] = ab.to_be_bytes();
+                let [c, d] = cd.to_be_bytes();
+                Some(Ipv4Addr::new(a, b, c, d))
+            } else { None }
     }
     pub const fn to_canonical(&self) -> IpAddr {
         if let Some(mapped) = self.to_ipv4_mapped() {
-            return IpAddr::V4(mapped);
-        }
+                return IpAddr::V4(mapped);
+            }
         IpAddr::V6(*self)
     }
     pub const fn octets(&self) -> [u8; 16] { self.inner.s6_addr }
@@ -352,66 +354,71 @@ impl Ipv6Addr {
 impl fmt::Display for Ipv6Addr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.precision().is_none() && f.width().is_none() {
-            let segments = self.segments();
-            if self.is_unspecified() {
-                f.write_str("::")
-            } else if self.is_loopback() {
-                f.write_str("::1")
-            } else if let Some(ipv4) = self.to_ipv4() {
-                match segments[5] {
-                    0 => write!(f, "::{}", ipv4),
-                    0xffff => write!(f, "::ffff:{}", ipv4),
-                    _ => unreachable!(),
-                }
+                let segments = self.segments();
+                if self.is_unspecified() {
+                        f.write_str("::")
+                    } else if self.is_loopback() {
+                       f.write_str("::1")
+                   } else if let Some(ipv4) = self.to_ipv4() {
+                       match segments[5] {
+                           0 => write!(f, "::{}", ipv4),
+                           0xffff => write!(f, "::ffff:{}", ipv4),
+                           _ => unreachable!(),
+                       }
+                   } else {
+                       #[derive(Copy, Clone, Default)]
+                       struct Span {
+                           start: usize,
+                           len: usize,
+                       }
+                       let zeroes =
+                           {
+                               let mut longest = Span::default();
+                               let mut current = Span::default();
+                               for (i, &segment) in
+                                   segments.iter().enumerate() {
+                                   if segment == 0 {
+                                           if current.len == 0 {
+                                                   current.start = i;
+                                               }
+                                           current.len += 1;
+                                           if current.len > longest.len {
+                                                   longest = current;
+                                               }
+                                       } else { current = Span::default(); }
+                               }
+                               longest
+                           };
+                       #[doc = " Write a colon-separated part of the address"]
+                       #[inline]
+                       fn fmt_subslice(f: &mut fmt::Formatter<'_>,
+                           chunk: &[u16]) -> fmt::Result {
+                           if let Some((first, tail)) = chunk.split_first() {
+                                   write!(f, "{:x}", first)?;
+                                   for segment in tail {
+                                       f.write_char(':')?;
+                                       write!(f, "{:x}", segment)?;
+                                   }
+                               }
+                           Ok(())
+                       }
+                       if zeroes.len > 1 {
+                               fmt_subslice(f, &segments[..zeroes.start])?;
+                               f.write_str("::")?;
+                               fmt_subslice(f,
+                                   &segments[zeroes.start + zeroes.len..])
+                           } else { fmt_subslice(f, &segments) }
+                   }
             } else {
-                #[derive(Copy, Clone, Default)]
-                struct Span {
-                    start: usize,
-                    len: usize,
-                }
-                let zeroes =
-                    {
-                        let mut longest = Span::default();
-                        let mut current = Span::default();
-                        for (i, &segment) in segments.iter().enumerate() {
-                            if segment == 0 {
-                                if current.len == 0 { current.start = i; }
-                                current.len += 1;
-                                if current.len > longest.len {
-                                    longest = current;
-                                }
-                            } else { current = Span::default(); }
-                        }
-                        longest
-                    };
-                #[doc = " Write a colon-separated part of the address"]
-                #[inline]
-                fn fmt_subslice(f: &mut fmt::Formatter<'_>, chunk: &[u16])
-                 -> fmt::Result {
-                    if let Some((first, tail)) = chunk.split_first() {
-                        write!(f, "{:x}", first)?;
-                        for segment in tail {
-                            f.write_char(':')?;
-                            write!(f, "{:x}", segment)?;
-                        }
-                    }
-                    Ok(())
-                }
-                if zeroes.len > 1 {
-                    fmt_subslice(f, &segments[..zeroes.start])?;
-                    f.write_str("::")?;
-                    fmt_subslice(f, &segments[zeroes.start + zeroes.len..])
-                } else { fmt_subslice(f, &segments) }
-            }
-        } else {
-            const IPV6_BUF_LEN: usize = (4 * 8) + 7;
-            let mut buf = [0u8; IPV6_BUF_LEN];
-            let mut buf_slice = &mut buf[..];
-            write!(buf_slice, "{}", self).unwrap();
-            let len = IPV6_BUF_LEN - buf_slice.len();
-            let buf = unsafe { crate::str::from_utf8_unchecked(&buf[..len]) };
-            f.pad(buf)
-        }
+               const IPV6_BUF_LEN: usize = (4 * 8) + 7;
+               let mut buf = [0u8; IPV6_BUF_LEN];
+               let mut buf_slice = &mut buf[..];
+               write!(buf_slice, "{}", self).unwrap();
+               let len = IPV6_BUF_LEN - buf_slice.len();
+               let buf =
+                   unsafe { crate::str::from_utf8_unchecked(&buf[..len]) };
+               f.pad(buf)
+           }
     }
 }
 impl fmt::Debug for Ipv6Addr {
