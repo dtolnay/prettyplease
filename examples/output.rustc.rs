@@ -101,13 +101,11 @@ impl Ipv4Addr {
                 return true;
             }
         !self.is_private() && !self.is_loopback() && !self.is_link_local() &&
-                                    !self.is_broadcast() &&
-                                !self.is_documentation() && !self.is_shared()
-                        &&
+                                    !self.is_broadcast() && !self.is_documentation() &&
+                            !self.is_shared() &&
                         !(self.octets()[0] == 192 && self.octets()[1] == 0 &&
-                                    self.octets()[2] == 0) &&
-                    !self.is_reserved() && !self.is_benchmarking() &&
-            self.octets()[0] != 0
+                                    self.octets()[2] == 0) && !self.is_reserved() &&
+                !self.is_benchmarking() && self.octets()[0] != 0
     }
     pub const fn is_shared(&self) -> bool {
         self.octets()[0] == 100 &&
@@ -140,8 +138,7 @@ impl Ipv4Addr {
         let [a, b, c, d] = self.octets();
         Ipv6Addr{inner:
                 c::in6_addr{s6_addr:
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c,
-                                d],},}
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d],},}
     }
 }
 impl fmt::Display for IpAddr {
@@ -307,9 +304,8 @@ impl Ipv6Addr {
     }
     pub const fn is_unicast_global(&self) -> bool {
         self.is_unicast() && !self.is_loopback() &&
-                        !self.is_unicast_link_local() &&
-                    !self.is_unique_local() && !self.is_unspecified() &&
-            !self.is_documentation()
+                        !self.is_unicast_link_local() && !self.is_unique_local() &&
+                !self.is_unspecified() && !self.is_documentation()
     }
     pub const fn multicast_scope(&self) -> Option<Ipv6MulticastScope> {
         if self.is_multicast() {
@@ -375,24 +371,19 @@ impl fmt::Display for Ipv6Addr {
                            {
                                let mut longest = Span::default();
                                let mut current = Span::default();
-                               for (i, &segment) in
-                                   segments.iter().enumerate() {
+                               for (i, &segment) in segments.iter().enumerate() {
                                    if segment == 0 {
-                                           if current.len == 0 {
-                                                   current.start = i;
-                                               }
+                                           if current.len == 0 { current.start = i; }
                                            current.len += 1;
-                                           if current.len > longest.len {
-                                                   longest = current;
-                                               }
+                                           if current.len > longest.len { longest = current; }
                                        } else { current = Span::default(); }
                                }
                                longest
                            };
                        #[doc = " Write a colon-separated part of the address"]
                        #[inline]
-                       fn fmt_subslice(f: &mut fmt::Formatter<'_>,
-                           chunk: &[u16]) -> fmt::Result {
+                       fn fmt_subslice(f: &mut fmt::Formatter<'_>, chunk: &[u16])
+                           -> fmt::Result {
                            if let Some((first, tail)) = chunk.split_first() {
                                    write!(f, "{:x}", first)?;
                                    for segment in tail {
@@ -405,8 +396,7 @@ impl fmt::Display for Ipv6Addr {
                        if zeroes.len > 1 {
                                fmt_subslice(f, &segments[..zeroes.start])?;
                                f.write_str("::")?;
-                               fmt_subslice(f,
-                                   &segments[zeroes.start + zeroes.len..])
+                               fmt_subslice(f, &segments[zeroes.start + zeroes.len..])
                            } else { fmt_subslice(f, &segments) }
                    }
             } else {
