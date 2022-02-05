@@ -790,9 +790,14 @@ impl Printer {
         match (iter.next(), iter.next()) {
             (
                 Some(
-                    expr @ (Expr::Closure(ExprClosure { attrs, .. })
+                    expr @ (Expr::Array(ExprArray { attrs, .. })
+                    | Expr::Async(ExprAsync { attrs, .. })
+                    | Expr::Block(ExprBlock { attrs, .. })
+                    | Expr::Closure(ExprClosure { attrs, .. })
                     | Expr::Struct(ExprStruct { attrs, .. })
-                    | Expr::Block(ExprBlock { attrs, .. })),
+                    | Expr::TryBlock(ExprTryBlock { attrs, .. })
+                    | Expr::Tuple(ExprTuple { attrs, .. })
+                    | Expr::Unsafe(ExprUnsafe { attrs, .. })),
                 ),
                 None,
             ) if !attr::has_outer(attrs) => {
