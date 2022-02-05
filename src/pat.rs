@@ -68,7 +68,8 @@ impl Printer {
         self.outer_attrs(&pat.attrs);
         for case in pat.cases.iter().delimited() {
             if !case.is_first {
-                self.word(" | ");
+                self.space();
+                self.word("| ");
             }
             self.pat(&case);
         }
