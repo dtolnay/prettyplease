@@ -62,12 +62,14 @@ impl Printer {
 
     fn attr_tokens(&mut self, tokens: TokenStream) {
         let mut stack = Vec::new();
-        stack.push((tokens.into_iter(), Delimiter::None));
+        stack.push((tokens.into_iter().peekable(), Delimiter::None));
         let mut space = Self::nbsp as fn(&mut Self);
 
+        #[derive(PartialEq)]
         enum State {
             Word,
             Punct,
+            TrailingComma,
         }
 
         use State::*;
@@ -87,11 +89,16 @@ impl Printer {
                     if let (Word, '=') = (state, ch) {
                         space(self);
                     }
-                    self.token_punct(ch);
-                    if let '=' | ',' = ch {
-                        space(self);
+                    if ch == ',' && tokens.peek().is_none() {
+                        self.trailing_comma(true);
+                        state = TrailingComma;
+                    } else {
+                        self.token_punct(ch);
+                        if let '=' | ',' = ch {
+                            space(self);
+                        }
+                        state = Punct;
                     }
-                    state = Punct;
                 }
                 Some(TokenTree::Literal(literal)) => {
                     if let Word = state {
@@ -120,13 +127,15 @@ impl Printer {
                         }
                         Delimiter::None => {}
                     }
-                    stack.push((stream.into_iter(), delimiter));
+                    stack.push((stream.into_iter().peekable(), delimiter));
                     space = Self::space;
                 }
                 None => {
                     match delimiter {
                         Delimiter::Parenthesis => {
-                            self.zerobreak();
+                            if state != TrailingComma {
+                                self.zerobreak();
+                            }
                             self.offset(-INDENT);
                             self.end();
                             self.word(")");
