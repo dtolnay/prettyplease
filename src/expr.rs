@@ -22,26 +22,26 @@ impl Printer {
             Expr::Assign(expr) => self.expr_assign(expr),
             Expr::AssignOp(expr) => self.expr_assign_op(expr),
             Expr::Async(expr) => self.expr_async(expr),
-            Expr::Await(expr) => self.expr_await(expr),
+            Expr::Await(expr) => self.expr_await(expr, false),
             Expr::Binary(expr) => self.expr_binary(expr),
             Expr::Block(expr) => self.expr_block(expr),
             Expr::Box(expr) => self.expr_box(expr),
             Expr::Break(expr) => self.expr_break(expr),
-            Expr::Call(expr) => self.expr_call(expr),
+            Expr::Call(expr) => self.expr_call(expr, false),
             Expr::Cast(expr) => self.expr_cast(expr),
             Expr::Closure(expr) => self.expr_closure(expr),
             Expr::Continue(expr) => self.expr_continue(expr),
-            Expr::Field(expr) => self.expr_field(expr),
+            Expr::Field(expr) => self.expr_field(expr, false),
             Expr::ForLoop(expr) => self.expr_for_loop(expr),
             Expr::Group(expr) => self.expr_group(expr),
             Expr::If(expr) => self.expr_if(expr),
-            Expr::Index(expr) => self.expr_index(expr),
+            Expr::Index(expr) => self.expr_index(expr, false),
             Expr::Let(expr) => self.expr_let(expr),
             Expr::Lit(expr) => self.expr_lit(expr),
             Expr::Loop(expr) => self.expr_loop(expr),
             Expr::Macro(expr) => self.expr_macro(expr),
             Expr::Match(expr) => self.expr_match(expr),
-            Expr::MethodCall(expr) => self.expr_method_call(expr),
+            Expr::MethodCall(expr) => self.expr_method_call(expr, false),
             Expr::Paren(expr) => self.expr_paren(expr),
             Expr::Path(expr) => self.expr_path(expr),
             Expr::Range(expr) => self.expr_range(expr),
@@ -49,7 +49,7 @@ impl Printer {
             Expr::Repeat(expr) => self.expr_repeat(expr),
             Expr::Return(expr) => self.expr_return(expr),
             Expr::Struct(expr) => self.expr_struct(expr),
-            Expr::Try(expr) => self.expr_try(expr),
+            Expr::Try(expr) => self.expr_try(expr, false),
             Expr::TryBlock(expr) => self.expr_try_block(expr),
             Expr::Tuple(expr) => self.expr_tuple(expr),
             Expr::Type(expr) => self.expr_type(expr),
@@ -65,14 +65,25 @@ impl Printer {
         }
     }
 
-    fn subexpr(&mut self, expr: &Expr) {
+    pub fn expr_beginning_of_line(&mut self, expr: &Expr, beginning_of_line: bool) {
         match expr {
-            Expr::Await(expr) => self.subexpr_await(expr),
+            Expr::Await(expr) => self.expr_await(expr, beginning_of_line),
+            Expr::Field(expr) => self.expr_field(expr, beginning_of_line),
+            Expr::Index(expr) => self.expr_index(expr, beginning_of_line),
+            Expr::MethodCall(expr) => self.expr_method_call(expr, beginning_of_line),
+            Expr::Try(expr) => self.expr_try(expr, beginning_of_line),
+            _ => self.expr(expr),
+        }
+    }
+
+    fn subexpr(&mut self, expr: &Expr, beginning_of_line: bool) {
+        match expr {
+            Expr::Await(expr) => self.subexpr_await(expr, beginning_of_line),
             Expr::Call(expr) => self.subexpr_call(expr),
-            Expr::Field(expr) => self.subexpr_field(expr),
-            Expr::Index(expr) => self.subexpr_index(expr),
-            Expr::MethodCall(expr) => self.subexpr_method_call(expr, false),
-            Expr::Try(expr) => self.subexpr_try(expr),
+            Expr::Field(expr) => self.subexpr_field(expr, beginning_of_line),
+            Expr::Index(expr) => self.subexpr_index(expr, beginning_of_line),
+            Expr::MethodCall(expr) => self.subexpr_method_call(expr, beginning_of_line, false),
+            Expr::Try(expr) => self.subexpr_try(expr, beginning_of_line),
             _ => {
                 self.cbox(-INDENT);
                 self.expr(expr);
@@ -149,16 +160,15 @@ impl Printer {
         self.end();
     }
 
-    fn expr_await(&mut self, expr: &ExprAwait) {
+    fn expr_await(&mut self, expr: &ExprAwait, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        self.subexpr_await(expr);
+        self.subexpr_await(expr, beginning_of_line);
         self.end();
     }
 
-    fn subexpr_await(&mut self, expr: &ExprAwait) {
-        let beginning_of_line = self.is_beginning_of_line();
-        self.subexpr(&expr.base);
+    fn subexpr_await(&mut self, expr: &ExprAwait, beginning_of_line: bool) {
+        self.subexpr(&expr.base, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".await");
     }
@@ -205,14 +215,14 @@ impl Printer {
         }
     }
 
-    fn expr_call(&mut self, expr: &ExprCall) {
+    fn expr_call(&mut self, expr: &ExprCall, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
-        self.expr(&expr.func);
+        self.expr_beginning_of_line(&expr.func, beginning_of_line);
         self.call_args(&expr.args);
     }
 
     fn subexpr_call(&mut self, expr: &ExprCall) {
-        self.subexpr(&expr.func);
+        self.subexpr(&expr.func, false);
         self.call_args(&expr.args);
     }
 
@@ -285,16 +295,15 @@ impl Printer {
         }
     }
 
-    fn expr_field(&mut self, expr: &ExprField) {
+    fn expr_field(&mut self, expr: &ExprField, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        self.subexpr_field(expr);
+        self.subexpr_field(expr, beginning_of_line);
         self.end();
     }
 
-    fn subexpr_field(&mut self, expr: &ExprField) {
-        let beginning_of_line = self.is_beginning_of_line();
-        self.subexpr(&expr.base);
+    fn subexpr_field(&mut self, expr: &ExprField, beginning_of_line: bool) {
+        self.subexpr(&expr.base, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".");
         self.member(&expr.member);
@@ -384,16 +393,16 @@ impl Printer {
         self.end();
     }
 
-    fn expr_index(&mut self, expr: &ExprIndex) {
+    fn expr_index(&mut self, expr: &ExprIndex, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
-        self.expr(&expr.expr);
+        self.expr_beginning_of_line(&expr.expr, beginning_of_line);
         self.word("[");
         self.expr(&expr.index);
         self.word("]");
     }
 
-    fn subexpr_index(&mut self, expr: &ExprIndex) {
-        self.subexpr(&expr.expr);
+    fn subexpr_index(&mut self, expr: &ExprIndex, beginning_of_line: bool) {
+        self.subexpr(&expr.expr, beginning_of_line);
         self.word("[");
         self.expr(&expr.index);
         self.word("]");
@@ -466,17 +475,21 @@ impl Printer {
         self.end();
     }
 
-    fn expr_method_call(&mut self, expr: &ExprMethodCall) {
+    fn expr_method_call(&mut self, expr: &ExprMethodCall, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        let unindent_call_args = self.is_beginning_of_line() && is_short_ident(&expr.receiver);
-        self.subexpr_method_call(expr, unindent_call_args);
+        let unindent_call_args = beginning_of_line && is_short_ident(&expr.receiver);
+        self.subexpr_method_call(expr, beginning_of_line, unindent_call_args);
         self.end();
     }
 
-    fn subexpr_method_call(&mut self, expr: &ExprMethodCall, unindent_call_args: bool) {
-        let beginning_of_line = self.is_beginning_of_line();
-        self.subexpr(&expr.receiver);
+    fn subexpr_method_call(
+        &mut self,
+        expr: &ExprMethodCall,
+        beginning_of_line: bool,
+        unindent_call_args: bool,
+    ) {
+        self.subexpr(&expr.receiver, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.receiver);
         self.word(".");
         self.ident(&expr.method);
@@ -566,14 +579,14 @@ impl Printer {
         self.word("}");
     }
 
-    fn expr_try(&mut self, expr: &ExprTry) {
+    fn expr_try(&mut self, expr: &ExprTry, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
-        self.expr(&expr.expr);
+        self.expr_beginning_of_line(&expr.expr, beginning_of_line);
         self.word("?");
     }
 
-    fn subexpr_try(&mut self, expr: &ExprTry) {
-        self.subexpr(&expr.expr);
+    fn subexpr_try(&mut self, expr: &ExprTry, beginning_of_line: bool) {
+        self.subexpr(&expr.expr, beginning_of_line);
         self.word("?");
     }
 
@@ -827,7 +840,7 @@ impl Printer {
             self.inner_attrs(attrs);
             if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
                 self.ibox(0);
-                self.expr(expr);
+                self.expr_beginning_of_line(expr, true);
                 self.end();
                 self.space();
             } else {

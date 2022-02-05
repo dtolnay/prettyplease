@@ -69,8 +69,6 @@ pub struct Printer {
     indent: usize,
     // Buffered indentation to avoid writing trailing whitespace
     pending_indentation: usize,
-    // Recently scanned a hardbreak
-    beginning_of_line: bool,
 }
 
 #[derive(Clone)]
@@ -91,7 +89,6 @@ impl Printer {
             print_stack: Vec::new(),
             indent: 0,
             pending_indentation: 0,
-            beginning_of_line: true,
         }
     }
 
@@ -161,7 +158,6 @@ impl Printer {
         });
         self.scan_stack.push_back(right);
         self.right_total += token.blank_space as isize;
-        self.beginning_of_line = token.blank_space as isize > MARGIN;
     }
 
     pub fn scan_string(&mut self, string: Cow<'static, str>) {
@@ -176,11 +172,6 @@ impl Printer {
             self.right_total += len;
             self.check_stream();
         }
-        self.beginning_of_line = false;
-    }
-
-    pub fn is_beginning_of_line(&self) -> bool {
-        self.beginning_of_line
     }
 
     pub fn offset(&mut self, offset: isize) {

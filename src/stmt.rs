@@ -21,7 +21,7 @@ impl Printer {
             Stmt::Item(item) => self.item(item),
             Stmt::Expr(expr) => {
                 self.ibox(0);
-                self.expr(expr);
+                self.expr_beginning_of_line(expr, true);
                 if add_semi(expr) {
                     self.word(";");
                 }
@@ -35,7 +35,7 @@ impl Printer {
                     }
                 }
                 self.ibox(0);
-                self.expr(expr);
+                self.expr_beginning_of_line(expr, true);
                 if !remove_semi(expr) {
                     self.word(";");
                 }
