@@ -71,7 +71,7 @@ impl Printer {
             Expr::Call(expr) => self.subexpr_call(expr),
             Expr::Field(expr) => self.subexpr_field(expr),
             Expr::Index(expr) => self.subexpr_index(expr),
-            Expr::MethodCall(expr) => self.subexpr_method_call(expr),
+            Expr::MethodCall(expr) => self.subexpr_method_call(expr, false),
             Expr::Try(expr) => self.subexpr_try(expr),
             _ => {
                 self.cbox(-INDENT);
@@ -469,11 +469,12 @@ impl Printer {
     fn expr_method_call(&mut self, expr: &ExprMethodCall) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        self.subexpr_method_call(expr);
+        let unindent_call_args = self.is_beginning_of_line() && is_short_ident(&expr.receiver);
+        self.subexpr_method_call(expr, unindent_call_args);
         self.end();
     }
 
-    fn subexpr_method_call(&mut self, expr: &ExprMethodCall) {
+    fn subexpr_method_call(&mut self, expr: &ExprMethodCall, unindent_call_args: bool) {
         let beginning_of_line = self.is_beginning_of_line();
         self.subexpr(&expr.receiver);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.receiver);
@@ -482,7 +483,9 @@ impl Printer {
         if let Some(turbofish) = &expr.turbofish {
             self.method_turbofish(turbofish);
         }
+        self.cbox(if unindent_call_args { -INDENT } else { 0 });
         self.call_args(&expr.args);
+        self.end();
     }
 
     fn expr_paren(&mut self, expr: &ExprParen) {
