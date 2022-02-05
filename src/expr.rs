@@ -12,7 +12,7 @@ use syn::{
     ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
     ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary,
     ExprUnsafe, ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member,
-    MethodTurbofish, RangeLimits, ReturnType, Stmt, Token, UnOp,
+    MethodTurbofish, PathArguments, RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -157,8 +157,9 @@ impl Printer {
     }
 
     fn subexpr_await(&mut self, expr: &ExprAwait) {
+        let beginning_of_line = self.is_beginning_of_line();
         self.subexpr(&expr.base);
-        self.zerobreak();
+        self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".await");
     }
 
@@ -292,8 +293,9 @@ impl Printer {
     }
 
     fn subexpr_field(&mut self, expr: &ExprField) {
+        let beginning_of_line = self.is_beginning_of_line();
         self.subexpr(&expr.base);
-        self.zerobreak();
+        self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".");
         self.member(&expr.member);
     }
@@ -472,8 +474,9 @@ impl Printer {
     }
 
     fn subexpr_method_call(&mut self, expr: &ExprMethodCall) {
+        let beginning_of_line = self.is_beginning_of_line();
         self.subexpr(&expr.receiver);
-        self.zerobreak();
+        self.zerobreak_unless_short_ident(beginning_of_line, &expr.receiver);
         self.word(".");
         self.ident(&expr.method);
         if let Some(turbofish) = &expr.turbofish {
@@ -879,6 +882,23 @@ impl Printer {
             UnOp::Not(_) => "!",
             UnOp::Neg(_) => "-",
         });
+    }
+
+    fn zerobreak_unless_short_ident(&mut self, beginning_of_line: bool, expr: &Expr) {
+        if let Expr::Path(expr) = expr {
+            if beginning_of_line
+                && expr.attrs.is_empty()
+                && expr.qself.is_none()
+                && expr.path.leading_colon.is_none()
+                && expr.path.segments.len() == 1
+                && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
+            {
+                if let PathArguments::None = expr.path.segments[0].arguments {
+                    return;
+                }
+            }
+        }
+        self.zerobreak();
     }
 }
 
