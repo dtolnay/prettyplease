@@ -239,7 +239,11 @@ impl Printer {
         }
         self.ty(&predicate.bounded_ty);
         self.word(":");
-        self.ibox(INDENT);
+        if predicate.bounds.len() == 1 {
+            self.ibox(0);
+        } else {
+            self.ibox(INDENT);
+        }
         for type_param_bound in predicate.bounds.iter().delimited() {
             if type_param_bound.is_first {
                 self.nbsp();
