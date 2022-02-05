@@ -142,7 +142,9 @@ impl Printer {
         for elem in pat.elems.iter().delimited() {
             self.pat(&elem);
             if pat.elems.len() == 1 {
-                self.word(",");
+                if pat.elems.trailing_punct() {
+                    self.word(",");
+                }
                 self.zerobreak();
             } else {
                 self.trailing_comma(elem.is_last);
