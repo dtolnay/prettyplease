@@ -890,18 +890,8 @@ impl Printer {
     }
 
     fn zerobreak_unless_short_ident(&mut self, beginning_of_line: bool, expr: &Expr) {
-        if let Expr::Path(expr) = expr {
-            if beginning_of_line
-                && expr.attrs.is_empty()
-                && expr.qself.is_none()
-                && expr.path.leading_colon.is_none()
-                && expr.path.segments.len() == 1
-                && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
-            {
-                if let PathArguments::None = expr.path.segments[0].arguments {
-                    return;
-                }
-            }
+        if beginning_of_line && is_short_ident(expr) {
+            return;
         }
         self.zerobreak();
     }
@@ -1009,4 +999,20 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         #[cfg(not(test))]
         _ => false,
     }
+}
+
+fn is_short_ident(expr: &Expr) -> bool {
+    if let Expr::Path(expr) = expr {
+        if expr.attrs.is_empty()
+            && expr.qself.is_none()
+            && expr.path.leading_colon.is_none()
+            && expr.path.segments.len() == 1
+            && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
+        {
+            if let PathArguments::None = expr.path.segments[0].arguments {
+                return true;
+            }
+        }
+    }
+    false
 }
