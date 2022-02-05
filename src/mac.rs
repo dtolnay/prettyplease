@@ -141,6 +141,7 @@ impl Printer {
             Colon,
             Colon2,
             Ident,
+            Delim,
             Other,
         }
 
@@ -160,27 +161,31 @@ impl Printer {
                 (DollarParen, Token::Punct(_, Spacing::Alone)) => (false, DollarParenSep),
                 (DollarParenSep, Token::Punct('+' | '*', _)) => (false, Other),
                 (Pound, Token::Punct('!', _)) => (false, PoundBang),
-                (Start, Token::Group(..)) => (false, Other),
                 (Dollar, Token::Group(Delimiter::Parenthesis, _)) => (false, DollarParen),
                 (Pound | PoundBang, Token::Group(Delimiter::Bracket, _)) => (false, Other),
                 (Ident, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => {
-                    (false, Other)
+                    (false, Delim)
                 }
                 (Colon, Token::Punct(':', _)) => (false, Colon2),
-                (_, Token::Group(..)) => (true, Other),
+                (_, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => (true, Delim),
+                (_, Token::Group(Delimiter::Brace | Delimiter::None, _)) => (true, Other),
                 (_, Token::Ident(ident)) if !is_keyword(ident) => {
                     (state != Dot && state != Colon2, Ident)
                 }
                 (_, Token::Literal(_)) => (state != Dot, Ident),
                 (_, Token::Punct(',' | ';', _)) => (false, Other),
-                (_, Token::Punct('.', _)) if !matcher => (state != Ident, Dot),
+                (_, Token::Punct('.', _)) if !matcher => (state != Ident && state != Delim, Dot),
                 (_, Token::Punct(':', Spacing::Joint)) => (state != Ident, Colon),
                 (_, Token::Punct('$', _)) => (true, Dollar),
                 (_, Token::Punct('#', _)) => (true, Pound),
                 (_, _) => (true, Other),
             };
-            if !previous_is_joint && needs_space {
-                self.space();
+            if !previous_is_joint {
+                if needs_space {
+                    self.space();
+                } else if let Token::Punct('.', _) = token {
+                    self.zerobreak();
+                }
             }
             previous_is_joint = match token {
                 Token::Punct(_, Spacing::Joint) | Token::Punct('$', _) => true,
