@@ -66,6 +66,7 @@ impl Printer {
 
     fn pat_or(&mut self, pat: &PatOr) {
         self.outer_attrs(&pat.attrs);
+        self.cbox(0);
         for case in pat.cases.iter().delimited() {
             if !case.is_first {
                 self.space();
@@ -73,6 +74,7 @@ impl Printer {
             }
             self.pat(&case);
         }
+        self.end();
     }
 
     fn pat_path(&mut self, pat: &PatPath) {
