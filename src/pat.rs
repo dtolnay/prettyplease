@@ -66,7 +66,21 @@ impl Printer {
 
     fn pat_or(&mut self, pat: &PatOr) {
         self.outer_attrs(&pat.attrs);
-        self.cbox(0);
+        let mut consistent_break = false;
+        for case in &pat.cases {
+            match case {
+                Pat::Lit(_) | Pat::Wild(_) => {}
+                _ => {
+                    consistent_break = true;
+                    break;
+                }
+            }
+        }
+        if consistent_break {
+            self.cbox(0);
+        } else {
+            self.ibox(0);
+        }
         for case in pat.cases.iter().delimited() {
             if !case.is_first {
                 self.space();
