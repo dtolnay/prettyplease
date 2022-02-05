@@ -650,7 +650,9 @@ impl Printer {
         self.where_clause_oneline(&impl_item.generics.where_clause);
         self.word("= ");
         self.neverbreak();
+        self.ibox(-INDENT);
         self.ty(&impl_item.ty);
+        self.end();
         self.word(";");
         self.end();
         self.hardbreak();
