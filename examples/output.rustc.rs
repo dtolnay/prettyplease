@@ -74,8 +74,9 @@ impl IpAddr {
 }
 impl Ipv4Addr {
     pub const fn new(a: u8, b: u8, c: u8, d: u8) -> Ipv4Addr {
-        Ipv4Addr{inner:
-                c::in_addr{s_addr: u32::from_ne_bytes([a, b, c, d]),},}
+        Ipv4Addr {
+            inner: c::in_addr { s_addr: u32::from_ne_bytes([a, b, c, d]) },
+        }
     }
     pub const LOCALHOST: Self = Ipv4Addr::new(127, 0, 0, 1);
     #[doc(alias = "INADDR_ANY")]
@@ -130,15 +131,20 @@ impl Ipv4Addr {
     }
     pub const fn to_ipv6_compatible(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
-        Ipv6Addr{inner:
-                c::in6_addr{s6_addr:
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, c, d],},}
+        Ipv6Addr {
+            inner: c::in6_addr {
+                s6_addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, c, d],
+            },
+        }
     }
     pub const fn to_ipv6_mapped(&self) -> Ipv6Addr {
         let [a, b, c, d] = self.octets();
-        Ipv6Addr{inner:
-                c::in6_addr{s6_addr:
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d],},}
+        Ipv6Addr {
+            inner: c::in6_addr {
+                s6_addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c,
+                        d],
+            },
+        }
     }
 }
 impl fmt::Display for IpAddr {
@@ -260,9 +266,11 @@ impl Ipv6Addr {
         let addr16 =
             [a.to_be(), b.to_be(), c.to_be(), d.to_be(), e.to_be(), f.to_be(),
                     g.to_be(), h.to_be()];
-        Ipv6Addr{inner:
-                c::in6_addr{s6_addr:
-                        unsafe { transmute::<_, [u8; 16]>(addr16) },},}
+        Ipv6Addr {
+            inner: c::in6_addr {
+                s6_addr: unsafe { transmute::<_, [u8; 16]>(addr16) },
+            },
+        }
     }
     pub const LOCALHOST: Self = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
     pub const UNSPECIFIED: Self = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0);
@@ -468,7 +476,7 @@ impl AsInner<c::in6_addr> for Ipv6Addr {
     fn as_inner(&self) -> &c::in6_addr { &self.inner }
 }
 impl FromInner<c::in6_addr> for Ipv6Addr {
-    fn from_inner(addr: c::in6_addr) -> Ipv6Addr { Ipv6Addr{inner: addr,} }
+    fn from_inner(addr: c::in6_addr) -> Ipv6Addr { Ipv6Addr { inner: addr } }
 }
 impl From<Ipv6Addr> for u128 {
     fn from(ip: Ipv6Addr) -> u128 {
@@ -481,7 +489,7 @@ impl From<u128> for Ipv6Addr {
 }
 impl From<[u8; 16]> for Ipv6Addr {
     fn from(octets: [u8; 16]) -> Ipv6Addr {
-        let inner = c::in6_addr{s6_addr: octets,};
+        let inner = c::in6_addr { s6_addr: octets };
         Ipv6Addr::from_inner(inner)
     }
 }
