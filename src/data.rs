@@ -1,7 +1,10 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::INDENT;
-use syn::{Field, Fields, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted, Visibility};
+use syn::{
+    Field, Fields, FieldsUnnamed, PathArguments, Variant, VisCrate, VisPublic, VisRestricted,
+    Visibility,
+};
 
 impl Printer {
     pub fn variant(&mut self, variant: &Variant) {
@@ -76,9 +79,14 @@ impl Printer {
 
     fn vis_restricted(&mut self, vis: &VisRestricted) {
         self.word("pub(");
-        // TODO: If we have a path which is not "self" or "super" or "crate",
-        // automatically add the "in" token.
-        if vis.in_token.is_some() {
+        let omit_in = vis.path.leading_colon.is_none()
+            && vis.path.segments.len() == 1
+            && matches!(vis.path.segments[0].arguments, PathArguments::None)
+            && matches!(
+                vis.path.segments[0].ident.to_string().as_str(),
+                "self" | "super" | "crate",
+            );
+        if !omit_in {
             self.word("in ");
         }
         self.path(&vis.path);
