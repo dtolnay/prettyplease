@@ -390,7 +390,9 @@ impl Printer {
     }
 
     fn use_group(&mut self, use_group: &UseGroup) {
-        if use_group.items.len() == 1 {
+        if use_group.items.is_empty() {
+            self.word("{}");
+        } else if use_group.items.len() == 1 {
             self.use_tree(&use_group.items[0]);
         } else {
             self.cbox(INDENT);
