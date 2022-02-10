@@ -87,14 +87,16 @@ impl Printer {
                 Some(TokenTree::Punct(punct)) => {
                     let ch = punct.as_char();
                     if let (Word, '=') = (state, ch) {
-                        space(self);
+                        self.nbsp();
                     }
                     if ch == ',' && tokens.peek().is_none() {
                         self.trailing_comma(true);
                         state = TrailingComma;
                     } else {
                         self.token_punct(ch);
-                        if let '=' | ',' = ch {
+                        if ch == '=' {
+                            self.nbsp();
+                        } else if ch == ',' {
                             space(self);
                         }
                         state = Punct;
