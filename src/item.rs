@@ -355,7 +355,10 @@ impl Printer {
     }
 
     fn item_verbatim(&mut self, item: &TokenStream) {
-        unimplemented!("Item::Verbatim `{}`", item);
+        if !item.is_empty() {
+            unimplemented!("Item::Verbatim `{}`", item);
+        }
+        self.hardbreak();
     }
 
     fn use_tree(&mut self, use_tree: &UseTree) {
@@ -481,7 +484,10 @@ impl Printer {
     }
 
     fn foreign_item_verbatim(&mut self, foreign_item: &TokenStream) {
-        unimplemented!("ForeignItem::Verbatim `{}`", foreign_item);
+        if !foreign_item.is_empty() {
+            unimplemented!("ForeignItem::Verbatim `{}`", foreign_item);
+        }
+        self.hardbreak();
     }
 
     fn trait_item(&mut self, trait_item: &TraitItem) {
@@ -572,7 +578,10 @@ impl Printer {
     }
 
     fn trait_item_verbatim(&mut self, trait_item: &TokenStream) {
-        unimplemented!("TraitItem::Verbatim `{}`", trait_item);
+        if !trait_item.is_empty() {
+            unimplemented!("TraitItem::Verbatim `{}`", trait_item);
+        }
+        self.hardbreak();
     }
 
     fn impl_item(&mut self, impl_item: &ImplItem) {
@@ -668,7 +677,10 @@ impl Printer {
     }
 
     fn impl_item_verbatim(&mut self, impl_item: &TokenStream) {
-        unimplemented!("ImplItem::Verbatim `{}`", impl_item);
+        if !impl_item.is_empty() {
+            unimplemented!("ImplItem::Verbatim `{}`", impl_item);
+        }
+        self.hardbreak();
     }
 
     fn maybe_variadic(&mut self, arg: &FnArg) -> bool {
