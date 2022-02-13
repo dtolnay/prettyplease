@@ -1,5 +1,4 @@
-use crate::cmp::Ordering;
-use crate::fmt::{self, Write as FmtWrite};
+use crate::cmp::Ordering;use crate::fmt::{self, Write as FmtWrite};
 use crate::hash;
 use crate::io::Write as IoWrite;
 use crate::mem::transmute;
