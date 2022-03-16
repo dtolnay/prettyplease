@@ -154,7 +154,6 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        self.inner_attrs(&pat.attrs);
         for elem in pat.elems.iter().delimited() {
             self.pat(&elem);
             if pat.elems.len() == 1 {
@@ -177,7 +176,6 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        self.inner_attrs(&pat.attrs);
         for elem in pat.pat.elems.iter().delimited() {
             self.pat(&elem);
             self.trailing_comma(elem.is_last);

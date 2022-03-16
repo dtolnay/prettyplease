@@ -64,7 +64,6 @@ impl Printer {
         self.where_clause_for_body(&item.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
-        self.inner_attrs(&item.attrs);
         for variant in &item.variants {
             self.variant(variant);
             self.word(",");
