@@ -117,7 +117,6 @@ impl Printer {
         self.word("[");
         self.cbox(INDENT);
         self.zerobreak();
-        self.inner_attrs(&expr.attrs);
         for element in expr.elems.iter().delimited() {
             self.expr(&element);
             self.trailing_comma(element.is_last);
@@ -504,7 +503,6 @@ impl Printer {
     fn expr_paren(&mut self, expr: &ExprParen) {
         self.outer_attrs(&expr.attrs);
         self.word("(");
-        self.inner_attrs(&expr.attrs);
         self.expr(&expr.expr);
         self.word(")");
     }
@@ -540,7 +538,6 @@ impl Printer {
     fn expr_repeat(&mut self, expr: &ExprRepeat) {
         self.outer_attrs(&expr.attrs);
         self.word("[");
-        self.inner_attrs(&expr.attrs);
         self.expr(&expr.expr);
         self.word("; ");
         self.expr(&expr.len);
@@ -564,7 +561,6 @@ impl Printer {
         self.end();
         self.word(" {");
         self.space_if_nonempty();
-        self.inner_attrs(&expr.attrs);
         for field_value in expr.fields.iter().delimited() {
             self.field_value(&field_value);
             self.trailing_comma_or_space(field_value.is_last && expr.rest.is_none());
@@ -603,7 +599,6 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        self.inner_attrs(&expr.attrs);
         for elem in expr.elems.iter().delimited() {
             self.expr(&elem);
             if expr.elems.len() == 1 {
