@@ -141,6 +141,7 @@ impl Printer {
             Colon,
             Colon2,
             Ident,
+            IdentBang,
             Delim,
             Other,
         }
@@ -165,6 +166,10 @@ impl Printer {
                 (Pound | PoundBang, Token::Group(Delimiter::Bracket, _)) => (false, Other),
                 (Ident, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => {
                     (false, Delim)
+                }
+                (Ident, Token::Punct('!', Spacing::Alone)) => (false, IdentBang),
+                (IdentBang, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => {
+                    (false, Other)
                 }
                 (Colon, Token::Punct(':', _)) => (false, Colon2),
                 (_, Token::Group(Delimiter::Parenthesis | Delimiter::Bracket, _)) => (true, Delim),
