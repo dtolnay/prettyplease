@@ -833,14 +833,17 @@ impl Printer {
         if attr::has_inner(attrs) || !block.stmts.is_empty() {
             self.space();
             self.inner_attrs(attrs);
-            if let (Some(Stmt::Expr(expr)), None) = (block.stmts.get(0), block.stmts.get(1)) {
-                self.ibox(0);
-                self.expr_beginning_of_line(expr, true);
-                self.end();
-                self.space();
-            } else {
-                for stmt in &block.stmts {
-                    self.stmt(stmt);
+            match (block.stmts.get(0), block.stmts.get(1)) {
+                (Some(Stmt::Expr(expr)), None) if stmt::break_after(expr) => {
+                    self.ibox(0);
+                    self.expr_beginning_of_line(expr, true);
+                    self.end();
+                    self.space();
+                }
+                _ => {
+                    for stmt in &block.stmts {
+                        self.stmt(stmt);
+                    }
                 }
             }
             self.offset(-INDENT);

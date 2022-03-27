@@ -20,13 +20,17 @@ impl Printer {
             }
             Stmt::Item(item) => self.item(item),
             Stmt::Expr(expr) => {
-                self.ibox(0);
-                self.expr_beginning_of_line(expr, true);
-                if add_semi(expr) {
-                    self.word(";");
+                if break_after(expr) {
+                    self.ibox(0);
+                    self.expr_beginning_of_line(expr, true);
+                    if add_semi(expr) {
+                        self.word(";");
+                    }
+                    self.end();
+                    self.hardbreak();
+                } else {
+                    self.expr_beginning_of_line(expr, true);
                 }
-                self.end();
-                self.hardbreak();
             }
             Stmt::Semi(expr, _semi) => {
                 if let Expr::Verbatim(tokens) = expr {
@@ -57,6 +61,15 @@ pub fn add_semi(expr: &Expr) -> bool {
         Expr::Group(group) => add_semi(&group.expr),
         _ => false,
     }
+}
+
+pub fn break_after(expr: &Expr) -> bool {
+    if let Expr::Group(group) = expr {
+        if let Expr::Verbatim(verbatim) = group.expr.as_ref() {
+            return !verbatim.is_empty();
+        }
+    }
+    true
 }
 
 fn remove_semi(expr: &Expr) -> bool {
