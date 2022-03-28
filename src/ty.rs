@@ -26,9 +26,7 @@ impl Printer {
             Type::TraitObject(ty) => self.type_trait_object(ty),
             Type::Tuple(ty) => self.type_tuple(ty),
             Type::Verbatim(ty) => self.type_verbatim(ty),
-            #[cfg(test)]
-            Type::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Type"),
         }
     }

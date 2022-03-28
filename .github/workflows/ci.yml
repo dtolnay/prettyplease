@@ -23,6 +23,8 @@ jobs:
           toolchain: ${{matrix.rust}}
       - run: cargo check
       - run: cargo test
+        env:
+          RUSTFLAGS: ${{env.RUSTFLAGS}} ${{matrix.rust == 'nightly' && '--cfg exhaustive' || ''}}
 
   examples:
     name: Examples

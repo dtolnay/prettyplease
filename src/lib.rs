@@ -335,6 +335,7 @@
     clippy::unused_self,
     clippy::vec_init_then_push
 )]
+#![cfg_attr(all(test, exhaustive), feature(non_exhaustive_omitted_patterns_lint))]
 
 mod algorithm;
 mod attr;

@@ -26,9 +26,7 @@ impl Printer {
             Pat::Type(pat) => self.pat_type(pat),
             Pat::Verbatim(pat) => self.pat_verbatim(pat),
             Pat::Wild(pat) => self.pat_wild(pat),
-            #[cfg(test)]
-            Pat::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Pat"),
         }
     }
