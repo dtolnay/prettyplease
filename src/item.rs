@@ -31,9 +31,7 @@ impl Printer {
             Item::Union(item) => self.item_union(item),
             Item::Use(item) => self.item_use(item),
             Item::Verbatim(item) => self.item_verbatim(item),
-            #[cfg(test)]
-            Item::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Item"),
         }
     }
@@ -431,9 +429,7 @@ impl Printer {
             ForeignItem::Type(item) => self.foreign_item_type(item),
             ForeignItem::Macro(item) => self.foreign_item_macro(item),
             ForeignItem::Verbatim(item) => self.foreign_item_verbatim(item),
-            #[cfg(test)]
-            ForeignItem::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown ForeignItem"),
         }
     }
@@ -496,9 +492,7 @@ impl Printer {
             TraitItem::Type(item) => self.trait_item_type(item),
             TraitItem::Macro(item) => self.trait_item_macro(item),
             TraitItem::Verbatim(item) => self.trait_item_verbatim(item),
-            #[cfg(test)]
-            TraitItem::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown TraitItem"),
         }
     }
@@ -590,9 +584,7 @@ impl Printer {
             ImplItem::Type(item) => self.impl_item_type(item),
             ImplItem::Macro(item) => self.impl_item_macro(item),
             ImplItem::Verbatim(item) => self.impl_item_verbatim(item),
-            #[cfg(test)]
-            ImplItem::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown ImplItem"),
         }
     }

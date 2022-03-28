@@ -13,10 +13,10 @@ autoexamples = false
 
 [dependencies]
 proc-macro2 = { version = "1.0", default-features = false }
-syn = { version = "1.0.85", default-features = false, features = ["full"] }
+syn = { version = "1.0.90", default-features = false, features = ["full"] }
 
 [dev-dependencies]
-syn = { version = "1.0.85", default-features = false, features = ["parsing"] }
+syn = { version = "1.0.90", default-features = false, features = ["parsing"] }
 
 [workspace]
 members = ["examples/update"]

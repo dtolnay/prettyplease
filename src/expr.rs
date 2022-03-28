@@ -58,9 +58,7 @@ impl Printer {
             Expr::Verbatim(expr) => self.expr_verbatim(expr),
             Expr::While(expr) => self.expr_while(expr),
             Expr::Yield(expr) => self.expr_yield(expr),
-            #[cfg(test)]
-            Expr::__TestExhaustive(_) => unreachable!(),
-            #[cfg(not(test))]
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Expr"),
         }
     }
@@ -1008,9 +1006,7 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         | Expr::Unary(ExprUnary { expr: e, .. })
         | Expr::Yield(ExprYield { expr: Some(e), .. }) => needs_newline_if_wrap(e),
 
-        #[cfg(test)]
-        Expr::__TestExhaustive(_) => unreachable!(),
-        #[cfg(not(test))]
+        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
