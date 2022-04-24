@@ -21,8 +21,9 @@ impl Printer {
     }
 
     fn attr(&mut self, attr: &Attribute) {
-        if let Some(doc) = value_of_attribute("doc", attr) {
+        if let Some(mut doc) = value_of_attribute("doc", attr) {
             if doc.contains('\n') {
+                trim_interior_trailing_spaces(&mut doc);
                 self.word(match attr.style {
                     AttrStyle::Outer => "/**",
                     AttrStyle::Inner(_) => "/*!",
@@ -30,6 +31,7 @@ impl Printer {
                 self.word(doc);
                 self.word("*/");
             } else {
+                trim_trailing_spaces(&mut doc);
                 self.word(match attr.style {
                     AttrStyle::Outer => "///",
                     AttrStyle::Inner(_) => "//!",
@@ -37,12 +39,14 @@ impl Printer {
                 self.word(doc);
             }
             self.hardbreak();
-        } else if let Some(comment) = value_of_attribute("comment", attr) {
+        } else if let Some(mut comment) = value_of_attribute("comment", attr) {
             if comment.contains('\n') {
+                trim_interior_trailing_spaces(&mut comment);
                 self.word("/*");
                 self.word(comment);
                 self.word("*/");
             } else {
+                trim_trailing_spaces(&mut comment);
                 self.word("//");
                 self.word(comment);
             }
@@ -205,4 +209,25 @@ pub fn has_inner(attrs: &[Attribute]) -> bool {
         }
     }
     false
+}
+
+fn trim_trailing_spaces(doc: &mut String) {
+    doc.truncate(doc.trim_end_matches(' ').len());
+}
+
+fn trim_interior_trailing_spaces(doc: &mut String) {
+    if !doc.contains(" \n") {
+        return;
+    }
+    let mut trimmed = String::with_capacity(doc.len());
+    let mut lines = doc.split('\n').peekable();
+    while let Some(line) = lines.next() {
+        if lines.peek().is_some() {
+            trimmed.push_str(line.trim_end_matches(' '));
+            trimmed.push('\n');
+        } else {
+            trimmed.push_str(line);
+        }
+    }
+    *doc = trimmed;
 }
