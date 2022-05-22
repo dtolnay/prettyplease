@@ -323,6 +323,7 @@
 #![allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
+    clippy::derive_partial_eq_without_eq,
     clippy::doc_markdown,
     clippy::enum_glob_use,
     clippy::items_after_statements,
