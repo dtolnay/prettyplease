@@ -737,7 +737,9 @@ impl Printer {
         self.offset(-INDENT);
         self.end();
         self.word(")");
+        self.cbox(-INDENT);
         self.return_type(&signature.output);
+        self.end();
     }
 
     fn receiver(&mut self, receiver: &Receiver) {
