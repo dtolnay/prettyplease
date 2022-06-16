@@ -9,6 +9,7 @@ description = "A minimal `syn` syntax tree pretty-printer"
 repository = "https://github.com/dtolnay/prettyplease"
 documentation = "https://docs.rs/prettyplease"
 readme = "README.md"
+links = "prettyplease01"
 autoexamples = false
 
 [dependencies]
