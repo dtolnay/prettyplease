@@ -11,6 +11,7 @@ documentation = "https://docs.rs/prettyplease"
 readme = "README.md"
 links = "prettyplease01"
 autoexamples = false
+exclude = ["cargo-expand"]
 
 [features]
 verbatim = ["syn/parsing"]
