@@ -650,9 +650,60 @@ impl Printer {
         self.word("}");
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn expr_verbatim(&mut self, expr: &TokenStream) {
         if !expr.is_empty() {
             unimplemented!("Expr::Verbatim `{}`", expr);
+        }
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn expr_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+
+        enum ExprVerbatim {
+            Empty,
+            RawReference(RawReference),
+        }
+
+        struct RawReference {
+            mutable: bool,
+            expr: Expr,
+        }
+
+        mod kw {
+            syn::custom_keyword!(raw);
+        }
+
+        impl Parse for ExprVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                if input.is_empty() {
+                    Ok(ExprVerbatim::Empty)
+                } else {
+                    input.parse::<Token![&]>()?;
+                    input.parse::<kw::raw>()?;
+                    let mutable = input.parse::<Option<Token![mut]>>()?.is_some();
+                    if !mutable {
+                        input.parse::<Token![const]>()?;
+                    }
+                    let expr: Expr = input.parse()?;
+                    Ok(ExprVerbatim::RawReference(RawReference { mutable, expr }))
+                }
+            }
+        }
+
+        let expr: ExprVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(expr) => expr,
+            Err(_) => unimplemented!("Expr::Verbatim `{}`", tokens),
+        };
+
+        match expr {
+            ExprVerbatim::Empty => {}
+            ExprVerbatim::RawReference(expr) => {
+                self.word("&raw ");
+                self.word(if expr.mutable { "mut " } else { "const " });
+                self.expr(&expr.expr);
+            }
         }
     }
 
