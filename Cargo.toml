@@ -11,6 +11,7 @@ documentation = "https://docs.rs/prettyplease"
 readme = "README.md"
 links = "prettyplease01"
 autoexamples = false
+exclude = ["cargo-expand"]
 
 [features]
 verbatim = ["syn/parsing"]
@@ -23,4 +24,4 @@ syn = { version = "1.0.90", default-features = false, features = ["full"] }
 syn = { version = "1.0.90", default-features = false, features = ["parsing"] }
 
 [workspace]
-members = ["examples/update"]
+members = ["cargo-expand/update", "examples/update"]
