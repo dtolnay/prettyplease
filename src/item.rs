@@ -351,10 +351,64 @@ impl Printer {
         self.hardbreak();
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn item_verbatim(&mut self, item: &TokenStream) {
         if !item.is_empty() {
             unimplemented!("Item::Verbatim `{}`", item);
         }
+        self.hardbreak();
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn item_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+        use syn::{Attribute, Token};
+
+        enum ItemVerbatim {
+            Empty,
+            UnsafeForeignMod(ItemForeignMod),
+        }
+
+        impl Parse for ItemVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                if input.is_empty() {
+                    Ok(ItemVerbatim::Empty)
+                } else {
+                    let attrs = input.call(Attribute::parse_outer)?;
+                    input.parse::<Token![unsafe]>()?;
+                    let module: ItemForeignMod = input.parse()?;
+                    Ok(ItemVerbatim::UnsafeForeignMod(ItemForeignMod {
+                        attrs,
+                        ..module
+                    }))
+                }
+            }
+        }
+
+        let item: ItemVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(item) => item,
+            Err(_) => unimplemented!("Item::Verbatim `{}`", tokens),
+        };
+
+        match item {
+            ItemVerbatim::Empty => {}
+            ItemVerbatim::UnsafeForeignMod(item) => {
+                self.outer_attrs(&item.attrs);
+                self.cbox(INDENT);
+                self.word("unsafe ");
+                self.abi(&item.abi);
+                self.word("{");
+                self.hardbreak_if_nonempty();
+                self.inner_attrs(&item.attrs);
+                for foreign_item in &item.items {
+                    self.foreign_item(foreign_item);
+                }
+                self.offset(-INDENT);
+                self.end();
+                self.word("}");
+            }
+        }
+
         self.hardbreak();
     }
 
