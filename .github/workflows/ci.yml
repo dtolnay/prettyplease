@@ -37,6 +37,8 @@ jobs:
           components: rustc-dev, rustfmt
       - run: cargo run --manifest-path examples/update/Cargo.toml
       - run: git diff --exit-code
+      - run: cargo run --manifest-path cargo-expand/update/Cargo.toml
+      - run: git diff --exit-code
 
   clippy:
     name: Clippy
