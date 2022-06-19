@@ -853,19 +853,7 @@ impl Printer {
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
         let mut iter = args.iter();
         match (iter.next(), iter.next()) {
-            (
-                Some(
-                    expr @ (Expr::Array(ExprArray { attrs, .. })
-                    | Expr::Async(ExprAsync { attrs, .. })
-                    | Expr::Block(ExprBlock { attrs, .. })
-                    | Expr::Closure(ExprClosure { attrs, .. })
-                    | Expr::Struct(ExprStruct { attrs, .. })
-                    | Expr::TryBlock(ExprTryBlock { attrs, .. })
-                    | Expr::Tuple(ExprTuple { attrs, .. })
-                    | Expr::Unsafe(ExprUnsafe { attrs, .. })),
-                ),
-                None,
-            ) if !attr::has_outer(attrs) => {
+            (Some(expr), None) if is_blocklike(expr) => {
                 self.expr(expr);
             }
             _ => {
@@ -1080,4 +1068,18 @@ fn is_short_ident(expr: &Expr) -> bool {
         }
     }
     false
+}
+
+fn is_blocklike(expr: &Expr) -> bool {
+    match expr {
+        Expr::Array(ExprArray { attrs, .. })
+        | Expr::Async(ExprAsync { attrs, .. })
+        | Expr::Block(ExprBlock { attrs, .. })
+        | Expr::Closure(ExprClosure { attrs, .. })
+        | Expr::Struct(ExprStruct { attrs, .. })
+        | Expr::TryBlock(ExprTryBlock { attrs, .. })
+        | Expr::Tuple(ExprTuple { attrs, .. })
+        | Expr::Unsafe(ExprUnsafe { attrs, .. }) => !attr::has_outer(attrs),
+        _ => false,
+    }
 }
