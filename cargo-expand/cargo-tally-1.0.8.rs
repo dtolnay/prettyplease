@@ -4722,9 +4722,9 @@ mod lib {
                                         DependencyKind::Dev => None,
                                     })
                                     .KV::<
-                                    (CrateId, VersionReq),
-                                    (VersionId, FeatureId, DefaultFeatures, Slice<FeatureId>),
-                                >()
+                                        (CrateId, VersionReq),
+                                        (VersionId, FeatureId, DefaultFeatures, Slice<FeatureId>),
+                                    >()
                                     .join_core(
                                         &resolved,
                                         |
@@ -4830,9 +4830,9 @@ mod lib {
                                         },
                                     )
                                     .KV::<
-                                    (CrateId, VersionReq),
-                                    (VersionId, FeatureId, FeatureId),
-                                >()
+                                        (CrateId, VersionReq),
+                                        (VersionId, FeatureId, FeatureId),
+                                    >()
                                     .join_core(
                                         &resolved,
                                         |
@@ -4874,10 +4874,10 @@ mod lib {
                                 >;
                                 let addend_transitive_releases: addend_transitive_releases = scope
                                     .iterative::<
-                                    u16,
-                                    _,
-                                    _,
-                                >(|nested| {
+                                        u16,
+                                        _,
+                                        _,
+                                    >(|nested| {
                                         let match_releases = match_releases
                                             .KV::<VersionId, QueryId>()
                                             .explode(|(version_id, query_id)| {

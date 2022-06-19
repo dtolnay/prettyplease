@@ -826,7 +826,7 @@ impl Printer {
 
     fn method_turbofish(&mut self, turbofish: &MethodTurbofish) {
         self.word("::<");
-        self.cbox(0);
+        self.cbox(INDENT);
         self.zerobreak();
         for arg in turbofish.args.iter().delimited() {
             self.generic_method_argument(&arg);
