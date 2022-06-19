@@ -38119,8 +38119,9 @@ pub mod ser {
             {
                 let mut iter = iter;
                 match iter
-                    .try_for_each(|(key, value)| serializer
-                        .serialize_entry(&key, &value))
+                    .try_for_each(|(key, value)| {
+                        serializer.serialize_entry(&key, &value)
+                    })
                 {
                     ::core::result::Result::Ok(val) => val,
                     ::core::result::Result::Err(err) => {

@@ -269,6 +269,30 @@ impl Printer {
                 self.space();
                 self.offset(-INDENT);
                 self.end();
+                self.neverbreak();
+                let wrap_in_brace = match &*expr.body {
+                    Expr::Match(ExprMatch { attrs, .. }) | Expr::Call(ExprCall { attrs, .. }) => {
+                        attr::has_outer(attrs)
+                    }
+                    body => !is_blocklike(body),
+                };
+                if wrap_in_brace {
+                    self.cbox(INDENT);
+                    self.scan_break(BreakToken {
+                        pre_break: Some('{'),
+                        ..BreakToken::default()
+                    });
+                    self.expr(&expr.body);
+                    self.scan_break(BreakToken {
+                        offset: -INDENT,
+                        pre_break: stmt::add_semi(&expr.body).then(|| ';'),
+                        post_break: Some('}'),
+                        ..BreakToken::default()
+                    });
+                    self.end();
+                } else {
+                    self.expr(&expr.body);
+                }
             }
             ReturnType::Type(_arrow, ty) => {
                 if !expr.inputs.is_empty() {
@@ -280,10 +304,10 @@ impl Printer {
                 self.word(" -> ");
                 self.ty(ty);
                 self.nbsp();
+                self.neverbreak();
+                self.expr(&expr.body);
             }
         }
-        self.neverbreak();
-        self.expr(&expr.body);
         self.end();
     }
 

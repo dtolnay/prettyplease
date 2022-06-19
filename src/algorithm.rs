@@ -344,6 +344,7 @@ impl Printer {
             }
         } else {
             if let Some(pre_break) = token.pre_break {
+                self.print_indent();
                 self.out.push(pre_break);
             }
             if cfg!(prettyplease_debug) {
