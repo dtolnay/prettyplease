@@ -215,12 +215,16 @@ impl Printer {
     fn expr_call(&mut self, expr: &ExprCall, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.expr_beginning_of_line(&expr.func, beginning_of_line);
+        self.word("(");
         self.call_args(&expr.args);
+        self.word(")");
     }
 
     fn subexpr_call(&mut self, expr: &ExprCall) {
         self.subexpr(&expr.func, false);
+        self.word("(");
         self.call_args(&expr.args);
+        self.word(")");
     }
 
     fn expr_cast(&mut self, expr: &ExprCast) {
@@ -494,7 +498,9 @@ impl Printer {
             self.method_turbofish(turbofish);
         }
         self.cbox(if unindent_call_args { -INDENT } else { 0 });
+        self.word("(");
         self.call_args(&expr.args);
+        self.word(")");
         self.end();
     }
 
@@ -845,7 +851,6 @@ impl Printer {
     }
 
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
-        self.word("(");
         let mut iter = args.iter();
         match (iter.next(), iter.next()) {
             (
@@ -874,7 +879,6 @@ impl Printer {
                 self.end();
             }
         }
-        self.word(")");
     }
 
     fn small_block(&mut self, block: &Block, attrs: &[Attribute]) {
