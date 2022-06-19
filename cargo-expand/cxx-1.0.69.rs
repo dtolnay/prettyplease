@@ -1,368 +1,4 @@
 #![feature(prelude_import)]
-//! [![github]](https://github.com/dtolnay/cxx)&ensp;[![crates-io]](https://crates.io/crates/cxx)&ensp;[![docs-rs]](https://docs.rs/cxx)
-//!
-//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
-//! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
-//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
-//!
-//! <br>
-//!
-//! This library provides a **safe** mechanism for calling C++ code from Rust
-//! and Rust code from C++, not subject to the many ways that things can go
-//! wrong when using bindgen or cbindgen to generate unsafe C-style bindings.
-//!
-//! This doesn't change the fact that 100% of C++ code is unsafe. When auditing
-//! a project, you would be on the hook for auditing all the unsafe Rust code
-//! and *all* the C++ code. The core safety claim under this new model is that
-//! auditing just the C++ side would be sufficient to catch all problems, i.e.
-//! the Rust side can be 100% safe.
-//!
-//! <br>
-//!
-//! *Compiler support: requires rustc 1.48+ and c++11 or newer*<br>
-//! *[Release notes](https://github.com/dtolnay/cxx/releases)*
-//!
-//! <br>
-//!
-//! # Guide
-//!
-//! Please see **<https://cxx.rs>** for a tutorial, reference material, and
-//! example code.
-//!
-//! <br>
-//!
-//! # Overview
-//!
-//! The idea is that we define the signatures of both sides of our FFI boundary
-//! embedded together in one Rust module (the next section shows an example).
-//! From this, CXX receives a complete picture of the boundary to perform static
-//! analyses against the types and function signatures to uphold both Rust's and
-//! C++'s invariants and requirements.
-//!
-//! If everything checks out statically, then CXX uses a pair of code generators
-//! to emit the relevant `extern "C"` signatures on both sides together with any
-//! necessary static assertions for later in the build process to verify
-//! correctness. On the Rust side this code generator is simply an attribute
-//! procedural macro. On the C++ side it can be a small Cargo build script if
-//! your build is managed by Cargo, or for other build systems like Bazel or
-//! Buck we provide a command line tool which generates the header and source
-//! file and should be easy to integrate.
-//!
-//! The resulting FFI bridge operates at zero or negligible overhead, i.e. no
-//! copying, no serialization, no memory allocation, no runtime checks needed.
-//!
-//! The FFI signatures are able to use native types from whichever side they
-//! please, such as Rust's `String` or C++'s `std::string`, Rust's `Box` or
-//! C++'s `std::unique_ptr`, Rust's `Vec` or C++'s `std::vector`, etc in any
-//! combination. CXX guarantees an ABI-compatible signature that both sides
-//! understand, based on builtin bindings for key standard library types to
-//! expose an idiomatic API on those types to the other language. For example
-//! when manipulating a C++ string from Rust, its `len()` method becomes a call
-//! of the `size()` member function defined by C++; when manipulation a Rust
-//! string from C++, its `size()` member function calls Rust's `len()`.
-//!
-//! <br>
-//!
-//! # Example
-//!
-//! In this example we are writing a Rust application that wishes to take
-//! advantage of an existing C++ client for a large-file blobstore service. The
-//! blobstore supports a `put` operation for a discontiguous buffer upload. For
-//! example we might be uploading snapshots of a circular buffer which would
-//! tend to consist of 2 chunks, or fragments of a file spread across memory for
-//! some other reason.
-//!
-//! A runnable version of this example is provided under the *demo* directory of
-//! <https://github.com/dtolnay/cxx>. To try it out, run `cargo run` from that
-//! directory.
-//!
-//! ```no_run
-//! #[cxx::bridge]
-//! mod ffi {
-//!     // Any shared structs, whose fields will be visible to both languages.
-//!     struct BlobMetadata {
-//!         size: usize,
-//!         tags: Vec<String>,
-//!     }
-//!
-//!     extern "Rust" {
-//!         // Zero or more opaque types which both languages can pass around but
-//!         // only Rust can see the fields.
-//!         type MultiBuf;
-//!
-//!         // Functions implemented in Rust.
-//!         fn next_chunk(buf: &mut MultiBuf) -> &[u8];
-//!     }
-//!
-//!     unsafe extern "C++" {
-//!         // One or more headers with the matching C++ declarations. Our code
-//!         // generators don't read it but it gets #include'd and used in static
-//!         // assertions to ensure our picture of the FFI boundary is accurate.
-//!         include!("demo/include/blobstore.h");
-//!
-//!         // Zero or more opaque types which both languages can pass around but
-//!         // only C++ can see the fields.
-//!         type BlobstoreClient;
-//!
-//!         // Functions implemented in C++.
-//!         fn new_blobstore_client() -> UniquePtr<BlobstoreClient>;
-//!         fn put(&self, parts: &mut MultiBuf) -> u64;
-//!         fn tag(&self, blobid: u64, tag: &str);
-//!         fn metadata(&self, blobid: u64) -> BlobMetadata;
-//!     }
-//! }
-//! #
-//! # pub struct MultiBuf;
-//! #
-//! # fn next_chunk(_buf: &mut MultiBuf) -> &[u8] {
-//! #     unimplemented!()
-//! # }
-//! #
-//! # fn main() {}
-//! ```
-//!
-//! Now we simply provide Rust definitions of all the things in the `extern
-//! "Rust"` block and C++ definitions of all the things in the `extern "C++"`
-//! block, and get to call back and forth safely.
-//!
-//! Here are links to the complete set of source files involved in the demo:
-//!
-//! - [demo/src/main.rs](https://github.com/dtolnay/cxx/blob/master/demo/src/main.rs)
-//! - [demo/build.rs](https://github.com/dtolnay/cxx/blob/master/demo/build.rs)
-//! - [demo/include/blobstore.h](https://github.com/dtolnay/cxx/blob/master/demo/include/blobstore.h)
-//! - [demo/src/blobstore.cc](https://github.com/dtolnay/cxx/blob/master/demo/src/blobstore.cc)
-//!
-//! To look at the code generated in both languages for the example by the CXX
-//! code generators:
-//!
-//! ```console
-//!    # run Rust code generator and print to stdout
-//!    # (requires https://github.com/dtolnay/cargo-expand)
-//! $ cargo expand --manifest-path demo/Cargo.toml
-//!
-//!    # run C++ code generator and print to stdout
-//! $ cargo run --manifest-path gen/cmd/Cargo.toml -- demo/src/main.rs
-//! ```
-//!
-//! <br>
-//!
-//! # Details
-//!
-//! As seen in the example, the language of the FFI boundary involves 3 kinds of
-//! items:
-//!
-//! - **Shared structs** &mdash; their fields are made visible to both
-//!   languages. The definition written within cxx::bridge is the single source
-//!   of truth.
-//!
-//! - **Opaque types** &mdash; their fields are secret from the other language.
-//!   These cannot be passed across the FFI by value but only behind an
-//!   indirection, such as a reference `&`, a Rust `Box`, or a `UniquePtr`. Can
-//!   be a type alias for an arbitrarily complicated generic language-specific
-//!   type depending on your use case.
-//!
-//! - **Functions** &mdash; implemented in either language, callable from the
-//!   other language.
-//!
-//! Within the `extern "Rust"` part of the CXX bridge we list the types and
-//! functions for which Rust is the source of truth. These all implicitly refer
-//! to the `super` module, the parent module of the CXX bridge. You can think of
-//! the two items listed in the example above as being like `use
-//! super::MultiBuf` and `use super::next_chunk` except re-exported to C++. The
-//! parent module will either contain the definitions directly for simple
-//! things, or contain the relevant `use` statements to bring them into scope
-//! from elsewhere.
-//!
-//! Within the `extern "C++"` part, we list types and functions for which C++ is
-//! the source of truth, as well as the header(s) that declare those APIs. In
-//! the future it's possible that this section could be generated bindgen-style
-//! from the headers but for now we need the signatures written out; static
-//! assertions will verify that they are accurate.
-//!
-//! Your function implementations themselves, whether in C++ or Rust, *do not*
-//! need to be defined as `extern "C"` ABI or no\_mangle. CXX will put in the
-//! right shims where necessary to make it all work.
-//!
-//! <br>
-//!
-//! # Comparison vs bindgen and cbindgen
-//!
-//! Notice that with CXX there is repetition of all the function signatures:
-//! they are typed out once where the implementation is defined (in C++ or Rust)
-//! and again inside the cxx::bridge module, though compile-time assertions
-//! guarantee these are kept in sync. This is different from [bindgen] and
-//! [cbindgen] where function signatures are typed by a human once and the tool
-//! consumes them in one language and emits them in the other language.
-//!
-//! [bindgen]: https://github.com/rust-lang/rust-bindgen
-//! [cbindgen]: https://github.com/eqrion/cbindgen/
-//!
-//! This is because CXX fills a somewhat different role. It is a lower level
-//! tool than bindgen or cbindgen in a sense; you can think of it as being a
-//! replacement for the concept of `extern "C"` signatures as we know them,
-//! rather than a replacement for a bindgen. It would be reasonable to build a
-//! higher level bindgen-like tool on top of CXX which consumes a C++ header
-//! and/or Rust module (and/or IDL like Thrift) as source of truth and generates
-//! the cxx::bridge, eliminating the repetition while leveraging the static
-//! analysis safety guarantees of CXX.
-//!
-//! But note in other ways CXX is higher level than the bindgens, with rich
-//! support for common standard library types. Frequently with bindgen when we
-//! are dealing with an idiomatic C++ API we would end up manually wrapping that
-//! API in C-style raw pointer functions, applying bindgen to get unsafe raw
-//! pointer Rust functions, and replicating the API again to expose those
-//! idiomatically in Rust. That's a much worse form of repetition because it is
-//! unsafe all the way through.
-//!
-//! By using a CXX bridge as the shared understanding between the languages,
-//! rather than `extern "C"` C-style signatures as the shared understanding,
-//! common FFI use cases become expressible using 100% safe code.
-//!
-//! It would also be reasonable to mix and match, using CXX bridge for the 95%
-//! of your FFI that is straightforward and doing the remaining few oddball
-//! signatures the old fashioned way with bindgen and cbindgen, if for some
-//! reason CXX's static restrictions get in the way. Please file an issue if you
-//! end up taking this approach so that we know what ways it would be worthwhile
-//! to make the tool more expressive.
-//!
-//! <br>
-//!
-//! # Cargo-based setup
-//!
-//! For builds that are orchestrated by Cargo, you will use a build script that
-//! runs CXX's C++ code generator and compiles the resulting C++ code along with
-//! any other C++ code for your crate.
-//!
-//! The canonical build script is as follows. The indicated line returns a
-//! [`cc::Build`] instance (from the usual widely used `cc` crate) on which you
-//! can set up any additional source files and compiler flags as normal.
-//!
-//! [`cc::Build`]: https://docs.rs/cc/1.0/cc/struct.Build.html
-//!
-//! ```toml
-//! # Cargo.toml
-//!
-//! [build-dependencies]
-//! cxx-build = "1.0"
-//! ```
-//!
-//! ```no_run
-//! // build.rs
-//!
-//! fn main() {
-//!     cxx_build::bridge("src/main.rs")  // returns a cc::Build
-//!         .file("src/demo.cc")
-//!         .flag_if_supported("-std=c++11")
-//!         .compile("cxxbridge-demo");
-//!
-//!     println!("cargo:rerun-if-changed=src/main.rs");
-//!     println!("cargo:rerun-if-changed=src/demo.cc");
-//!     println!("cargo:rerun-if-changed=include/demo.h");
-//! }
-//! ```
-//!
-//! <br><br>
-//!
-//! # Non-Cargo setup
-//!
-//! For use in non-Cargo builds like Bazel or Buck, CXX provides an alternate
-//! way of invoking the C++ code generator as a standalone command line tool.
-//! The tool is packaged as the `cxxbridge-cmd` crate on crates.io or can be
-//! built from the *gen/cmd* directory of <https://github.com/dtolnay/cxx>.
-//!
-//! ```bash
-//! $ cargo install cxxbridge-cmd
-//!
-//! $ cxxbridge src/main.rs --header > path/to/mybridge.h
-//! $ cxxbridge src/main.rs > path/to/mybridge.cc
-//! ```
-//!
-//! <br>
-//!
-//! # Safety
-//!
-//! Be aware that the design of this library is intentionally restrictive and
-//! opinionated! It isn't a goal to be powerful enough to handle arbitrary
-//! signatures in either language. Instead this project is about carving out a
-//! reasonably expressive set of functionality about which we can make useful
-//! safety guarantees today and maybe extend over time. You may find that it
-//! takes some practice to use CXX bridge effectively as it won't work in all
-//! the ways that you are used to.
-//!
-//! Some of the considerations that go into ensuring safety are:
-//!
-//! - By design, our paired code generators work together to control both sides
-//!   of the FFI boundary. Ordinarily in Rust writing your own `extern "C"`
-//!   blocks is unsafe because the Rust compiler has no way to know whether the
-//!   signatures you've written actually match the signatures implemented in the
-//!   other language. With CXX we achieve that visibility and know what's on the
-//!   other side.
-//!
-//! - Our static analysis detects and prevents passing types by value that
-//!   shouldn't be passed by value from C++ to Rust, for example because they
-//!   may contain internal pointers that would be screwed up by Rust's move
-//!   behavior.
-//!
-//! - To many people's surprise, it is possible to have a struct in Rust and a
-//!   struct in C++ with exactly the same layout / fields / alignment /
-//!   everything, and still not the same ABI when passed by value. This is a
-//!   longstanding bindgen bug that leads to segfaults in absolutely
-//!   correct-looking code ([rust-lang/rust-bindgen#778]). CXX knows about this
-//!   and can insert the necessary zero-cost workaround transparently where
-//!   needed, so go ahead and pass your structs by value without worries. This
-//!   is made possible by owning both sides of the boundary rather than just
-//!   one.
-//!
-//! - Template instantiations: for example in order to expose a UniquePtr\<T\>
-//!   type in Rust backed by a real C++ unique\_ptr, we have a way of using a
-//!   Rust trait to connect the behavior back to the template instantiations
-//!   performed by the other language.
-//!
-//! [rust-lang/rust-bindgen#778]: https://github.com/rust-lang/rust-bindgen/issues/778
-//!
-//! <br>
-//!
-//! # Builtin types
-//!
-//! In addition to all the primitive types (i32 &lt;=&gt; int32_t), the
-//! following common types may be used in the fields of shared structs and the
-//! arguments and returns of functions.
-//!
-//! <table>
-//! <tr><th>name in Rust</th><th>name in C++</th><th>restrictions</th></tr>
-//! <tr><td>String</td><td>rust::String</td><td></td></tr>
-//! <tr><td>&amp;str</td><td>rust::Str</td><td></td></tr>
-//! <tr><td>&amp;[T]</td><td>rust::Slice&lt;const T&gt;</td><td><sup><i>cannot hold opaque C++ type</i></sup></td></tr>
-//! <tr><td>&amp;mut [T]</td><td>rust::Slice&lt;T&gt;</td><td><sup><i>cannot hold opaque C++ type</i></sup></td></tr>
-//! <tr><td><a href="struct.CxxString.html">CxxString</a></td><td>std::string</td><td><sup><i>cannot be passed by value</i></sup></td></tr>
-//! <tr><td>Box&lt;T&gt;</td><td>rust::Box&lt;T&gt;</td><td><sup><i>cannot hold opaque C++ type</i></sup></td></tr>
-//! <tr><td><a href="struct.UniquePtr.html">UniquePtr&lt;T&gt;</a></td><td>std::unique_ptr&lt;T&gt;</td><td><sup><i>cannot hold opaque Rust type</i></sup></td></tr>
-//! <tr><td><a href="struct.SharedPtr.html">SharedPtr&lt;T&gt;</a></td><td>std::shared_ptr&lt;T&gt;</td><td><sup><i>cannot hold opaque Rust type</i></sup></td></tr>
-//! <tr><td>[T; N]</td><td>std::array&lt;T, N&gt;</td><td><sup><i>cannot hold opaque C++ type</i></sup></td></tr>
-//! <tr><td>Vec&lt;T&gt;</td><td>rust::Vec&lt;T&gt;</td><td><sup><i>cannot hold opaque C++ type</i></sup></td></tr>
-//! <tr><td><a href="struct.CxxVector.html">CxxVector&lt;T&gt;</a></td><td>std::vector&lt;T&gt;</td><td><sup><i>cannot be passed by value, cannot hold opaque Rust type</i></sup></td></tr>
-//! <tr><td>*mut T, *const T</td><td>T*, const T*</td><td><sup><i>fn with a raw pointer argument must be declared unsafe to call</i></sup></td></tr>
-//! <tr><td>fn(T, U) -&gt; V</td><td>rust::Fn&lt;V(T, U)&gt;</td><td><sup><i>only passing from Rust to C++ is implemented so far</i></sup></td></tr>
-//! <tr><td>Result&lt;T&gt;</td><td>throw/catch</td><td><sup><i>allowed as return type only</i></sup></td></tr>
-//! </table>
-//!
-//! The C++ API of the `rust` namespace is defined by the *include/cxx.h* file
-//! in <https://github.com/dtolnay/cxx>. You will need to include this header in
-//! your C++ code when working with those types.
-//!
-//! The following types are intended to be supported "soon" but are just not
-//! implemented yet. I don't expect any of these to be hard to make work but
-//! it's a matter of designing a nice API for each in its non-native language.
-//!
-//! <table>
-//! <tr><th>name in Rust</th><th>name in C++</th></tr>
-//! <tr><td>BTreeMap&lt;K, V&gt;</td><td><sup><i>tbd</i></sup></td></tr>
-//! <tr><td>HashMap&lt;K, V&gt;</td><td><sup><i>tbd</i></sup></td></tr>
-//! <tr><td>Arc&lt;T&gt;</td><td><sup><i>tbd</i></sup></td></tr>
-//! <tr><td>Option&lt;T&gt;</td><td><sup><i>tbd</i></sup></td></tr>
-//! <tr><td><sup><i>tbd</i></sup></td><td>std::map&lt;K, V&gt;</td></tr>
-//! <tr><td><sup><i>tbd</i></sup></td><td>std::unordered_map&lt;K, V&gt;</td></tr>
-//! </table>
 #![no_std]
 #![doc(html_root_url = "https://docs.rs/cxx/1.0.69")]
 #![deny(improper_ctypes, improper_ctypes_definitions, missing_docs)]
@@ -430,8 +66,6 @@ mod c_char {
     }
 }
 mod cxx_vector {
-    //! Less used details of `CxxVector` are exposed in this module. `CxxVector`
-    //! itself is exposed at the crate root.
     use crate::extern_type::ExternType;
     use crate::kind::Trivial;
     use crate::string::CxxString;
@@ -442,14 +76,6 @@ mod cxx_vector {
     use core::mem::{self, ManuallyDrop, MaybeUninit};
     use core::pin::Pin;
     use core::slice;
-    /// Binding to C++ `std::vector<T, std::allocator<T>>`.
-    ///
-    /// # Invariants
-    ///
-    /// As an invariant of this API and the static analysis of the cxx::bridge
-    /// macro, in Rust code we can never obtain a `CxxVector` by value. Instead in
-    /// Rust code we will only ever look at a vector behind a reference or smart
-    /// pointer, as in `&CxxVector<T>` or `UniquePtr<CxxVector<T>>`.
     #[repr(C, packed)]
     pub struct CxxVector<T> {
         _void: [c_void; 0],
@@ -460,24 +86,12 @@ mod cxx_vector {
     where
         T: VectorElement,
     {
-        /// Returns the number of elements in the vector.
-        ///
-        /// Matches the behavior of C++ [std::vector\<T\>::size][size].
-        ///
-        /// [size]: https://en.cppreference.com/w/cpp/container/vector/size
         pub fn len(&self) -> usize {
             T::__vector_size(self)
         }
-        /// Returns true if the vector contains no elements.
-        ///
-        /// Matches the behavior of C++ [std::vector\<T\>::empty][empty].
-        ///
-        /// [empty]: https://en.cppreference.com/w/cpp/container/vector/empty
         pub fn is_empty(&self) -> bool {
             self.len() == 0
         }
-        /// Returns a reference to an element at the given position, or `None` if
-        /// out of bounds.
         pub fn get(&self, pos: usize) -> Option<&T> {
             if pos < self.len() {
                 Some(unsafe { self.get_unchecked(pos) })
@@ -485,8 +99,6 @@ mod cxx_vector {
                 None
             }
         }
-        /// Returns a pinned mutable reference to an element at the given position,
-        /// or `None` if out of bounds.
         pub fn index_mut(self: Pin<&mut Self>, pos: usize) -> Option<Pin<&mut T>> {
             if pos < self.len() {
                 Some(unsafe { self.index_unchecked_mut(pos) })
@@ -494,16 +106,6 @@ mod cxx_vector {
                 None
             }
         }
-        /// Returns a reference to an element without doing bounds checking.
-        ///
-        /// This is generally not recommended, use with caution! Calling this method
-        /// with an out-of-bounds index is undefined behavior even if the resulting
-        /// reference is not used.
-        ///
-        /// Matches the behavior of C++
-        /// [std::vector\<T\>::operator\[\] const][operator_at].
-        ///
-        /// [operator_at]: https://en.cppreference.com/w/cpp/container/vector/operator_at
         pub unsafe fn get_unchecked(&self, pos: usize) -> &T {
             let this = self as *const CxxVector<T> as *mut CxxVector<T>;
             unsafe {
@@ -511,17 +113,6 @@ mod cxx_vector {
                 &*ptr
             }
         }
-        /// Returns a pinned mutable reference to an element without doing bounds
-        /// checking.
-        ///
-        /// This is generally not recommended, use with caution! Calling this method
-        /// with an out-of-bounds index is undefined behavior even if the resulting
-        /// reference is not used.
-        ///
-        /// Matches the behavior of C++
-        /// [std::vector\<T\>::operator\[\]][operator_at].
-        ///
-        /// [operator_at]: https://en.cppreference.com/w/cpp/container/vector/operator_at
         pub unsafe fn index_unchecked_mut(
             self: Pin<&mut Self>,
             pos: usize,
@@ -531,7 +122,6 @@ mod cxx_vector {
                 Pin::new_unchecked(&mut *ptr)
             }
         }
-        /// Returns a slice to the underlying contiguous array of elements.
         pub fn as_slice(&self) -> &[T]
         where
             T: ExternType<Kind = Trivial>,
@@ -545,8 +135,6 @@ mod cxx_vector {
                 unsafe { slice::from_raw_parts(ptr, len) }
             }
         }
-        /// Returns a slice to the underlying contiguous array of elements by
-        /// mutable reference.
         pub fn as_mut_slice(self: Pin<&mut Self>) -> &mut [T]
         where
             T: ExternType<Kind = Trivial>,
@@ -559,19 +147,12 @@ mod cxx_vector {
                 unsafe { slice::from_raw_parts_mut(ptr, len) }
             }
         }
-        /// Returns an iterator over elements of type `&T`.
         pub fn iter(&self) -> Iter<T> {
             Iter { v: self, index: 0 }
         }
-        /// Returns an iterator over elements of type `Pin<&mut T>`.
         pub fn iter_mut(self: Pin<&mut Self>) -> IterMut<T> {
             IterMut { v: self, index: 0 }
         }
-        /// Appends an element to the back of the vector.
-        ///
-        /// Matches the behavior of C++ [std::vector\<T\>::push_back][push_back].
-        ///
-        /// [push_back]: https://en.cppreference.com/w/cpp/container/vector/push_back
         pub fn push(self: Pin<&mut Self>, value: T)
         where
             T: ExternType<Kind = Trivial>,
@@ -581,8 +162,6 @@ mod cxx_vector {
                 T::__push_back(self, &mut value);
             }
         }
-        /// Removes the last element from a vector and returns it, or `None` if the
-        /// vector is empty.
         pub fn pop(self: Pin<&mut Self>) -> Option<T>
         where
             T: ExternType<Kind = Trivial>,
@@ -598,9 +177,6 @@ mod cxx_vector {
             }
         }
     }
-    /// Iterator over elements of a `CxxVector` by shared reference.
-    ///
-    /// The iterator element type is `&'a T`.
     pub struct Iter<'a, T> {
         v: &'a CxxVector<T>,
         index: usize,
@@ -642,9 +218,6 @@ mod cxx_vector {
     where
         T: VectorElement,
     {}
-    /// Iterator over elements of a `CxxVector` by pinned mutable reference.
-    ///
-    /// The iterator element type is `Pin<&'a mut T>`.
     pub struct IterMut<'a, T> {
         v: Pin<&'a mut CxxVector<T>>,
         index: usize,
@@ -697,34 +270,6 @@ mod cxx_vector {
             formatter.debug_list().entries(self).finish()
         }
     }
-    /// Trait bound for types which may be used as the `T` inside of a
-    /// `CxxVector<T>` in generic code.
-    ///
-    /// This trait has no publicly callable or implementable methods. Implementing
-    /// it outside of the CXX codebase is not supported.
-    ///
-    /// # Example
-    ///
-    /// A bound `T: VectorElement` may be necessary when manipulating [`CxxVector`]
-    /// in generic code.
-    ///
-    /// ```
-    /// use cxx::vector::{CxxVector, VectorElement};
-    /// use std::fmt::Display;
-    ///
-    /// pub fn take_generic_vector<T>(vector: &CxxVector<T>)
-    /// where
-    ///     T: VectorElement + Display,
-    /// {
-    ///     println!("the vector elements are:");
-    ///     for element in vector {
-    ///         println!("  • {}", element);
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// Writing the same generic function without a `VectorElement` trait bound
-    /// would not compile.
     pub unsafe trait VectorElement: Sized {
         #[doc(hidden)]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
@@ -1934,7 +1479,6 @@ mod exception {
     #![cfg(feature = "alloc")]
     use alloc::boxed::Box;
     use core::fmt::{self, Display};
-    /// Exception thrown from an `extern "C++"` function.
     pub struct Exception {
         pub(crate) what: Box<str>,
     }
@@ -1977,165 +1521,13 @@ mod extern_type {
     use crate::CxxString;
     #[cfg(feature = "alloc")]
     use alloc::string::String;
-    /// A type for which the layout is determined by its C++ definition.
-    ///
-    /// This trait serves the following two related purposes.
-    ///
-    /// <br>
-    ///
-    /// ## Safely unifying occurrences of the same extern type
-    ///
-    /// `ExternType` makes it possible for CXX to safely share a consistent Rust
-    /// type across multiple #\[cxx::bridge\] invocations that refer to a common
-    /// extern C++ type.
-    ///
-    /// In the following snippet, two #\[cxx::bridge\] invocations in different
-    /// files (possibly different crates) both contain function signatures involving
-    /// the same C++ type `example::Demo`. If both were written just containing
-    /// `type Demo;`, then both macro expansions would produce their own separate
-    /// Rust type called `Demo` and thus the compiler wouldn't allow us to take the
-    /// `Demo` returned by `file1::ffi::create_demo` and pass it as the `Demo`
-    /// argument accepted by `file2::ffi::take_ref_demo`. Instead, one of the two
-    /// `Demo`s has been defined as an extern type alias of the other, making them
-    /// the same type in Rust. The CXX code generator will use an automatically
-    /// generated `ExternType` impl emitted in file1 to statically verify that in
-    /// file2 `crate::file1::ffi::Demo` really does refer to the C++ type
-    /// `example::Demo` as expected in file2.
-    ///
-    /// ```no_run
-    /// // file1.rs
-    /// # mod file1 {
-    /// #[cxx::bridge(namespace = "example")]
-    /// pub mod ffi {
-    ///     unsafe extern "C++" {
-    ///         type Demo;
-    ///
-    ///         fn create_demo() -> UniquePtr<Demo>;
-    ///     }
-    /// }
-    /// # }
-    ///
-    /// // file2.rs
-    /// #[cxx::bridge(namespace = "example")]
-    /// pub mod ffi {
-    ///     unsafe extern "C++" {
-    ///         type Demo = crate::file1::ffi::Demo;
-    ///
-    ///         fn take_ref_demo(demo: &Demo);
-    ///     }
-    /// }
-    /// #
-    /// # fn main() {}
-    /// ```
-    ///
-    /// <br><br>
-    ///
-    /// ## Integrating with bindgen-generated types
-    ///
-    /// Handwritten `ExternType` impls make it possible to plug in a data structure
-    /// emitted by bindgen as the definition of a C++ type emitted by CXX.
-    ///
-    /// By writing the unsafe `ExternType` impl, the programmer asserts that the C++
-    /// namespace and type name given in the type id refers to a C++ type that is
-    /// equivalent to Rust type that is the `Self` type of the impl.
-    ///
-    /// ```no_run
-    /// # const _: &str = stringify! {
-    /// mod folly_sys;  // the bindgen-generated bindings
-    /// # };
-    /// # mod folly_sys {
-    /// #     #[repr(transparent)]
-    /// #     pub struct StringPiece([usize; 2]);
-    /// # }
-    ///
-    /// use cxx::{type_id, ExternType};
-    ///
-    /// unsafe impl ExternType for folly_sys::StringPiece {
-    ///     type Id = type_id!("folly::StringPiece");
-    ///     type Kind = cxx::kind::Opaque;
-    /// }
-    ///
-    /// #[cxx::bridge(namespace = "folly")]
-    /// pub mod ffi {
-    ///     unsafe extern "C++" {
-    ///         include!("rust_cxx_bindings.h");
-    ///
-    ///         type StringPiece = crate::folly_sys::StringPiece;
-    ///
-    ///         fn print_string_piece(s: &StringPiece);
-    ///     }
-    /// }
-    ///
-    /// // Now if we construct a StringPiece or obtain one through one
-    /// // of the bindgen-generated signatures, we are able to pass it
-    /// // along to ffi::print_string_piece.
-    /// #
-    /// # fn main() {}
-    /// ```
     pub unsafe trait ExternType {
-        /// A type-level representation of the type's C++ namespace and type name.
-        ///
-        /// This will always be defined using `type_id!` in the following form:
-        ///
-        /// ```
-        /// # struct TypeName;
-        /// # unsafe impl cxx::ExternType for TypeName {
-        /// type Id = cxx::type_id!("name::space::of::TypeName");
-        /// #     type Kind = cxx::kind::Opaque;
-        /// # }
-        /// ```
         type Id;
-        /// Either [`cxx::kind::Opaque`] or [`cxx::kind::Trivial`].
-        ///
-        /// [`cxx::kind::Opaque`]: kind::Opaque
-        /// [`cxx::kind::Trivial`]: kind::Trivial
-        ///
-        /// A C++ type is only okay to hold and pass around by value in Rust if its
-        /// [move constructor is trivial] and it has no destructor. In CXX, these
-        /// are called Trivial extern C++ types, while types with nontrivial move
-        /// behavior or a destructor must be considered Opaque and handled by Rust
-        /// only behind an indirection, such as a reference or UniquePtr.
-        ///
-        /// [move constructor is trivial]: https://en.cppreference.com/w/cpp/types/is_move_constructible
-        ///
-        /// If you believe your C++ type reflected by this ExternType impl is indeed
-        /// fine to hold by value and move in Rust, you can specify:
-        ///
-        /// ```
-        /// # struct TypeName;
-        /// # unsafe impl cxx::ExternType for TypeName {
-        /// #     type Id = cxx::type_id!("name::space::of::TypeName");
-        /// type Kind = cxx::kind::Trivial;
-        /// # }
-        /// ```
-        ///
-        /// which will enable you to pass it into C++ functions by value, return it
-        /// by value, and include it in `struct`s that you have declared to
-        /// `cxx::bridge`. Your claim about the triviality of the C++ type will be
-        /// checked by a `static_assert` in the generated C++ side of the binding.
         type Kind: Kind;
     }
-    /// Marker types identifying Rust's knowledge about an extern C++ type.
-    ///
-    /// These markers are used in the [`Kind`][ExternType::Kind] associated type in
-    /// impls of the `ExternType` trait. Refer to the documentation of `Kind` for an
-    /// overview of their purpose.
     pub mod kind {
         use super::private;
-        /// An opaque type which cannot be passed or held by value within Rust.
-        ///
-        /// Rust's move semantics are such that every move is equivalent to a
-        /// memcpy. This is incompatible in general with C++'s constructor-based
-        /// move semantics, so a C++ type which has a destructor or nontrivial move
-        /// constructor must never exist by value in Rust. In CXX, such types are
-        /// called opaque C++ types.
-        ///
-        /// When passed across an FFI boundary, an opaque C++ type must be behind an
-        /// indirection such as a reference or UniquePtr.
         pub enum Opaque {}
-        /// A type with trivial move constructor and no destructor, which can
-        /// therefore be owned and moved around in Rust code without requiring
-        /// indirection.
         pub enum Trivial {}
         #[allow(missing_docs)]
         pub trait Kind: private::Sealed {}
@@ -2499,9 +1891,6 @@ mod lossy {
     }
 }
 pub mod memory {
-    //! Less used details of `UniquePtr` and `SharedPtr`.
-    //!
-    //! The pointer types themselves are exposed at the crate root.
     pub use crate::shared_ptr::SharedPtrTarget;
     pub use crate::unique_ptr::UniquePtrTarget;
     pub use crate::weak_ptr::WeakPtrTarget;
@@ -2833,7 +2222,6 @@ mod shared_ptr {
     use core::marker::PhantomData;
     use core::mem::MaybeUninit;
     use core::ops::Deref;
-    /// Binding to C++ `std::shared_ptr<T>`.
     #[repr(C)]
     pub struct SharedPtr<T>
     where
@@ -2846,9 +2234,6 @@ mod shared_ptr {
     where
         T: SharedPtrTarget,
     {
-        /// Makes a new SharedPtr wrapping a null pointer.
-        ///
-        /// Matches the behavior of default-constructing a std::shared\_ptr.
         pub fn null() -> Self {
             let mut shared_ptr = MaybeUninit::<SharedPtr<T>>::uninit();
             let new = shared_ptr.as_mut_ptr().cast();
@@ -2857,7 +2242,6 @@ mod shared_ptr {
                 shared_ptr.assume_init()
             }
         }
-        /// Allocates memory on the heap and makes a SharedPtr owner for it.
         pub fn new(value: T) -> Self
         where
             T: ExternType<Kind = Trivial>,
@@ -2869,25 +2253,15 @@ mod shared_ptr {
                 shared_ptr.assume_init()
             }
         }
-        /// Checks whether the SharedPtr does not own an object.
-        ///
-        /// This is the opposite of [std::shared_ptr\<T\>::operator bool](https://en.cppreference.com/w/cpp/memory/shared_ptr/operator_bool).
         pub fn is_null(&self) -> bool {
             let this = self as *const Self as *const c_void;
             let ptr = unsafe { T::__get(this) };
             ptr.is_null()
         }
-        /// Returns a reference to the object owned by this SharedPtr if any,
-        /// otherwise None.
         pub fn as_ref(&self) -> Option<&T> {
             let this = self as *const Self as *const c_void;
             unsafe { T::__get(this).as_ref() }
         }
-        /// Constructs new WeakPtr as a non-owning reference to the object managed
-        /// by `self`. If `self` manages no object, the WeakPtr manages no object
-        /// too.
-        ///
-        /// Matches the behavior of [std::weak_ptr\<T\>::weak_ptr(const std::shared_ptr\<T\> \&)](https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr).
         pub fn downgrade(self: &SharedPtr<T>) -> WeakPtr<T>
         where
             T: WeakPtrTarget,
@@ -2977,31 +2351,6 @@ mod shared_ptr {
             }
         }
     }
-    /// Trait bound for types which may be used as the `T` inside of a
-    /// `SharedPtr<T>` in generic code.
-    ///
-    /// This trait has no publicly callable or implementable methods. Implementing
-    /// it outside of the CXX codebase is not supported.
-    ///
-    /// # Example
-    ///
-    /// A bound `T: SharedPtrTarget` may be necessary when manipulating
-    /// [`SharedPtr`] in generic code.
-    ///
-    /// ```
-    /// use cxx::memory::{SharedPtr, SharedPtrTarget};
-    /// use std::fmt::Display;
-    ///
-    /// pub fn take_generic_ptr<T>(ptr: SharedPtr<T>)
-    /// where
-    ///     T: SharedPtrTarget + Display,
-    /// {
-    ///     println!("the shared_ptr points to: {}", *ptr);
-    /// }
-    /// ```
-    ///
-    /// Writing the same generic function without a `SharedPtrTarget` trait bound
-    /// would not compile.
     pub unsafe trait SharedPtrTarget {
         #[doc(hidden)]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
@@ -3616,112 +2965,39 @@ mod string {
         #[link_name = "cxxbridge1$cxx_string$push"]
         fn string_push(this: Pin<&mut CxxString>, ptr: *const u8, len: usize);
     }
-    /// Binding to C++ `std::string`.
-    ///
-    /// # Invariants
-    ///
-    /// As an invariant of this API and the static analysis of the cxx::bridge
-    /// macro, in Rust code we can never obtain a `CxxString` by value. C++'s string
-    /// requires a move constructor and may hold internal pointers, which is not
-    /// compatible with Rust's move behavior. Instead in Rust code we will only ever
-    /// look at a CxxString through a reference or smart pointer, as in `&CxxString`
-    /// or `UniquePtr<CxxString>`.
     #[repr(C)]
     pub struct CxxString {
         _private: [u8; 0],
         _pinned: PhantomData<PhantomPinned>,
     }
     impl CxxString {
-        /// `CxxString` is not constructible via `new`. Instead, use the
-        /// [`let_cxx_string!`] macro.
         pub fn new<T: Private>() -> Self {
             ::core::panicking::panic("internal error: entered unreachable code")
         }
-        /// Returns the length of the string in bytes.
-        ///
-        /// Matches the behavior of C++ [std::string::size][size].
-        ///
-        /// [size]: https://en.cppreference.com/w/cpp/string/basic_string/size
         pub fn len(&self) -> usize {
             unsafe { string_length(self) }
         }
-        /// Returns true if `self` has a length of zero bytes.
-        ///
-        /// Matches the behavior of C++ [std::string::empty][empty].
-        ///
-        /// [empty]: https://en.cppreference.com/w/cpp/string/basic_string/empty
         pub fn is_empty(&self) -> bool {
             self.len() == 0
         }
-        /// Returns a byte slice of this string's contents.
         pub fn as_bytes(&self) -> &[u8] {
             let data = self.as_ptr();
             let len = self.len();
             unsafe { slice::from_raw_parts(data, len) }
         }
-        /// Produces a pointer to the first character of the string.
-        ///
-        /// Matches the behavior of C++ [std::string::data][data].
-        ///
-        /// Note that the return type may look like `const char *` but is not a
-        /// `const char *` in the typical C sense, as C++ strings may contain
-        /// internal null bytes. As such, the returned pointer only makes sense as a
-        /// string in combination with the length returned by [`len()`][len].
-        ///
-        /// [data]: https://en.cppreference.com/w/cpp/string/basic_string/data
-        /// [len]: #method.len
         pub fn as_ptr(&self) -> *const u8 {
             unsafe { string_data(self) }
         }
-        /// Validates that the C++ string contains UTF-8 data and produces a view of
-        /// it as a Rust &amp;str, otherwise an error.
         pub fn to_str(&self) -> Result<&str, Utf8Error> {
             str::from_utf8(self.as_bytes())
         }
-        /// If the contents of the C++ string are valid UTF-8, this function returns
-        /// a view as a Cow::Borrowed &amp;str. Otherwise replaces any invalid UTF-8
-        /// sequences with the U+FFFD [replacement character] and returns a
-        /// Cow::Owned String.
-        ///
-        /// [replacement character]: https://doc.rust-lang.org/std/char/constant.REPLACEMENT_CHARACTER.html
         #[cfg(feature = "alloc")]
         pub fn to_string_lossy(&self) -> Cow<str> {
             String::from_utf8_lossy(self.as_bytes())
         }
-        /// Removes all characters from the string.
-        ///
-        /// Matches the behavior of C++ [std::string::clear][clear].
-        ///
-        /// Note: **unlike** the guarantee of Rust's `std::string::String::clear`,
-        /// the C++ standard does not require that capacity is unchanged by this
-        /// operation. In practice existing implementations do not change the
-        /// capacity but all pointers, references, and iterators into the string
-        /// contents are nevertheless invalidated.
-        ///
-        /// [clear]: https://en.cppreference.com/w/cpp/string/basic_string/clear
         pub fn clear(self: Pin<&mut Self>) {
             unsafe { string_clear(self) }
         }
-        /// Ensures that this string's capacity is at least `additional` bytes
-        /// larger than its length.
-        ///
-        /// The capacity may be increased by more than `additional` bytes if it
-        /// chooses, to amortize the cost of frequent reallocations.
-        ///
-        /// **The meaning of the argument is not the same as
-        /// [std::string::reserve][reserve] in C++.** The C++ standard library and
-        /// Rust standard library both have a `reserve` method on strings, but in
-        /// C++ code the argument always refers to total capacity, whereas in Rust
-        /// code it always refers to additional capacity. This API on `CxxString`
-        /// follows the Rust convention, the same way that for the length accessor
-        /// we use the Rust conventional `len()` naming and not C++ `size()` or
-        /// `length()`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the new capacity overflows usize.
-        ///
-        /// [reserve]: https://en.cppreference.com/w/cpp/string/basic_string/reserve
         pub fn reserve(self: Pin<&mut Self>, additional: usize) {
             let new_cap = self
                 .len()
@@ -3729,11 +3005,9 @@ mod string {
                 .expect("CxxString capacity overflow");
             unsafe { string_reserve_total(self, new_cap) }
         }
-        /// Appends a given string slice onto the end of this C++ string.
         pub fn push_str(self: Pin<&mut Self>, s: &str) {
             self.push_bytes(s.as_bytes());
         }
-        /// Appends arbitrary bytes onto the end of this C++ string.
         pub fn push_bytes(self: Pin<&mut Self>, bytes: &[u8]) {
             unsafe { string_push(self, bytes.as_ptr(), bytes.len()) }
         }
@@ -4744,7 +4018,6 @@ mod unique_ptr {
     use core::mem::{self, MaybeUninit};
     use core::ops::{Deref, DerefMut};
     use core::pin::Pin;
-    /// Binding to C++ `std::unique_ptr<T, std::default_delete<T>>`.
     #[repr(C)]
     pub struct UniquePtr<T>
     where
@@ -4757,16 +4030,12 @@ mod unique_ptr {
     where
         T: UniquePtrTarget,
     {
-        /// Makes a new UniquePtr wrapping a null pointer.
-        ///
-        /// Matches the behavior of default-constructing a std::unique\_ptr.
         pub fn null() -> Self {
             UniquePtr {
                 repr: T::__null(),
                 ty: PhantomData,
             }
         }
-        /// Allocates memory on the heap and makes a UniquePtr pointing to it.
         pub fn new(value: T) -> Self
         where
             T: ExternType<Kind = Trivial>,
@@ -4776,32 +4045,19 @@ mod unique_ptr {
                 ty: PhantomData,
             }
         }
-        /// Checks whether the UniquePtr does not own an object.
-        ///
-        /// This is the opposite of [std::unique_ptr\<T\>::operator bool](https://en.cppreference.com/w/cpp/memory/unique_ptr/operator_bool).
         pub fn is_null(&self) -> bool {
             let ptr = unsafe { T::__get(self.repr) };
             ptr.is_null()
         }
-        /// Returns a reference to the object owned by this UniquePtr if any,
-        /// otherwise None.
         pub fn as_ref(&self) -> Option<&T> {
             unsafe { T::__get(self.repr).as_ref() }
         }
-        /// Returns a mutable pinned reference to the object owned by this UniquePtr
-        /// if any, otherwise None.
         pub fn as_mut(&mut self) -> Option<Pin<&mut T>> {
             unsafe {
                 let mut_reference = (T::__get(self.repr) as *mut T).as_mut()?;
                 Some(Pin::new_unchecked(mut_reference))
             }
         }
-        /// Returns a mutable pinned reference to the object owned by this
-        /// UniquePtr.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the UniquePtr holds a null pointer.
         pub fn pin_mut(&mut self) -> Pin<&mut T> {
             match self.as_mut() {
                 Some(target) => target,
@@ -4819,22 +4075,11 @@ mod unique_ptr {
                 }
             }
         }
-        /// Consumes the UniquePtr, releasing its ownership of the heap-allocated T.
-        ///
-        /// Matches the behavior of [std::unique_ptr\<T\>::release](https://en.cppreference.com/w/cpp/memory/unique_ptr/release).
         pub fn into_raw(self) -> *mut T {
             let ptr = unsafe { T::__release(self.repr) };
             mem::forget(self);
             ptr
         }
-        /// Constructs a UniquePtr retaking ownership of a pointer previously
-        /// obtained from `into_raw`.
-        ///
-        /// # Safety
-        ///
-        /// This function is unsafe because improper use may lead to memory
-        /// problems. For example a double-free may occur if the function is called
-        /// twice on the same raw pointer.
         pub unsafe fn from_raw(raw: *mut T) -> Self {
             UniquePtr {
                 repr: unsafe { T::__raw(raw) },
@@ -4925,31 +4170,6 @@ mod unique_ptr {
             }
         }
     }
-    /// Trait bound for types which may be used as the `T` inside of a
-    /// `UniquePtr<T>` in generic code.
-    ///
-    /// This trait has no publicly callable or implementable methods. Implementing
-    /// it outside of the CXX codebase is not supported.
-    ///
-    /// # Example
-    ///
-    /// A bound `T: UniquePtrTarget` may be necessary when manipulating
-    /// [`UniquePtr`] in generic code.
-    ///
-    /// ```
-    /// use cxx::memory::{UniquePtr, UniquePtrTarget};
-    /// use std::fmt::Display;
-    ///
-    /// pub fn take_generic_ptr<T>(ptr: UniquePtr<T>)
-    /// where
-    ///     T: UniquePtrTarget + Display,
-    /// {
-    ///     println!("the unique_ptr points to: {}", *ptr);
-    /// }
-    /// ```
-    ///
-    /// Writing the same generic function without a `UniquePtrTarget` trait bound
-    /// would not compile.
     pub unsafe trait UniquePtrTarget {
         #[doc(hidden)]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
@@ -5082,9 +4302,6 @@ mod unwind {
     }
 }
 pub mod vector {
-    //! Less used details of `CxxVector`.
-    //!
-    //! `CxxVector` itself is exposed at the crate root.
     pub use crate::cxx_vector::{Iter, IterMut, VectorElement};
     #[doc(inline)]
     pub use crate::Vector;
@@ -5098,12 +4315,6 @@ mod weak_ptr {
     use core::fmt::{self, Debug};
     use core::marker::PhantomData;
     use core::mem::MaybeUninit;
-    /// Binding to C++ `std::weak_ptr<T>`.
-    ///
-    /// The typical way to construct a WeakPtr from Rust is by [downgrading] from a
-    /// SharedPtr.
-    ///
-    /// [downgrading]: crate::SharedPtr::downgrade
     #[repr(C)]
     pub struct WeakPtr<T>
     where
@@ -5116,9 +4327,6 @@ mod weak_ptr {
     where
         T: WeakPtrTarget,
     {
-        /// Makes a new WeakPtr wrapping a null pointer.
-        ///
-        /// Matches the behavior of default-constructing a std::weak\_ptr.
         pub fn null() -> Self {
             let mut weak_ptr = MaybeUninit::<WeakPtr<T>>::uninit();
             let new = weak_ptr.as_mut_ptr().cast();
@@ -5127,10 +4335,6 @@ mod weak_ptr {
                 weak_ptr.assume_init()
             }
         }
-        /// Upgrades a non-owning reference into an owning reference if possible,
-        /// otherwise to a null reference.
-        ///
-        /// Matches the behavior of [std::weak_ptr\<T\>::lock](https://en.cppreference.com/w/cpp/memory/weak_ptr/lock).
         pub fn upgrade(&self) -> SharedPtr<T>
         where
             T: SharedPtrTarget,
@@ -5183,11 +4387,6 @@ mod weak_ptr {
             Debug::fmt(&self.upgrade(), formatter)
         }
     }
-    /// Trait bound for types which may be used as the `T` inside of a `WeakPtr<T>`
-    /// in generic code.
-    ///
-    /// This trait has no publicly callable or implementable methods. Implementing
-    /// it outside of the CXX codebase is not supported.
     pub unsafe trait WeakPtrTarget {
         #[doc(hidden)]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
@@ -5772,17 +4971,7 @@ pub use crate::string::CxxString;
 pub use crate::unique_ptr::UniquePtr;
 pub use crate::weak_ptr::WeakPtr;
 pub use cxxbridge_macro::bridge;
-/// Synonym for `CxxString`.
-///
-/// To avoid confusion with Rust's standard library string you probably
-/// shouldn't import this type with `use`. Instead, write `cxx::String`, or
-/// import and use `CxxString`.
 pub type String = CxxString;
-/// Synonym for `CxxVector`.
-///
-/// To avoid confusion with Rust's standard library vector you probably
-/// shouldn't import this type with `use`. Instead, write `cxx::Vector<T>`, or
-/// import and use `CxxVector`.
 pub type Vector<T> = CxxVector<T>;
 #[doc(hidden)]
 pub mod private {

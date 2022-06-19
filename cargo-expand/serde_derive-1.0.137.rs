@@ -1,19 +1,5 @@
 #![feature(prelude_import)]
 #![no_std]
-//! This crate provides Serde's two derive macros.
-//!
-//! ```edition2018
-//! # use serde_derive::{Serialize, Deserialize};
-//! #
-//! #[derive(Serialize, Deserialize)]
-//! # struct S;
-//! #
-//! # fn main() {}
-//! ```
-//!
-//! Please refer to [https://serde.rs/derive.html] for how to set this up.
-//!
-//! [https://serde.rs/derive.html]: https://serde.rs/derive.html
 #![doc(html_root_url = "https://docs.rs/serde_derive/1.0.137")]
 #![allow(unknown_lints, bare_trait_objects)]
 #![allow(
@@ -66,34 +52,22 @@ extern crate proc_macro;
 extern crate proc_macro2;
 mod internals {
     pub mod ast {
-        //! A Serde ast, parsed from the Syn ast and ready to generate Rust code.
         use internals::attr;
         use internals::check;
         use internals::{Ctxt, Derive};
         use syn;
         use syn::punctuated::Punctuated;
-        /// A source data structure annotated with `#[derive(Serialize)]` and/or `#[derive(Deserialize)]`,
-        /// parsed into an internal representation.
         pub struct Container<'a> {
-            /// The struct or enum name (without generics).
             pub ident: syn::Ident,
-            /// Attributes on the structure, parsed for Serde.
             pub attrs: attr::Container,
-            /// The contents of the struct or enum.
             pub data: Data<'a>,
-            /// Any generics on the struct or enum.
             pub generics: &'a syn::Generics,
-            /// Original input.
             pub original: &'a syn::DeriveInput,
         }
-        /// The fields of a struct or enum.
-        ///
-        /// Analogous to `syn::Data`.
         pub enum Data<'a> {
             Enum(Vec<Variant<'a>>),
             Struct(Style, Vec<Field<'a>>),
         }
-        /// A variant of an enum.
         pub struct Variant<'a> {
             pub ident: syn::Ident,
             pub attrs: attr::Variant,
@@ -101,7 +75,6 @@ mod internals {
             pub fields: Vec<Field<'a>>,
             pub original: &'a syn::Variant,
         }
-        /// A field of a struct.
         pub struct Field<'a> {
             pub member: syn::Member,
             pub attrs: attr::Field,
@@ -109,13 +82,9 @@ mod internals {
             pub original: &'a syn::Field,
         }
         pub enum Style {
-            /// Named fields.
             Struct,
-            /// Many unnamed fields.
             Tuple,
-            /// One unnamed field.
             Newtype,
-            /// No fields.
             Unit,
         }
         #[automatically_derived]
@@ -130,7 +99,6 @@ mod internals {
             }
         }
         impl<'a> Container<'a> {
-            /// Convert the raw Syn ast into a parsed container object, collecting errors in `cx`.
             pub fn from_ast(
                 cx: &Ctxt,
                 item: &'a syn::DeriveInput,
@@ -454,11 +422,9 @@ mod internals {
                     deserialize_aliases,
                 }
             }
-            /// Return the container name for the container when serializing.
             pub fn serialize_name(&self) -> String {
                 self.serialize.clone()
             }
-            /// Return the container name for the container when deserializing.
             pub fn deserialize_name(&self) -> String {
                 self.deserialize.clone()
             }
@@ -475,7 +441,6 @@ mod internals {
             serialize: RenameRule,
             deserialize: RenameRule,
         }
-        /// Represents struct or enum attribute information.
         pub struct Container {
             name: Name,
             transparent: bool,
@@ -493,47 +458,17 @@ mod internals {
             has_flatten: bool,
             serde_path: Option<syn::Path>,
             is_packed: bool,
-            /// Error message generated when type can't be deserialized
             expecting: Option<String>,
         }
-        /// Styles of representing an enum.
         pub enum TagType {
-            /// The default.
-            ///
-            /// ```json
-            /// {"variant1": {"key1": "value1", "key2": "value2"}}
-            /// ```
             External,
-            /// `#[serde(tag = "type")]`
-            ///
-            /// ```json
-            /// {"type": "variant1", "key1": "value1", "key2": "value2"}
-            /// ```
             Internal { tag: String },
-            /// `#[serde(tag = "t", content = "c")]`
-            ///
-            /// ```json
-            /// {"t": "variant1", "c": {"key1": "value1", "key2": "value2"}}
-            /// ```
             Adjacent { tag: String, content: String },
-            /// `#[serde(untagged)]`
-            ///
-            /// ```json
-            /// {"key1": "value1", "key2": "value2"}
-            /// ```
             None,
         }
-        /// Whether this enum represents the fields of a struct or the variants of an
-        /// enum.
         pub enum Identifier {
-            /// It does not.
             No,
-            /// This enum represents the fields of a struct. All of the variants must be
-            /// unit variants, except possibly one which is annotated with
-            /// `#[serde(other)]` and is a newtype variant.
             Field,
-            /// This enum represents the variants of an enum. All of the variants must
-            /// be unit variants.
             Variant,
         }
         #[automatically_derived]
@@ -549,7 +484,6 @@ mod internals {
         }
         impl Identifier {}
         impl Container {
-            /// Extract out the `#[serde(...)]` attributes from an item.
             pub fn from_ast(cx: &Ctxt, item: &syn::DeriveInput) -> Self {
                 let mut ser_name = Attr::none(cx, RENAME);
                 let mut de_name = Attr::none(cx, RENAME);
@@ -949,8 +883,6 @@ mod internals {
                         Cow::Borrowed,
                     )
             }
-            /// Error message generated when type can't be deserialized.
-            /// If `None`, default message will be used
             pub fn expecting(&self) -> Option<&str> {
                 self.expecting.as_ref().map(String::as_ref)
             }
@@ -1116,7 +1048,6 @@ mod internals {
                 }
             }
         }
-        /// Represents variant attribute information
         pub struct Variant {
             name: Name,
             rename_all_rules: RenameAllRules,
@@ -1368,7 +1299,6 @@ mod internals {
                 self.deserialize_with.as_ref()
             }
         }
-        /// Represents field attribute information
         pub struct Field {
             name: Name,
             skip_serializing: bool,
@@ -1384,13 +1314,9 @@ mod internals {
             flatten: bool,
             transparent: bool,
         }
-        /// Represents the default to use for a field when deserializing.
         pub enum Default {
-            /// Field must always be specified because it does not have a default.
             None,
-            /// The default is given by `std::default::Default::default()`.
             Default,
-            /// The default is given by this function.
             Path(syn::ExprPath),
         }
         impl Default {
@@ -1402,7 +1328,6 @@ mod internals {
             }
         }
         impl Field {
-            /// Extract out the `#[serde(...)]` attributes from a struct field.
             pub fn from_ast(
                 cx: &Ctxt,
                 index: usize,
@@ -2238,11 +2163,6 @@ mod internals {
         use std::fmt::Display;
         use std::thread;
         use syn;
-        /// A type to collect errors together and format them.
-        ///
-        /// Dropping this object will cause a panic. It must be consumed using `check`.
-        ///
-        /// References can be shared since this type uses run-time exclusive mut checking.
         pub struct Ctxt {
             errors: RefCell<Option<Vec<syn::Error>>>,
         }
@@ -2257,17 +2177,11 @@ mod internals {
             }
         }
         impl Ctxt {
-            /// Create a new context object.
-            ///
-            /// This object contains no errors, but will still trigger a panic if it is not `check`ed.
             pub fn new() -> Self {
                 Ctxt {
                     errors: RefCell::new(Some(Vec::new())),
                 }
             }
-            /// Add an error to the context object with a tokenenizable object.
-            ///
-            /// The object is used for spanning in error messages.
             pub fn error_spanned_by<A: ToTokens, T: Display>(&self, obj: A, msg: T) {
                 self.errors
                     .borrow_mut()
@@ -2275,11 +2189,9 @@ mod internals {
                     .unwrap()
                     .push(syn::Error::new_spanned(obj.into_token_stream(), msg));
             }
-            /// Add one of Syn's parse errors.
             pub fn syn_error(&self, err: syn::Error) {
                 self.errors.borrow_mut().as_mut().unwrap().push(err);
             }
-            /// Consume this object, producing a formatted error string if there are errors.
             pub fn check(self) -> Result<(), Vec<syn::Error>> {
                 let errors = self.errors.borrow_mut().take().unwrap();
                 match errors.len() {
@@ -2570,34 +2482,19 @@ mod internals {
     }
     pub use self::receiver::replace_receiver;
     mod case {
-        //! Code to convert the Rust-styled field/variant (e.g. `my_field`, `MyType`) to the
-        //! case of the source (e.g. `my-field`, `MY_FIELD`).
         #[allow(deprecated, unused_imports)]
         use std::ascii::AsciiExt;
         use std::fmt::{self, Debug, Display};
         use self::RenameRule::*;
-        /// The different possible ways to change case of fields in a struct, or variants in an enum.
         pub enum RenameRule {
-            /// Don't apply a default rename rule.
             None,
-            /// Rename direct children to "lowercase" style.
             LowerCase,
-            /// Rename direct children to "UPPERCASE" style.
             UpperCase,
-            /// Rename direct children to "PascalCase" style, as typically used for
-            /// enum variants.
             PascalCase,
-            /// Rename direct children to "camelCase" style.
             CamelCase,
-            /// Rename direct children to "snake_case" style, as commonly used for
-            /// fields.
             SnakeCase,
-            /// Rename direct children to "SCREAMING_SNAKE_CASE" style, as commonly
-            /// used for constants.
             ScreamingSnakeCase,
-            /// Rename direct children to "kebab-case" style.
             KebabCase,
-            /// Rename direct children to "SCREAMING-KEBAB-CASE" style.
             ScreamingKebabCase,
         }
         #[automatically_derived]
@@ -2651,7 +2548,6 @@ mod internals {
                     unknown: rename_all_str,
                 })
             }
-            /// Apply a renaming rule to an enum variant, returning the version expected in the source.
             pub fn apply_to_variant(&self, variant: &str) -> String {
                 match *self {
                     None | PascalCase => variant.to_owned(),
@@ -2677,7 +2573,6 @@ mod internals {
                     }
                 }
             }
-            /// Apply a renaming rule to a struct field, returning the version expected in the source.
             pub fn apply_to_field(&self, field: &str) -> String {
                 match *self {
                     None | LowerCase | SnakeCase => field.to_owned(),
@@ -2732,8 +2627,6 @@ mod internals {
         use internals::attr::{Identifier, TagType};
         use internals::{ungroup, Ctxt, Derive};
         use syn::{Member, Type};
-        /// Cross-cutting checks that require looking at more than a single attrs
-        /// object. Simpler checks should happen when parsing and building the attrs.
         pub fn check(cx: &Ctxt, cont: &mut Container, derive: Derive) {
             check_getter(cx, cont);
             check_flatten(cx, cont);
@@ -2744,8 +2637,6 @@ mod internals {
             check_transparent(cx, cont, derive);
             check_from_and_try_from(cx, cont);
         }
-        /// Getters are only allowed inside structs (not enums) with the `remote`
-        /// attribute.
         fn check_getter(cx: &Ctxt, cont: &Container) {
             match cont.data {
                 Data::Enum(_) => {
@@ -2766,7 +2657,6 @@ mod internals {
                 }
             }
         }
-        /// Flattening has some restrictions we can test.
         fn check_flatten(cx: &Ctxt, cont: &Container) {
             match &cont.data {
                 Data::Enum(variants) => {
@@ -2803,12 +2693,6 @@ mod internals {
                 _ => {}
             }
         }
-        /// The `other` attribute must be used at most once and it must be the last
-        /// variant of an enum.
-        ///
-        /// Inside a `variant_identifier` all variants must be unit variants. Inside a
-        /// `field_identifier` all but possibly one variant must be unit variants. The
-        /// last variant may be a newtype variant which is an implicit "other" case.
         fn check_identifier(cx: &Ctxt, cont: &Container) {
             let variants = match &cont.data {
                 Data::Enum(variants) => variants,
@@ -2883,8 +2767,6 @@ mod internals {
                 }
             }
         }
-        /// Skip-(de)serializing attributes are not allowed on variants marked
-        /// (de)serialize_with.
         fn check_variant_skip_attrs(cx: &Ctxt, cont: &Container) {
             let variants = match &cont.data {
                 Data::Enum(variants) => variants,
@@ -3002,10 +2884,6 @@ mod internals {
                 }
             }
         }
-        /// The tag of an internally-tagged struct variant must not be
-        /// the same as either one of its fields, as this would result in
-        /// duplicate keys in the serialized output and/or ambiguity in
-        /// the to-be-deserialized input.
         fn check_internal_tag_field_name_conflict(cx: &Ctxt, cont: &Container) {
             let variants = match &cont.data {
                 Data::Enum(variants) => variants,
@@ -3053,8 +2931,6 @@ mod internals {
                 }
             }
         }
-        /// In the case of adjacently-tagged enums, the type and the
-        /// contents tag must differ, for the same reason.
         fn check_adjacent_tag_conflict(cx: &Ctxt, cont: &Container) {
             let (type_tag, content_tag) = match cont.attrs.tag() {
                 TagType::Adjacent { tag, content } => (tag, content),
@@ -3078,7 +2954,6 @@ mod internals {
                 );
             }
         }
-        /// Enums and unit structs cannot be transparent.
         fn check_transparent(cx: &Ctxt, cont: &mut Container, derive: Derive) {
             if !cont.attrs.transparent() {
                 return;
@@ -3688,14 +3563,9 @@ mod fragment {
     use quote::ToTokens;
     use syn::token;
     pub enum Fragment {
-        /// Tokens that can be used as an expression.
         Expr(TokenStream),
-        /// Tokens that can be used inside a block. The surrounding curly braces are
-        /// not part of these tokens.
         Block(TokenStream),
     }
-    /// Interpolate a fragment in place of an expression. This involves surrounding
-    /// Block fragments in curly braces.
     pub struct Expr(pub Fragment);
     impl ToTokens for Expr {
         fn to_tokens(&self, out: &mut TokenStream) {
@@ -3707,7 +3577,6 @@ mod fragment {
             }
         }
     }
-    /// Interpolate a fragment as the statements of a block.
     pub struct Stmts(pub Fragment);
     impl ToTokens for Stmts {
         fn to_tokens(&self, out: &mut TokenStream) {
@@ -3717,8 +3586,6 @@ mod fragment {
             }
         }
     }
-    /// Interpolate a fragment as the value part of a `match` expression. This
-    /// involves putting a comma after expressions and curly braces around blocks.
     pub struct Match(pub Fragment);
     impl ToTokens for Match {
         fn to_tokens(&self, out: &mut TokenStream) {
@@ -3971,21 +3838,11 @@ mod de {
         }
     }
     struct Parameters {
-        /// Name of the type the `derive` is on.
         local: syn::Ident,
-        /// Path to the type the impl is for. Either a single `Ident` for local
-        /// types or `some::remote::Ident` for remote types. Does not include
-        /// generic parameters.
         this: syn::Path,
-        /// Generics including any explicit and inferred bounds for the impl.
         generics: syn::Generics,
-        /// Lifetimes borrowed from the deserializer. These will become bounds on
-        /// the `'de` lifetime of the deserializer.
         borrowed: BorrowedLifetimes,
-        /// At least one field has a serde(getter) attribute, implying that the
-        /// remote type has a private field.
         has_getter: bool,
-        /// Type has a repr(packed) attribute.
         is_packed: bool,
     }
     impl Parameters {
@@ -4008,8 +3865,6 @@ mod de {
                 is_packed,
             }
         }
-        /// Type name to use in error messages and `&'static str` arguments to
-        /// various Deserializer methods.
         fn type_name(&self) -> String {
             self.this.segments.last().unwrap().ident.to_string()
         }
@@ -14512,8 +14367,6 @@ mod de {
             Span::call_site(),
         )
     }
-    /// This function wraps the expression in `#[serde(deserialize_with = "...")]`
-    /// in a trait to prevent it from accessing the internal `Deserialize` state.
     fn wrap_deserialize_with(
         params: &Parameters,
         value_ty: &TokenStream,
@@ -16214,18 +16067,10 @@ mod ser {
         }
     }
     struct Parameters {
-        /// Variable holding the value being serialized. Either `self` for local
-        /// types or `__self` for remote types.
         self_var: Ident,
-        /// Path to the type the impl is for. Either a single `Ident` for local
-        /// types or `some::remote::Ident` for remote types. Does not include
-        /// generic parameters.
         this: syn::Path,
-        /// Generics including any explicit and inferred bounds for the impl.
         generics: syn::Generics,
-        /// Type has a `serde(remote = "...")` attribute.
         is_remote: bool,
-        /// Type has a repr(packed) attribute.
         is_packed: bool,
     }
     impl Parameters {
@@ -16250,8 +16095,6 @@ mod ser {
                 is_packed,
             }
         }
-        /// Type name to use in error messages and `&'static str` arguments to
-        /// various Serializer methods.
         fn type_name(&self) -> String {
             self.this.segments.last().unwrap().ident.to_string()
         }

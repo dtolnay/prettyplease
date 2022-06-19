@@ -1,254 +1,4 @@
 #![feature(prelude_import)]
-//! [![github]](https://github.com/dtolnay/syn)&ensp;[![crates-io]](https://crates.io/crates/syn)&ensp;[![docs-rs]](crate)
-//!
-//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
-//! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
-//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
-//!
-//! <br>
-//!
-//! Syn is a parsing library for parsing a stream of Rust tokens into a syntax
-//! tree of Rust source code.
-//!
-//! Currently this library is geared toward use in Rust procedural macros, but
-//! contains some APIs that may be useful more generally.
-//!
-//! - **Data structures** — Syn provides a complete syntax tree that can
-//!   represent any valid Rust source code. The syntax tree is rooted at
-//!   [`syn::File`] which represents a full source file, but there are other
-//!   entry points that may be useful to procedural macros including
-//!   [`syn::Item`], [`syn::Expr`] and [`syn::Type`].
-//!
-//! - **Derives** — Of particular interest to derive macros is
-//!   [`syn::DeriveInput`] which is any of the three legal input items to a
-//!   derive macro. An example below shows using this type in a library that can
-//!   derive implementations of a user-defined trait.
-//!
-//! - **Parsing** — Parsing in Syn is built around [parser functions] with the
-//!   signature `fn(ParseStream) -> Result<T>`. Every syntax tree node defined
-//!   by Syn is individually parsable and may be used as a building block for
-//!   custom syntaxes, or you may dream up your own brand new syntax without
-//!   involving any of our syntax tree types.
-//!
-//! - **Location information** — Every token parsed by Syn is associated with a
-//!   `Span` that tracks line and column information back to the source of that
-//!   token. These spans allow a procedural macro to display detailed error
-//!   messages pointing to all the right places in the user's code. There is an
-//!   example of this below.
-//!
-//! - **Feature flags** — Functionality is aggressively feature gated so your
-//!   procedural macros enable only what they need, and do not pay in compile
-//!   time for all the rest.
-//!
-//! [`syn::File`]: File
-//! [`syn::Item`]: Item
-//! [`syn::Expr`]: Expr
-//! [`syn::Type`]: Type
-//! [`syn::DeriveInput`]: DeriveInput
-//! [parser functions]: mod@parse
-//!
-//! <br>
-//!
-//! # Example of a derive macro
-//!
-//! The canonical derive macro using Syn looks like this. We write an ordinary
-//! Rust function tagged with a `proc_macro_derive` attribute and the name of
-//! the trait we are deriving. Any time that derive appears in the user's code,
-//! the Rust compiler passes their data structure as tokens into our macro. We
-//! get to execute arbitrary Rust code to figure out what to do with those
-//! tokens, then hand some tokens back to the compiler to compile into the
-//! user's crate.
-//!
-//! [`TokenStream`]: proc_macro::TokenStream
-//!
-//! ```toml
-//! [dependencies]
-//! syn = "1.0"
-//! quote = "1.0"
-//!
-//! [lib]
-//! proc-macro = true
-//! ```
-//!
-//! ```
-//! # extern crate proc_macro;
-//! #
-//! use proc_macro::TokenStream;
-//! use quote::quote;
-//! use syn::{parse_macro_input, DeriveInput};
-//!
-//! # const IGNORE_TOKENS: &str = stringify! {
-//! #[proc_macro_derive(MyMacro)]
-//! # };
-//! pub fn my_macro(input: TokenStream) -> TokenStream {
-//!     // Parse the input tokens into a syntax tree
-//!     let input = parse_macro_input!(input as DeriveInput);
-//!
-//!     // Build the output, possibly using quasi-quotation
-//!     let expanded = quote! {
-//!         // ...
-//!     };
-//!
-//!     // Hand the output tokens back to the compiler
-//!     TokenStream::from(expanded)
-//! }
-//! ```
-//!
-//! The [`heapsize`] example directory shows a complete working implementation
-//! of a derive macro. It works on any Rust compiler 1.31+. The example derives
-//! a `HeapSize` trait which computes an estimate of the amount of heap memory
-//! owned by a value.
-//!
-//! [`heapsize`]: https://github.com/dtolnay/syn/tree/master/examples/heapsize
-//!
-//! ```
-//! pub trait HeapSize {
-//!     /// Total number of bytes of heap memory owned by `self`.
-//!     fn heap_size_of_children(&self) -> usize;
-//! }
-//! ```
-//!
-//! The derive macro allows users to write `#[derive(HeapSize)]` on data
-//! structures in their program.
-//!
-//! ```
-//! # const IGNORE_TOKENS: &str = stringify! {
-//! #[derive(HeapSize)]
-//! # };
-//! struct Demo<'a, T: ?Sized> {
-//!     a: Box<T>,
-//!     b: u8,
-//!     c: &'a str,
-//!     d: String,
-//! }
-//! ```
-//!
-//! <p><br></p>
-//!
-//! # Spans and error reporting
-//!
-//! The token-based procedural macro API provides great control over where the
-//! compiler's error messages are displayed in user code. Consider the error the
-//! user sees if one of their field types does not implement `HeapSize`.
-//!
-//! ```
-//! # const IGNORE_TOKENS: &str = stringify! {
-//! #[derive(HeapSize)]
-//! # };
-//! struct Broken {
-//!     ok: String,
-//!     bad: std::thread::Thread,
-//! }
-//! ```
-//!
-//! By tracking span information all the way through the expansion of a
-//! procedural macro as shown in the `heapsize` example, token-based macros in
-//! Syn are able to trigger errors that directly pinpoint the source of the
-//! problem.
-//!
-//! ```text
-//! error[E0277]: the trait bound `std::thread::Thread: HeapSize` is not satisfied
-//!  --> src/main.rs:7:5
-//!   |
-//! 7 |     bad: std::thread::Thread,
-//!   |     ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `HeapSize` is not implemented for `Thread`
-//! ```
-//!
-//! <br>
-//!
-//! # Parsing a custom syntax
-//!
-//! The [`lazy-static`] example directory shows the implementation of a
-//! `functionlike!(...)` procedural macro in which the input tokens are parsed
-//! using Syn's parsing API.
-//!
-//! [`lazy-static`]: https://github.com/dtolnay/syn/tree/master/examples/lazy-static
-//!
-//! The example reimplements the popular `lazy_static` crate from crates.io as a
-//! procedural macro.
-//!
-//! ```
-//! # macro_rules! lazy_static {
-//! #     ($($tt:tt)*) => {}
-//! # }
-//! #
-//! lazy_static! {
-//!     static ref USERNAME: Regex = Regex::new("^[a-z0-9_-]{3,16}$").unwrap();
-//! }
-//! ```
-//!
-//! The implementation shows how to trigger custom warnings and error messages
-//! on the macro input.
-//!
-//! ```text
-//! warning: come on, pick a more creative name
-//!   --> src/main.rs:10:16
-//!    |
-//! 10 |     static ref FOO: String = "lazy_static".to_owned();
-//!    |                ^^^
-//! ```
-//!
-//! <br>
-//!
-//! # Testing
-//!
-//! When testing macros, we often care not just that the macro can be used
-//! successfully but also that when the macro is provided with invalid input it
-//! produces maximally helpful error messages. Consider using the [`trybuild`]
-//! crate to write tests for errors that are emitted by your macro or errors
-//! detected by the Rust compiler in the expanded code following misuse of the
-//! macro. Such tests help avoid regressions from later refactors that
-//! mistakenly make an error no longer trigger or be less helpful than it used
-//! to be.
-//!
-//! [`trybuild`]: https://github.com/dtolnay/trybuild
-//!
-//! <br>
-//!
-//! # Debugging
-//!
-//! When developing a procedural macro it can be helpful to look at what the
-//! generated code looks like. Use `cargo rustc -- -Zunstable-options
-//! --pretty=expanded` or the [`cargo expand`] subcommand.
-//!
-//! [`cargo expand`]: https://github.com/dtolnay/cargo-expand
-//!
-//! To show the expanded code for some crate that uses your procedural macro,
-//! run `cargo expand` from that crate. To show the expanded code for one of
-//! your own test cases, run `cargo expand --test the_test_case` where the last
-//! argument is the name of the test file without the `.rs` extension.
-//!
-//! This write-up by Brandon W Maister discusses debugging in more detail:
-//! [Debugging Rust's new Custom Derive system][debugging].
-//!
-//! [debugging]: https://quodlibetor.github.io/posts/debugging-rusts-new-custom-derive-system/
-//!
-//! <br>
-//!
-//! # Optional features
-//!
-//! Syn puts a lot of functionality behind optional features in order to
-//! optimize compile time for the most common use cases. The following features
-//! are available.
-//!
-//! - **`derive`** *(enabled by default)* — Data structures for representing the
-//!   possible input to a derive macro, including structs and enums and types.
-//! - **`full`** — Data structures for representing the syntax tree of all valid
-//!   Rust source code, including items and expressions.
-//! - **`parsing`** *(enabled by default)* — Ability to parse input tokens into
-//!   a syntax tree node of a chosen type.
-//! - **`printing`** *(enabled by default)* — Ability to print a syntax tree
-//!   node as tokens of Rust source code.
-//! - **`visit`** — Trait for traversing a syntax tree.
-//! - **`visit-mut`** — Trait for traversing and mutating in place a syntax
-//!   tree.
-//! - **`fold`** — Trait for transforming an owned syntax tree.
-//! - **`clone-impls`** *(enabled by default)* — Clone impls for all syntax tree
-//!   types.
-//! - **`extra-traits`** — Debug, Eq, PartialEq, Hash impls for all syntax tree
-//!   types.
-//! - **`proc-macro`** *(enabled by default)* — Runtime dependency on the
-//!   dynamic library libproc_macro from rustc toolchain.
 #![doc(html_root_url = "https://docs.rs/syn/1.0.97")]
 #![allow(non_camel_case_types)]
 #![allow(
@@ -390,95 +140,6 @@ pub mod group {
 }
 #[macro_use]
 pub mod token {
-    //! Tokens representing Rust punctuation, keywords, and delimiters.
-    //!
-    //! The type names in this module can be difficult to keep straight, so we
-    //! prefer to use the [`Token!`] macro instead. This is a type-macro that
-    //! expands to the token type of the given token.
-    //!
-    //! [`Token!`]: crate::Token
-    //!
-    //! # Example
-    //!
-    //! The [`ItemStatic`] syntax tree node is defined like this.
-    //!
-    //! [`ItemStatic`]: crate::ItemStatic
-    //!
-    //! ```
-    //! # use syn::{Attribute, Expr, Ident, Token, Type, Visibility};
-    //! #
-    //! pub struct ItemStatic {
-    //!     pub attrs: Vec<Attribute>,
-    //!     pub vis: Visibility,
-    //!     pub static_token: Token![static],
-    //!     pub mutability: Option<Token![mut]>,
-    //!     pub ident: Ident,
-    //!     pub colon_token: Token![:],
-    //!     pub ty: Box<Type>,
-    //!     pub eq_token: Token![=],
-    //!     pub expr: Box<Expr>,
-    //!     pub semi_token: Token![;],
-    //! }
-    //! ```
-    //!
-    //! # Parsing
-    //!
-    //! Keywords and punctuation can be parsed through the [`ParseStream::parse`]
-    //! method. Delimiter tokens are parsed using the [`parenthesized!`],
-    //! [`bracketed!`] and [`braced!`] macros.
-    //!
-    //! [`ParseStream::parse`]: crate::parse::ParseBuffer::parse()
-    //! [`parenthesized!`]: crate::parenthesized!
-    //! [`bracketed!`]: crate::bracketed!
-    //! [`braced!`]: crate::braced!
-    //!
-    //! ```
-    //! use syn::{Attribute, Result};
-    //! use syn::parse::{Parse, ParseStream};
-    //! #
-    //! # enum ItemStatic {}
-    //!
-    //! // Parse the ItemStatic struct shown above.
-    //! impl Parse for ItemStatic {
-    //!     fn parse(input: ParseStream) -> Result<Self> {
-    //!         # use syn::ItemStatic;
-    //!         # fn parse(input: ParseStream) -> Result<ItemStatic> {
-    //!         Ok(ItemStatic {
-    //!             attrs: input.call(Attribute::parse_outer)?,
-    //!             vis: input.parse()?,
-    //!             static_token: input.parse()?,
-    //!             mutability: input.parse()?,
-    //!             ident: input.parse()?,
-    //!             colon_token: input.parse()?,
-    //!             ty: input.parse()?,
-    //!             eq_token: input.parse()?,
-    //!             expr: input.parse()?,
-    //!             semi_token: input.parse()?,
-    //!         })
-    //!         # }
-    //!         # unimplemented!()
-    //!     }
-    //! }
-    //! ```
-    //!
-    //! # Other operations
-    //!
-    //! Every keyword and punctuation token supports the following operations.
-    //!
-    //! - [Peeking] — `input.peek(Token![...])`
-    //!
-    //! - [Parsing] — `input.parse::<Token![...]>()?`
-    //!
-    //! - [Printing] — `quote!( ... #the_token ... )`
-    //!
-    //! - Construction from a [`Span`] — `let the_token = Token![...](sp)`
-    //!
-    //! - Field access to its span — `let sp = the_token.span`
-    //!
-    //! [Peeking]: crate::parse::ParseBuffer::peek()
-    //! [Parsing]: crate::parse::ParseBuffer::parse()
-    //! [Printing]: https://docs.rs/quote/1.0/quote/trait.ToTokens.html
-    //! [`Span`]: https://docs.rs/proc-macro2/1.0/proc_macro2/struct.Span.html
     use self::private::WithSpan;
     #[cfg(feature = "parsing")]
     use crate::buffer::Cursor;
@@ -511,9 +172,6 @@ pub mod token {
     #[cfg(feature = "extra-traits")]
     use std::hash::{Hash, Hasher};
     use std::ops::{Deref, DerefMut};
-    /// Marker trait for types that represent single tokens.
-    ///
-    /// This trait is sealed and cannot be implemented for types outside of Syn.
     #[cfg(feature = "parsing")]
     pub trait Token: private::Sealed {
         #[doc(hidden)]
@@ -525,8 +183,6 @@ pub mod token {
         use proc_macro2::Span;
         #[cfg(feature = "parsing")]
         pub trait Sealed {}
-        /// Support writing `token.span` rather than `token.spans[0]` on tokens that
-        /// hold a single span.
         #[repr(C)]
         pub struct WithSpan {
             pub span: Span,
@@ -735,12 +391,6 @@ pub mod token {
         }
     }
     #[repr(C)]
-    /// `_`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Underscore {
         pub spans: [Span; 1],
     }
@@ -873,12 +523,6 @@ pub mod token {
             "invisible group"
         }
     }
-    /// `abstract`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Abstract {
         pub span: Span,
     }
@@ -947,12 +591,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Abstract {}
-    /// `as`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct As {
         pub span: Span,
     }
@@ -1017,12 +655,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for As {}
-    /// `async`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Async {
         pub span: Span,
     }
@@ -1089,12 +721,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Async {}
-    /// `auto`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Auto {
         pub span: Span,
     }
@@ -1159,12 +785,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Auto {}
-    /// `await`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Await {
         pub span: Span,
     }
@@ -1231,12 +851,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Await {}
-    /// `become`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Become {
         pub span: Span,
     }
@@ -1303,12 +917,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Become {}
-    /// `box`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Box {
         pub span: Span,
     }
@@ -1373,12 +981,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Box {}
-    /// `break`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Break {
         pub span: Span,
     }
@@ -1445,12 +1047,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Break {}
-    /// `const`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Const {
         pub span: Span,
     }
@@ -1517,12 +1113,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Const {}
-    /// `continue`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Continue {
         pub span: Span,
     }
@@ -1591,12 +1181,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Continue {}
-    /// `crate`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Crate {
         pub span: Span,
     }
@@ -1663,12 +1247,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Crate {}
-    /// `default`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Default {
         pub span: Span,
     }
@@ -1735,12 +1313,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Default {}
-    /// `do`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Do {
         pub span: Span,
     }
@@ -1805,12 +1377,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Do {}
-    /// `dyn`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Dyn {
         pub span: Span,
     }
@@ -1875,12 +1441,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Dyn {}
-    /// `else`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Else {
         pub span: Span,
     }
@@ -1945,12 +1505,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Else {}
-    /// `enum`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Enum {
         pub span: Span,
     }
@@ -2015,12 +1569,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Enum {}
-    /// `extern`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Extern {
         pub span: Span,
     }
@@ -2087,12 +1635,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Extern {}
-    /// `final`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Final {
         pub span: Span,
     }
@@ -2159,12 +1701,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Final {}
-    /// `fn`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Fn {
         pub span: Span,
     }
@@ -2229,12 +1765,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Fn {}
-    /// `for`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct For {
         pub span: Span,
     }
@@ -2299,12 +1829,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for For {}
-    /// `if`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct If {
         pub span: Span,
     }
@@ -2369,12 +1893,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for If {}
-    /// `impl`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Impl {
         pub span: Span,
     }
@@ -2439,12 +1957,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Impl {}
-    /// `in`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct In {
         pub span: Span,
     }
@@ -2509,12 +2021,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for In {}
-    /// `let`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Let {
         pub span: Span,
     }
@@ -2579,12 +2085,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Let {}
-    /// `loop`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Loop {
         pub span: Span,
     }
@@ -2649,12 +2149,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Loop {}
-    /// `macro`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Macro {
         pub span: Span,
     }
@@ -2721,12 +2215,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Macro {}
-    /// `match`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Match {
         pub span: Span,
     }
@@ -2793,12 +2281,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Match {}
-    /// `mod`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Mod {
         pub span: Span,
     }
@@ -2863,12 +2345,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Mod {}
-    /// `move`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Move {
         pub span: Span,
     }
@@ -2933,12 +2409,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Move {}
-    /// `mut`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Mut {
         pub span: Span,
     }
@@ -3003,12 +2473,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Mut {}
-    /// `override`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Override {
         pub span: Span,
     }
@@ -3077,12 +2541,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Override {}
-    /// `priv`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Priv {
         pub span: Span,
     }
@@ -3147,12 +2605,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Priv {}
-    /// `pub`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Pub {
         pub span: Span,
     }
@@ -3217,12 +2669,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Pub {}
-    /// `ref`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Ref {
         pub span: Span,
     }
@@ -3287,12 +2733,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Ref {}
-    /// `return`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Return {
         pub span: Span,
     }
@@ -3359,12 +2799,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Return {}
-    /// `Self`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct SelfType {
         pub span: Span,
     }
@@ -3433,12 +2867,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for SelfType {}
-    /// `self`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct SelfValue {
         pub span: Span,
     }
@@ -3507,12 +2935,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for SelfValue {}
-    /// `static`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Static {
         pub span: Span,
     }
@@ -3579,12 +3001,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Static {}
-    /// `struct`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Struct {
         pub span: Span,
     }
@@ -3651,12 +3067,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Struct {}
-    /// `super`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Super {
         pub span: Span,
     }
@@ -3723,12 +3133,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Super {}
-    /// `trait`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Trait {
         pub span: Span,
     }
@@ -3795,12 +3199,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Trait {}
-    /// `try`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Try {
         pub span: Span,
     }
@@ -3865,12 +3263,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Try {}
-    /// `type`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Type {
         pub span: Span,
     }
@@ -3935,12 +3327,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Type {}
-    /// `typeof`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Typeof {
         pub span: Span,
     }
@@ -4007,12 +3393,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Typeof {}
-    /// `union`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Union {
         pub span: Span,
     }
@@ -4079,12 +3459,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Union {}
-    /// `unsafe`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Unsafe {
         pub span: Span,
     }
@@ -4151,12 +3525,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Unsafe {}
-    /// `unsized`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Unsized {
         pub span: Span,
     }
@@ -4223,12 +3591,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Unsized {}
-    /// `use`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Use {
         pub span: Span,
     }
@@ -4293,12 +3655,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Use {}
-    /// `virtual`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Virtual {
         pub span: Span,
     }
@@ -4365,12 +3721,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Virtual {}
-    /// `where`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Where {
         pub span: Span,
     }
@@ -4437,12 +3787,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Where {}
-    /// `while`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct While {
         pub span: Span,
     }
@@ -4509,12 +3853,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for While {}
-    /// `yield`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Yield {
         pub span: Span,
     }
@@ -4582,12 +3920,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Yield {}
     #[repr(C)]
-    /// `+`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Add {
         pub spans: [Span; 1],
     }
@@ -4666,12 +3998,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Add {}
     #[repr(C)]
-    /// `+=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct AddEq {
         pub spans: [Span; 2],
     }
@@ -4739,12 +4065,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for AddEq {}
     #[repr(C)]
-    /// `&`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct And {
         pub spans: [Span; 1],
     }
@@ -4823,12 +4143,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for And {}
     #[repr(C)]
-    /// `&&`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct AndAnd {
         pub spans: [Span; 2],
     }
@@ -4898,12 +4212,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for AndAnd {}
     #[repr(C)]
-    /// `&=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct AndEq {
         pub spans: [Span; 2],
     }
@@ -4971,12 +4279,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for AndEq {}
     #[repr(C)]
-    /// `@`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct At {
         pub spans: [Span; 1],
     }
@@ -5055,12 +4357,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for At {}
     #[repr(C)]
-    /// `!`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Bang {
         pub spans: [Span; 1],
     }
@@ -5139,12 +4435,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Bang {}
     #[repr(C)]
-    /// `^`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Caret {
         pub spans: [Span; 1],
     }
@@ -5223,12 +4513,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Caret {}
     #[repr(C)]
-    /// `^=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct CaretEq {
         pub spans: [Span; 2],
     }
@@ -5298,12 +4582,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for CaretEq {}
     #[repr(C)]
-    /// `:`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Colon {
         pub spans: [Span; 1],
     }
@@ -5382,12 +4660,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Colon {}
     #[repr(C)]
-    /// `::`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Colon2 {
         pub spans: [Span; 2],
     }
@@ -5457,12 +4729,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Colon2 {}
     #[repr(C)]
-    /// `,`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Comma {
         pub spans: [Span; 1],
     }
@@ -5541,12 +4807,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Comma {}
     #[repr(C)]
-    /// `/`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Div {
         pub spans: [Span; 1],
     }
@@ -5625,12 +4885,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Div {}
     #[repr(C)]
-    /// `/=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct DivEq {
         pub spans: [Span; 2],
     }
@@ -5698,12 +4952,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for DivEq {}
     #[repr(C)]
-    /// `$`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Dollar {
         pub spans: [Span; 1],
     }
@@ -5784,12 +5032,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Dollar {}
     #[repr(C)]
-    /// `.`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Dot {
         pub spans: [Span; 1],
     }
@@ -5868,12 +5110,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Dot {}
     #[repr(C)]
-    /// `..`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Dot2 {
         pub spans: [Span; 2],
     }
@@ -5941,12 +5177,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Dot2 {}
     #[repr(C)]
-    /// `...`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Dot3 {
         pub spans: [Span; 3],
     }
@@ -6014,12 +5244,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Dot3 {}
     #[repr(C)]
-    /// `..=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct DotDotEq {
         pub spans: [Span; 3],
     }
@@ -6089,12 +5313,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for DotDotEq {}
     #[repr(C)]
-    /// `=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Eq {
         pub spans: [Span; 1],
     }
@@ -6173,12 +5391,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Eq {}
     #[repr(C)]
-    /// `==`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct EqEq {
         pub spans: [Span; 2],
     }
@@ -6246,12 +5458,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for EqEq {}
     #[repr(C)]
-    /// `>=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Ge {
         pub spans: [Span; 2],
     }
@@ -6319,12 +5525,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Ge {}
     #[repr(C)]
-    /// `>`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Gt {
         pub spans: [Span; 1],
     }
@@ -6403,12 +5603,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Gt {}
     #[repr(C)]
-    /// `<=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Le {
         pub spans: [Span; 2],
     }
@@ -6476,12 +5670,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Le {}
     #[repr(C)]
-    /// `<`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Lt {
         pub spans: [Span; 1],
     }
@@ -6560,12 +5748,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Lt {}
     #[repr(C)]
-    /// `*=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct MulEq {
         pub spans: [Span; 2],
     }
@@ -6633,12 +5815,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for MulEq {}
     #[repr(C)]
-    /// `!=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Ne {
         pub spans: [Span; 2],
     }
@@ -6706,12 +5882,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Ne {}
     #[repr(C)]
-    /// `|`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Or {
         pub spans: [Span; 1],
     }
@@ -6790,12 +5960,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Or {}
     #[repr(C)]
-    /// `|=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct OrEq {
         pub spans: [Span; 2],
     }
@@ -6863,12 +6027,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for OrEq {}
     #[repr(C)]
-    /// `||`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct OrOr {
         pub spans: [Span; 2],
     }
@@ -6936,12 +6094,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for OrOr {}
     #[repr(C)]
-    /// `#`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Pound {
         pub spans: [Span; 1],
     }
@@ -7020,12 +6172,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Pound {}
     #[repr(C)]
-    /// `?`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Question {
         pub spans: [Span; 1],
     }
@@ -7106,12 +6252,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Question {}
     #[repr(C)]
-    /// `->`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct RArrow {
         pub spans: [Span; 2],
     }
@@ -7181,12 +6321,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for RArrow {}
     #[repr(C)]
-    /// `<-`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct LArrow {
         pub spans: [Span; 2],
     }
@@ -7256,12 +6390,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for LArrow {}
     #[repr(C)]
-    /// `%`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Rem {
         pub spans: [Span; 1],
     }
@@ -7340,12 +6468,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Rem {}
     #[repr(C)]
-    /// `%=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct RemEq {
         pub spans: [Span; 2],
     }
@@ -7413,12 +6535,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for RemEq {}
     #[repr(C)]
-    /// `=>`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct FatArrow {
         pub spans: [Span; 2],
     }
@@ -7488,12 +6604,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for FatArrow {}
     #[repr(C)]
-    /// `;`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Semi {
         pub spans: [Span; 1],
     }
@@ -7572,12 +6682,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Semi {}
     #[repr(C)]
-    /// `<<`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Shl {
         pub spans: [Span; 2],
     }
@@ -7645,12 +6749,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Shl {}
     #[repr(C)]
-    /// `<<=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct ShlEq {
         pub spans: [Span; 3],
     }
@@ -7718,12 +6816,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for ShlEq {}
     #[repr(C)]
-    /// `>>`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Shr {
         pub spans: [Span; 2],
     }
@@ -7791,12 +6883,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Shr {}
     #[repr(C)]
-    /// `>>=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct ShrEq {
         pub spans: [Span; 3],
     }
@@ -7864,12 +6950,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for ShrEq {}
     #[repr(C)]
-    /// `*`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Star {
         pub spans: [Span; 1],
     }
@@ -7948,12 +7028,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Star {}
     #[repr(C)]
-    /// `-`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Sub {
         pub spans: [Span; 1],
     }
@@ -8032,12 +7106,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for Sub {}
     #[repr(C)]
-    /// `-=`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct SubEq {
         pub spans: [Span; 2],
     }
@@ -8105,12 +7173,6 @@ pub mod token {
     #[cfg(feature = "parsing")]
     impl private::Sealed for SubEq {}
     #[repr(C)]
-    /// `~`
-    ///
-    /// Don't try to remember the name of this type &mdash; use the
-    /// [`Token!`] macro instead.
-    ///
-    /// [`Token!`]: crate::token
     pub struct Tilde {
         pub spans: [Span; 1],
     }
@@ -8188,7 +7250,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Tilde {}
-    /// `{...}`
     pub struct Brace {
         pub span: Span,
     }
@@ -8241,7 +7302,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Brace {}
-    /// `[...]`
     pub struct Bracket {
         pub span: Span,
     }
@@ -8294,7 +7354,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Bracket {}
-    /// `(...)`
     pub struct Paren {
         pub span: Span,
     }
@@ -8347,7 +7406,6 @@ pub mod token {
     }
     #[cfg(feature = "parsing")]
     impl private::Sealed for Paren {}
-    /// None-delimited group
     pub struct Group {
         pub span: Span,
     }
@@ -8679,141 +7737,6 @@ mod attr {
     use crate::parse::{Parse, ParseBuffer, ParseStream, Parser, Result};
     #[cfg(feature = "parsing")]
     use crate::punctuated::Pair;
-    /// An attribute like `#[repr(transparent)]`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// <br>
-    ///
-    /// # Syntax
-    ///
-    /// Rust has six types of attributes.
-    ///
-    /// - Outer attributes like `#[repr(transparent)]`. These appear outside or
-    ///   in front of the item they describe.
-    /// - Inner attributes like `#![feature(proc_macro)]`. These appear inside
-    ///   of the item they describe, usually a module.
-    /// - Outer doc comments like `/// # Example`.
-    /// - Inner doc comments like `//! Please file an issue`.
-    /// - Outer block comments `/** # Example */`.
-    /// - Inner block comments `/*! Please file an issue */`.
-    ///
-    /// The `style` field of type `AttrStyle` distinguishes whether an attribute
-    /// is outer or inner. Doc comments and block comments are promoted to
-    /// attributes, as this is how they are processed by the compiler and by
-    /// `macro_rules!` macros.
-    ///
-    /// The `path` field gives the possibly colon-delimited path against which
-    /// the attribute is resolved. It is equal to `"doc"` for desugared doc
-    /// comments. The `tokens` field contains the rest of the attribute body as
-    /// tokens.
-    ///
-    /// ```text
-    /// #[derive(Copy)]      #[crate::precondition x < 5]
-    ///   ^^^^^^~~~~~~         ^^^^^^^^^^^^^^^^^^^ ~~~~~
-    ///   path  tokens                 path        tokens
-    /// ```
-    ///
-    /// <br>
-    ///
-    /// # Parsing from tokens to Attribute
-    ///
-    /// This type does not implement the [`Parse`] trait and thus cannot be
-    /// parsed directly by [`ParseStream::parse`]. Instead use
-    /// [`ParseStream::call`] with one of the two parser functions
-    /// [`Attribute::parse_outer`] or [`Attribute::parse_inner`] depending on
-    /// which you intend to parse.
-    ///
-    /// [`Parse`]: parse::Parse
-    /// [`ParseStream::parse`]: parse::ParseBuffer::parse
-    /// [`ParseStream::call`]: parse::ParseBuffer::call
-    ///
-    /// ```
-    /// use syn::{Attribute, Ident, Result, Token};
-    /// use syn::parse::{Parse, ParseStream};
-    ///
-    /// // Parses a unit struct with attributes.
-    /// //
-    /// //     #[path = "s.tmpl"]
-    /// //     struct S;
-    /// struct UnitStruct {
-    ///     attrs: Vec<Attribute>,
-    ///     struct_token: Token![struct],
-    ///     name: Ident,
-    ///     semi_token: Token![;],
-    /// }
-    ///
-    /// impl Parse for UnitStruct {
-    ///     fn parse(input: ParseStream) -> Result<Self> {
-    ///         Ok(UnitStruct {
-    ///             attrs: input.call(Attribute::parse_outer)?,
-    ///             struct_token: input.parse()?,
-    ///             name: input.parse()?,
-    ///             semi_token: input.parse()?,
-    ///         })
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// <p><br></p>
-    ///
-    /// # Parsing from Attribute to structured arguments
-    ///
-    /// The grammar of attributes in Rust is very flexible, which makes the
-    /// syntax tree not that useful on its own. In particular, arguments of the
-    /// attribute are held in an arbitrary `tokens: TokenStream`. Macros are
-    /// expected to check the `path` of the attribute, decide whether they
-    /// recognize it, and then parse the remaining tokens according to whatever
-    /// grammar they wish to require for that kind of attribute.
-    ///
-    /// If the attribute you are parsing is expected to conform to the
-    /// conventional structured form of attribute, use [`parse_meta()`] to
-    /// obtain that structured representation. If the attribute follows some
-    /// other grammar of its own, use [`parse_args()`] to parse that into the
-    /// expected data structure.
-    ///
-    /// [`parse_meta()`]: Attribute::parse_meta
-    /// [`parse_args()`]: Attribute::parse_args
-    ///
-    /// <p><br></p>
-    ///
-    /// # Doc comments
-    ///
-    /// The compiler transforms doc comments, such as `/// comment` and `/*!
-    /// comment */`, into attributes before macros are expanded. Each comment is
-    /// expanded into an attribute of the form `#[doc = r"comment"]`.
-    ///
-    /// As an example, the following `mod` items are expanded identically:
-    ///
-    /// ```
-    /// # use syn::{ItemMod, parse_quote};
-    /// let doc: ItemMod = parse_quote! {
-    ///     /// Single line doc comments
-    ///     /// We write so many!
-    ///     /**
-    ///      * Multi-line comments...
-    ///      * May span many lines
-    ///      */
-    ///     mod example {
-    ///         //! Of course, they can be inner too
-    ///         /*! And fit in a single line */
-    ///     }
-    /// };
-    /// let attr: ItemMod = parse_quote! {
-    ///     #[doc = r" Single line doc comments"]
-    ///     #[doc = r" We write so many!"]
-    ///     #[doc = r"
-    ///      * Multi-line comments...
-    ///      * May span many lines
-    ///      "]
-    ///     mod example {
-    ///         #![doc = r" Of course, they can be inner too"]
-    ///         #![doc = r" And fit in a single line "]
-    ///     }
-    /// };
-    /// assert_eq!(doc, attr);
-    /// ```
     pub struct Attribute {
         pub pound_token: crate::token::Pound,
         pub style: AttrStyle,
@@ -8822,11 +7745,6 @@ mod attr {
         pub tokens: TokenStream,
     }
     impl Attribute {
-        /// Parses the content of the attribute, consisting of the path and tokens,
-        /// as a [`Meta`] if possible.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_meta(&self) -> Result<Meta> {
             fn clone_ident_segment(segment: &PathSegment) -> PathSegment {
@@ -8862,29 +7780,10 @@ mod attr {
             );
             parse::Parser::parse2(parser, self.tokens.clone())
         }
-        /// Parse the arguments to the attribute as a syntax tree.
-        ///
-        /// This is similar to `syn::parse2::<T>(attr.tokens)` except that:
-        ///
-        /// - the surrounding delimiters are *not* included in the input to the
-        ///   parser; and
-        /// - the error message has a more useful span when `tokens` is empty.
-        ///
-        /// ```text
-        /// #[my_attr(value < 5)]
-        ///           ^^^^^^^^^ what gets parsed
-        /// ```
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_args<T: Parse>(&self) -> Result<T> {
             self.parse_args_with(T::parse)
         }
-        /// Parse the arguments to the attribute using the given parser.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_args_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             let parser = |input: ParseStream| {
@@ -8893,10 +7792,6 @@ mod attr {
             };
             parser.parse2(self.tokens.clone())
         }
-        /// Parses zero or more outer attributes from the stream.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_outer(input: ParseStream) -> Result<Vec<Self>> {
             let mut attrs = Vec::new();
@@ -8905,10 +7800,6 @@ mod attr {
             }
             Ok(attrs)
         }
-        /// Parses zero or more inner attributes from the stream.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_inner(input: ParseStream) -> Result<Vec<Self>> {
             let mut attrs = Vec::new();
@@ -9014,55 +7905,13 @@ mod attr {
             Err(input.error("unexpected token in attribute arguments"))
         }
     }
-    /// Distinguishes between attributes that decorate an item and attributes
-    /// that are contained within an item.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Outer attributes
-    ///
-    /// - `#[repr(transparent)]`
-    /// - `/// # Example`
-    /// - `/** Please file an issue */`
-    ///
-    /// # Inner attributes
-    ///
-    /// - `#![feature(proc_macro)]`
-    /// - `//! # Example`
-    /// - `/*! Please file an issue */`
     pub enum AttrStyle {
         Outer,
         Inner(crate::token::Bang),
     }
-    /// Content of a compile-time structured attribute.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// ## Path
-    ///
-    /// A meta path is like the `test` in `#[test]`.
-    ///
-    /// ## List
-    ///
-    /// A meta list is like the `derive(Copy)` in `#[derive(Copy)]`.
-    ///
-    /// ## NameValue
-    ///
-    /// A name-value meta is like the `path = "..."` in `#[path =
-    /// "sys/windows.rs"]`.
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum Meta {
         Path(Path),
-        /// A structured list within an attribute, like `derive(Copy, Clone)`.
         List(MetaList),
-        /// A name-value pair within an attribute, like `feature = "nightly"`.
         NameValue(MetaNameValue),
     }
     impl From<Path> for Meta {
@@ -9089,29 +7938,17 @@ mod attr {
             }
         }
     }
-    /// A structured list within an attribute, like `derive(Copy, Clone)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct MetaList {
         pub path: Path,
         pub paren_token: token::Paren,
         pub nested: Punctuated<NestedMeta, crate::token::Comma>,
     }
-    /// A name-value pair within an attribute, like `feature = "nightly"`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct MetaNameValue {
         pub path: Path,
         pub eq_token: crate::token::Eq,
         pub lit: Lit,
     }
     impl Meta {
-        /// Returns the identifier that begins this structured meta item.
-        ///
-        /// For example this would return the `test` in `#[test]`, the `derive` in
-        /// `#[derive(Copy)]`, and the `path` in `#[path = "sys/windows.rs"]`.
         pub fn path(&self) -> &Path {
             match self {
                 Meta::Path(path) => path,
@@ -9120,15 +7957,8 @@ mod attr {
             }
         }
     }
-    /// Element of a compile-time attribute list.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum NestedMeta {
-        /// A structured meta item, like the `Copy` in `#[derive(Copy)]` which
-        /// would be a nested `Meta::Path`.
         Meta(Meta),
-        /// A Rust literal, like the `"new_name"` in `#[rename("new_name")]`.
         Lit(Lit),
     }
     impl From<Meta> for NestedMeta {
@@ -9149,41 +7979,6 @@ mod attr {
             }
         }
     }
-    /// Conventional argument type associated with an invocation of an attribute
-    /// macro.
-    ///
-    /// For example if we are developing an attribute macro that is intended to be
-    /// invoked on function items as follows:
-    ///
-    /// ```
-    /// # const IGNORE: &str = stringify! {
-    /// #[my_attribute(path = "/v1/refresh")]
-    /// # };
-    /// pub fn refresh() {
-    ///     /* ... */
-    /// }
-    /// ```
-    ///
-    /// The implementation of this macro would want to parse its attribute arguments
-    /// as type `AttributeArgs`.
-    ///
-    /// ```
-    /// # extern crate proc_macro;
-    /// #
-    /// use proc_macro::TokenStream;
-    /// use syn::{parse_macro_input, AttributeArgs, ItemFn};
-    ///
-    /// # const IGNORE: &str = stringify! {
-    /// #[proc_macro_attribute]
-    /// # };
-    /// pub fn my_attribute(args: TokenStream, input: TokenStream) -> TokenStream {
-    ///     let args = parse_macro_input!(args as AttributeArgs);
-    ///     let input = parse_macro_input!(input as ItemFn);
-    ///
-    ///     /* ... */
-    /// #   "".parse().unwrap()
-    /// }
-    /// ```
     pub type AttributeArgs = Vec<NestedMeta>;
     pub trait FilterAttrs<'a> {
         type Ret: Iterator<Item = &'a Attribute>;
@@ -9461,37 +8256,15 @@ mod bigint {
 mod data {
     use super::*;
     use crate::punctuated::Punctuated;
-    /// An enum variant.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Variant {
-        /// Attributes tagged on the variant.
         pub attrs: Vec<Attribute>,
-        /// Name of the variant.
         pub ident: Ident,
-        /// Content stored in the variant.
         pub fields: Fields,
-        /// Explicit discriminant: `Variant = 1`
         pub discriminant: Option<(crate::token::Eq, Expr)>,
     }
-    /// Data stored within an enum variant or struct.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum Fields {
-        /// Named fields of a struct or struct variant such as `Point { x: f64,
-        /// y: f64 }`.
         Named(FieldsNamed),
-        /// Unnamed fields of a tuple struct or tuple variant such as `Some(T)`.
         Unnamed(FieldsUnnamed),
-        /// Unit struct or unit variant such as `None`.
         Unit,
     }
     impl From<FieldsNamed> for Fields {
@@ -9513,27 +8286,15 @@ mod data {
             }
         }
     }
-    /// Named fields of a struct or struct variant such as `Point { x: f64,
-    /// y: f64 }`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct FieldsNamed {
         pub brace_token: token::Brace,
         pub named: Punctuated<Field, crate::token::Comma>,
     }
-    /// Unnamed fields of a tuple struct or tuple variant such as `Some(T)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct FieldsUnnamed {
         pub paren_token: token::Paren,
         pub unnamed: Punctuated<Field, crate::token::Comma>,
     }
     impl Fields {
-        /// Get an iterator over the borrowed [`Field`] items in this object. This
-        /// iterator can be used to iterate over a named or unnamed struct or
-        /// variant's fields uniformly.
         pub fn iter(&self) -> punctuated::Iter<Field> {
             match self {
                 Fields::Unit => crate::punctuated::empty_punctuated_iter(),
@@ -9541,9 +8302,6 @@ mod data {
                 Fields::Unnamed(f) => f.unnamed.iter(),
             }
         }
-        /// Get an iterator over the mutably borrowed [`Field`] items in this
-        /// object. This iterator can be used to iterate over a named or unnamed
-        /// struct or variant's fields uniformly.
         pub fn iter_mut(&mut self) -> punctuated::IterMut<Field> {
             match self {
                 Fields::Unit => crate::punctuated::empty_punctuated_iter_mut(),
@@ -9551,7 +8309,6 @@ mod data {
                 Fields::Unnamed(f) => f.unnamed.iter_mut(),
             }
         }
-        /// Returns the number of fields.
         pub fn len(&self) -> usize {
             match self {
                 Fields::Unit => 0,
@@ -9559,7 +8316,6 @@ mod data {
                 Fields::Unnamed(f) => f.unnamed.len(),
             }
         }
-        /// Returns `true` if there are zero fields.
         pub fn is_empty(&self) -> bool {
             match self {
                 Fields::Unit => true,
@@ -9593,43 +8349,17 @@ mod data {
             self.iter_mut()
         }
     }
-    /// A field of a struct or enum variant.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Field {
-        /// Attributes tagged on the field.
         pub attrs: Vec<Attribute>,
-        /// Visibility of the field.
         pub vis: Visibility,
-        /// Name of the field, if any.
-        ///
-        /// Fields of tuple structs have no names.
         pub ident: Option<Ident>,
         pub colon_token: Option<crate::token::Colon>,
-        /// Type of the field.
         pub ty: Type,
     }
-    /// The visibility level of an item: inherited or `pub` or
-    /// `pub(restricted)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum Visibility {
-        /// A public visibility level: `pub`.
         Public(VisPublic),
-        /// A crate-level visibility: `crate`.
         Crate(VisCrate),
-        /// A visibility level restricted to some path: `pub(self)` or
-        /// `pub(super)` or `pub(crate)` or `pub(in some::module)`.
         Restricted(VisRestricted),
-        /// An inherited visibility, which usually means private.
         Inherited,
     }
     impl From<VisPublic> for Visibility {
@@ -9657,25 +8387,12 @@ mod data {
             }
         }
     }
-    /// A public visibility level: `pub`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct VisPublic {
         pub pub_token: crate::token::Pub,
     }
-    /// A crate-level visibility: `crate`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct VisCrate {
         pub crate_token: crate::token::Crate,
     }
-    /// A visibility level restricted to some path: `pub(self)` or
-    /// `pub(super)` or `pub(crate)` or `pub(in some::module)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct VisRestricted {
         pub pub_token: crate::token::Pub,
         pub paren_token: token::Paren,
@@ -9750,7 +8467,6 @@ mod data {
             }
         }
         impl Field {
-            /// Parses a named (braced struct) field.
             pub fn parse_named(input: ParseStream) -> Result<Self> {
                 Ok(Field {
                     attrs: input.call(Attribute::parse_outer)?,
@@ -9766,7 +8482,6 @@ mod data {
                     ty: input.parse()?,
                 })
             }
-            /// Parses an unnamed (tuple struct) field.
             pub fn parse_unnamed(input: ParseStream) -> Result<Self> {
                 Ok(Field {
                     attrs: input.call(Attribute::parse_outer)?,
@@ -9957,177 +8672,47 @@ mod expr {
     use std::hash::{Hash, Hasher};
     #[cfg(feature = "parsing")]
     use std::mem;
-    /// A Rust expression.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature, but most of the variants are not available unless "full" is enabled.*
-    ///
-    /// # Syntax tree enums
-    ///
-    /// This type is a syntax tree enum. In Syn this and other syntax tree enums
-    /// are designed to be traversed using the following rebinding idiom.
-    ///
-    /// ```
-    /// # use syn::Expr;
-    /// #
-    /// # fn example(expr: Expr) {
-    /// # const IGNORE: &str = stringify! {
-    /// let expr: Expr = /* ... */;
-    /// # };
-    /// match expr {
-    ///     Expr::MethodCall(expr) => {
-    ///         /* ... */
-    ///     }
-    ///     Expr::Cast(expr) => {
-    ///         /* ... */
-    ///     }
-    ///     Expr::If(expr) => {
-    ///         /* ... */
-    ///     }
-    ///
-    ///     /* ... */
-    ///     # _ => {}
-    /// # }
-    /// # }
-    /// ```
-    ///
-    /// We begin with a variable `expr` of type `Expr` that has no fields
-    /// (because it is an enum), and by matching on it and rebinding a variable
-    /// with the same name `expr` we effectively imbue our variable with all of
-    /// the data fields provided by the variant that it turned out to be. So for
-    /// example above if we ended up in the `MethodCall` case then we get to use
-    /// `expr.receiver`, `expr.args` etc; if we ended up in the `If` case we get
-    /// to use `expr.cond`, `expr.then_branch`, `expr.else_branch`.
-    ///
-    /// This approach avoids repeating the variant names twice on every line.
-    ///
-    /// ```
-    /// # use syn::{Expr, ExprMethodCall};
-    /// #
-    /// # fn example(expr: Expr) {
-    /// // Repetitive; recommend not doing this.
-    /// match expr {
-    ///     Expr::MethodCall(ExprMethodCall { method, args, .. }) => {
-    /// # }
-    /// # _ => {}
-    /// # }
-    /// # }
-    /// ```
-    ///
-    /// In general, the name to which a syntax tree enum variant is bound should
-    /// be a suitable name for the complete syntax tree enum type.
-    ///
-    /// ```
-    /// # use syn::{Expr, ExprField};
-    /// #
-    /// # fn example(discriminant: ExprField) {
-    /// // Binding is called `base` which is the name I would use if I were
-    /// // assigning `*discriminant.base` without an `if let`.
-    /// if let Expr::Tuple(base) = *discriminant.base {
-    /// # }
-    /// # }
-    /// ```
-    ///
-    /// A sign that you may not be choosing the right variable names is if you
-    /// see names getting repeated in your code, like accessing
-    /// `receiver.receiver` or `pat.pat` or `cond.cond`.
     #[non_exhaustive]
     pub enum Expr {
-        /// A slice literal expression: `[a, b, c, d]`.
         Array(ExprArray),
-        /// An assignment expression: `a = compute()`.
         Assign(ExprAssign),
-        /// A compound assignment expression: `counter += 1`.
         AssignOp(ExprAssignOp),
-        /// An async block: `async { ... }`.
         Async(ExprAsync),
-        /// An await expression: `fut.await`.
         Await(ExprAwait),
-        /// A binary operation: `a + b`, `a * b`.
         Binary(ExprBinary),
-        /// A blocked scope: `{ ... }`.
         Block(ExprBlock),
-        /// A box expression: `box f`.
         Box(ExprBox),
-        /// A `break`, with an optional label to break and an optional
-        /// expression.
         Break(ExprBreak),
-        /// A function call expression: `invoke(a, b)`.
         Call(ExprCall),
-        /// A cast expression: `foo as f64`.
         Cast(ExprCast),
-        /// A closure expression: `|a, b| a + b`.
         Closure(ExprClosure),
-        /// A `continue`, with an optional label.
         Continue(ExprContinue),
-        /// Access of a named struct field (`obj.k`) or unnamed tuple struct
-        /// field (`obj.0`).
         Field(ExprField),
-        /// A for loop: `for pat in expr { ... }`.
         ForLoop(ExprForLoop),
-        /// An expression contained within invisible delimiters.
-        ///
-        /// This variant is important for faithfully representing the precedence
-        /// of expressions and is related to `None`-delimited spans in a
-        /// `TokenStream`.
         Group(ExprGroup),
-        /// An `if` expression with an optional `else` block: `if expr { ... }
-        /// else { ... }`.
-        ///
-        /// The `else` branch expression may only be an `If` or `Block`
-        /// expression, not any of the other types of expression.
         If(ExprIf),
-        /// A square bracketed indexing expression: `vector[2]`.
         Index(ExprIndex),
-        /// A `let` guard: `let Some(x) = opt`.
         Let(ExprLet),
-        /// A literal in place of an expression: `1`, `"foo"`.
         Lit(ExprLit),
-        /// Conditionless loop: `loop { ... }`.
         Loop(ExprLoop),
-        /// A macro invocation expression: `format!("{}", q)`.
         Macro(ExprMacro),
-        /// A `match` expression: `match n { Some(n) => {}, None => {} }`.
         Match(ExprMatch),
-        /// A method call expression: `x.foo::<T>(a, b)`.
         MethodCall(ExprMethodCall),
-        /// A parenthesized expression: `(a + b)`.
         Paren(ExprParen),
-        /// A path like `std::mem::replace` possibly containing generic
-        /// parameters and a qualified self-type.
-        ///
-        /// A plain identifier like `x` is a path of length 1.
         Path(ExprPath),
-        /// A range expression: `1..2`, `1..`, `..2`, `1..=2`, `..=2`.
         Range(ExprRange),
-        /// A referencing operation: `&a` or `&mut a`.
         Reference(ExprReference),
-        /// An array literal constructed from one repeated element: `[0u8; N]`.
         Repeat(ExprRepeat),
-        /// A `return`, with an optional value to be returned.
         Return(ExprReturn),
-        /// A struct literal expression: `Point { x: 1, y: 1 }`.
-        ///
-        /// The `rest` provides the value of the remaining fields as in `S { a:
-        /// 1, b: 1, ..rest }`.
         Struct(ExprStruct),
-        /// A try-expression: `expr?`.
         Try(ExprTry),
-        /// A try block: `try { ... }`.
         TryBlock(ExprTryBlock),
-        /// A tuple expression: `(a, b, c, d)`.
         Tuple(ExprTuple),
-        /// A type ascription expression: `foo: f64`.
         Type(ExprType),
-        /// A unary operation: `!x`, `*x`.
         Unary(ExprUnary),
-        /// An unsafe block: `unsafe { ... }`.
         Unsafe(ExprUnsafe),
-        /// Tokens in expression position not interpreted by Syn.
         Verbatim(TokenStream),
-        /// A while loop: `while expr { ... }`.
         While(ExprWhile),
-        /// A yield expression: `yield expr`.
         Yield(ExprYield),
     }
     impl From<ExprArray> for Expr {
@@ -10372,18 +8957,12 @@ mod expr {
         }
     }
     #[cfg(feature = "full")]
-    /// A slice literal expression: `[a, b, c, d]`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprArray {
         pub attrs: Vec<Attribute>,
         pub bracket_token: token::Bracket,
         pub elems: Punctuated<Expr, crate::token::Comma>,
     }
     #[cfg(feature = "full")]
-    /// An assignment expression: `a = compute()`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprAssign {
         pub attrs: Vec<Attribute>,
         pub left: Box<Expr>,
@@ -10391,9 +8970,6 @@ mod expr {
         pub right: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A compound assignment expression: `counter += 1`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprAssignOp {
         pub attrs: Vec<Attribute>,
         pub left: Box<Expr>,
@@ -10401,9 +8977,6 @@ mod expr {
         pub right: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// An async block: `async { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprAsync {
         pub attrs: Vec<Attribute>,
         pub async_token: crate::token::Async,
@@ -10411,19 +8984,12 @@ mod expr {
         pub block: Block,
     }
     #[cfg(feature = "full")]
-    /// An await expression: `fut.await`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprAwait {
         pub attrs: Vec<Attribute>,
         pub base: Box<Expr>,
         pub dot_token: crate::token::Dot,
         pub await_token: token::Await,
     }
-    /// A binary operation: `a + b`, `a * b`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprBinary {
         pub attrs: Vec<Attribute>,
         pub left: Box<Expr>,
@@ -10431,48 +8997,30 @@ mod expr {
         pub right: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A blocked scope: `{ ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprBlock {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
         pub block: Block,
     }
     #[cfg(feature = "full")]
-    /// A box expression: `box f`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprBox {
         pub attrs: Vec<Attribute>,
         pub box_token: crate::token::Box,
         pub expr: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A `break`, with an optional label to break and an optional
-    /// expression.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprBreak {
         pub attrs: Vec<Attribute>,
         pub break_token: crate::token::Break,
         pub label: Option<Lifetime>,
         pub expr: Option<Box<Expr>>,
     }
-    /// A function call expression: `invoke(a, b)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprCall {
         pub attrs: Vec<Attribute>,
         pub func: Box<Expr>,
         pub paren_token: token::Paren,
         pub args: Punctuated<Expr, crate::token::Comma>,
     }
-    /// A cast expression: `foo as f64`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprCast {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
@@ -10480,9 +9028,6 @@ mod expr {
         pub ty: Box<Type>,
     }
     #[cfg(feature = "full")]
-    /// A closure expression: `|a, b| a + b`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprClosure {
         pub attrs: Vec<Attribute>,
         pub movability: Option<crate::token::Static>,
@@ -10495,18 +9040,11 @@ mod expr {
         pub body: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A `continue`, with an optional label.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprContinue {
         pub attrs: Vec<Attribute>,
         pub continue_token: crate::token::Continue,
         pub label: Option<Lifetime>,
     }
-    /// Access of a named struct field (`obj.k`) or unnamed tuple struct
-    /// field (`obj.0`).
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprField {
         pub attrs: Vec<Attribute>,
         pub base: Box<Expr>,
@@ -10514,9 +9052,6 @@ mod expr {
         pub member: Member,
     }
     #[cfg(feature = "full")]
-    /// A for loop: `for pat in expr { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprForLoop {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
@@ -10527,26 +9062,12 @@ mod expr {
         pub body: Block,
     }
     #[cfg(feature = "full")]
-    /// An expression contained within invisible delimiters.
-    ///
-    /// This variant is important for faithfully representing the precedence
-    /// of expressions and is related to `None`-delimited spans in a
-    /// `TokenStream`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprGroup {
         pub attrs: Vec<Attribute>,
         pub group_token: token::Group,
         pub expr: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// An `if` expression with an optional `else` block: `if expr { ... }
-    /// else { ... }`.
-    ///
-    /// The `else` branch expression may only be an `If` or `Block`
-    /// expression, not any of the other types of expression.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprIf {
         pub attrs: Vec<Attribute>,
         pub if_token: crate::token::If,
@@ -10554,10 +9075,6 @@ mod expr {
         pub then_branch: Block,
         pub else_branch: Option<(crate::token::Else, Box<Expr>)>,
     }
-    /// A square bracketed indexing expression: `vector[2]`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprIndex {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
@@ -10565,9 +9082,6 @@ mod expr {
         pub index: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A `let` guard: `let Some(x) = opt`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprLet {
         pub attrs: Vec<Attribute>,
         pub let_token: crate::token::Let,
@@ -10575,18 +9089,11 @@ mod expr {
         pub eq_token: crate::token::Eq,
         pub expr: Box<Expr>,
     }
-    /// A literal in place of an expression: `1`, `"foo"`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprLit {
         pub attrs: Vec<Attribute>,
         pub lit: Lit,
     }
     #[cfg(feature = "full")]
-    /// Conditionless loop: `loop { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprLoop {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
@@ -10594,17 +9101,11 @@ mod expr {
         pub body: Block,
     }
     #[cfg(feature = "full")]
-    /// A macro invocation expression: `format!("{}", q)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
     }
     #[cfg(feature = "full")]
-    /// A `match` expression: `match n { Some(n) => {}, None => {} }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprMatch {
         pub attrs: Vec<Attribute>,
         pub match_token: crate::token::Match,
@@ -10613,9 +9114,6 @@ mod expr {
         pub arms: Vec<Arm>,
     }
     #[cfg(feature = "full")]
-    /// A method call expression: `x.foo::<T>(a, b)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprMethodCall {
         pub attrs: Vec<Attribute>,
         pub receiver: Box<Expr>,
@@ -10625,30 +9123,17 @@ mod expr {
         pub paren_token: token::Paren,
         pub args: Punctuated<Expr, crate::token::Comma>,
     }
-    /// A parenthesized expression: `(a + b)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprParen {
         pub attrs: Vec<Attribute>,
         pub paren_token: token::Paren,
         pub expr: Box<Expr>,
     }
-    /// A path like `std::mem::replace` possibly containing generic
-    /// parameters and a qualified self-type.
-    ///
-    /// A plain identifier like `x` is a path of length 1.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprPath {
         pub attrs: Vec<Attribute>,
         pub qself: Option<QSelf>,
         pub path: Path,
     }
     #[cfg(feature = "full")]
-    /// A range expression: `1..2`, `1..`, `..2`, `1..=2`, `..=2`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprRange {
         pub attrs: Vec<Attribute>,
         pub from: Option<Box<Expr>>,
@@ -10656,9 +9141,6 @@ mod expr {
         pub to: Option<Box<Expr>>,
     }
     #[cfg(feature = "full")]
-    /// A referencing operation: `&a` or `&mut a`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprReference {
         pub attrs: Vec<Attribute>,
         pub and_token: crate::token::And,
@@ -10667,9 +9149,6 @@ mod expr {
         pub expr: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// An array literal constructed from one repeated element: `[0u8; N]`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprRepeat {
         pub attrs: Vec<Attribute>,
         pub bracket_token: token::Bracket,
@@ -10678,21 +9157,12 @@ mod expr {
         pub len: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// A `return`, with an optional value to be returned.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprReturn {
         pub attrs: Vec<Attribute>,
         pub return_token: crate::token::Return,
         pub expr: Option<Box<Expr>>,
     }
     #[cfg(feature = "full")]
-    /// A struct literal expression: `Point { x: 1, y: 1 }`.
-    ///
-    /// The `rest` provides the value of the remaining fields as in `S { a:
-    /// 1, b: 1, ..rest }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprStruct {
         pub attrs: Vec<Attribute>,
         pub path: Path,
@@ -10702,64 +9172,42 @@ mod expr {
         pub rest: Option<Box<Expr>>,
     }
     #[cfg(feature = "full")]
-    /// A try-expression: `expr?`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprTry {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
         pub question_token: crate::token::Question,
     }
     #[cfg(feature = "full")]
-    /// A try block: `try { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprTryBlock {
         pub attrs: Vec<Attribute>,
         pub try_token: crate::token::Try,
         pub block: Block,
     }
     #[cfg(feature = "full")]
-    /// A tuple expression: `(a, b, c, d)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprTuple {
         pub attrs: Vec<Attribute>,
         pub paren_token: token::Paren,
         pub elems: Punctuated<Expr, crate::token::Comma>,
     }
     #[cfg(feature = "full")]
-    /// A type ascription expression: `foo: f64`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprType {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
         pub colon_token: crate::token::Colon,
         pub ty: Box<Type>,
     }
-    /// A unary operation: `!x`, `*x`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ExprUnary {
         pub attrs: Vec<Attribute>,
         pub op: UnOp,
         pub expr: Box<Expr>,
     }
     #[cfg(feature = "full")]
-    /// An unsafe block: `unsafe { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprUnsafe {
         pub attrs: Vec<Attribute>,
         pub unsafe_token: crate::token::Unsafe,
         pub block: Block,
     }
     #[cfg(feature = "full")]
-    /// A while loop: `while expr { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprWhile {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
@@ -10768,9 +9216,6 @@ mod expr {
         pub body: Block,
     }
     #[cfg(feature = "full")]
-    /// A yield expression: `yield expr`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ExprYield {
         pub attrs: Vec<Attribute>,
         pub yield_token: crate::token::Yield,
@@ -10832,15 +9277,8 @@ mod expr {
             }
         }
     }
-    /// A struct or tuple struct field accessed in a struct literal or field
-    /// expression.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum Member {
-        /// A named field like `self.x`.
         Named(Ident),
-        /// An unnamed field like `self.0`.
         Unnamed(Index),
     }
     impl From<Ident> for Member {
@@ -10891,10 +9329,6 @@ mod expr {
             }
         }
     }
-    /// The index of an unnamed tuple struct field.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Index {
         pub index: u32,
         pub span: Span,
@@ -10932,68 +9366,26 @@ mod expr {
             Some(self.span)
         }
     }
-    /// The `::<>` explicit type parameters passed to a method call:
-    /// `parse::<u64>()`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct MethodTurbofish {
         pub colon2_token: crate::token::Colon2,
         pub lt_token: crate::token::Lt,
         pub args: Punctuated<GenericMethodArgument, crate::token::Comma>,
         pub gt_token: crate::token::Gt,
     }
-    /// An individual generic argument to a method, like `T`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub enum GenericMethodArgument {
-        /// A type argument.
         Type(Type),
-        /// A const expression. Must be inside of a block.
-        ///
-        /// NOTE: Identity expressions are represented as Type arguments, as
-        /// they are indistinguishable syntactically.
         Const(Expr),
     }
-    /// A field-value pair in a struct literal.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct FieldValue {
-        /// Attributes tagged on the field.
         pub attrs: Vec<Attribute>,
-        /// Name or index of the field.
         pub member: Member,
-        /// The colon in `Struct { x: x }`. If written in shorthand like
-        /// `Struct { x }`, there is no colon.
         pub colon_token: Option<crate::token::Colon>,
-        /// Value of the field.
         pub expr: Expr,
     }
-    /// A lifetime labeling a `for`, `while`, or `loop`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Label {
         pub name: Lifetime,
         pub colon_token: crate::token::Colon,
     }
-    /// One arm of a `match` expression: `0...10 => { return true; }`.
-    ///
-    /// As in:
-    ///
-    /// ```
-    /// # fn f() -> bool {
-    /// #     let n = 0;
-    /// match n {
-    ///     0...10 => {
-    ///         return true;
-    ///     }
-    ///     // ...
-    ///     # _ => {}
-    /// }
-    /// #   false
-    /// # }
-    /// ```
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Arm {
         pub attrs: Vec<Attribute>,
         pub pat: Pat,
@@ -11002,13 +9394,8 @@ mod expr {
         pub body: Box<Expr>,
         pub comma: Option<crate::token::Comma>,
     }
-    /// Limit types of a range, inclusive or exclusive.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub enum RangeLimits {
-        /// Inclusive at the beginning, exclusive at the end.
         HalfOpen(crate::token::Dot2),
-        /// Inclusive at the beginning and end.
         Closed(crate::token::DotDotEq),
     }
     #[cfg(any(feature = "parsing", feature = "printing"))]
@@ -11167,86 +9554,6 @@ mod expr {
             }
         }
         impl Expr {
-            /// An alternative to the primary `Expr::parse` parser (from the
-            /// [`Parse`] trait) for ambiguous syntactic positions in which a
-            /// trailing brace should not be taken as part of the expression.
-            ///
-            /// Rust grammar has an ambiguity where braces sometimes turn a path
-            /// expression into a struct initialization and sometimes do not. In the
-            /// following code, the expression `S {}` is one expression. Presumably
-            /// there is an empty struct `struct S {}` defined somewhere which it is
-            /// instantiating.
-            ///
-            /// ```
-            /// # struct S;
-            /// # impl std::ops::Deref for S {
-            /// #     type Target = bool;
-            /// #     fn deref(&self) -> &Self::Target {
-            /// #         &true
-            /// #     }
-            /// # }
-            /// let _ = *S {};
-            ///
-            /// // parsed by rustc as: `*(S {})`
-            /// ```
-            ///
-            /// We would want to parse the above using `Expr::parse` after the `=`
-            /// token.
-            ///
-            /// But in the following, `S {}` is *not* a struct init expression.
-            ///
-            /// ```
-            /// # const S: &bool = &true;
-            /// if *S {} {}
-            ///
-            /// // parsed by rustc as:
-            /// //
-            /// //    if (*S) {
-            /// //        /* empty block */
-            /// //    }
-            /// //    {
-            /// //        /* another empty block */
-            /// //    }
-            /// ```
-            ///
-            /// For that reason we would want to parse if-conditions using
-            /// `Expr::parse_without_eager_brace` after the `if` token. Same for
-            /// similar syntactic positions such as the condition expr after a
-            /// `while` token or the expr at the top of a `match`.
-            ///
-            /// The Rust grammar's choices around which way this ambiguity is
-            /// resolved at various syntactic positions is fairly arbitrary. Really
-            /// either parse behavior could work in most positions, and language
-            /// designers just decide each case based on which is more likely to be
-            /// what the programmer had in mind most of the time.
-            ///
-            /// ```
-            /// # struct S;
-            /// # fn doc() -> S {
-            /// if return S {} {}
-            /// # unreachable!()
-            /// # }
-            ///
-            /// // parsed by rustc as:
-            /// //
-            /// //    if (return (S {})) {
-            /// //    }
-            /// //
-            /// // but could equally well have been this other arbitrary choice:
-            /// //
-            /// //    if (return S) {
-            /// //    }
-            /// //    {}
-            /// ```
-            ///
-            /// Note the grammar ambiguity on trailing braces is distinct from
-            /// precedence and is not captured by assigning a precedence level to
-            /// the braced struct init expr in relation to other operators. This can
-            /// be illustrated by `return 0..S {}` vs `match 0..S {}`. The former
-            /// parses as `return (0..(S {}))` implying tighter precedence for
-            /// struct init than `..`, while the latter parses as `match (0..S) {}`
-            /// implying tighter precedence for `..` than struct init, a
-            /// contradiction.
             #[cfg(feature = "full")]
             pub fn parse_without_eager_brace(input: ParseStream) -> Result<Expr> {
                 ambiguous_expr(input, AllowStruct(false))
@@ -13631,34 +11938,15 @@ mod generics {
     use std::fmt::{self, Debug};
     #[cfg(all(feature = "printing", feature = "extra-traits"))]
     use std::hash::{Hash, Hasher};
-    /// Lifetimes and type parameters attached to a declaration of a function,
-    /// enum, trait, etc.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Generics {
         pub lt_token: Option<crate::token::Lt>,
         pub params: Punctuated<GenericParam, crate::token::Comma>,
         pub gt_token: Option<crate::token::Gt>,
         pub where_clause: Option<WhereClause>,
     }
-    /// A generic type parameter, lifetime, or const generic: `T: Into<String>`,
-    /// `'a: 'b`, `const LEN: usize`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum GenericParam {
-        /// A generic type parameter: `T: Into<String>`.
         Type(TypeParam),
-        /// A lifetime definition: `'a: 'b + 'c + 'd`.
         Lifetime(LifetimeDef),
-        /// A const generic parameter: `const LENGTH: usize`.
         Const(ConstParam),
     }
     impl From<TypeParam> for GenericParam {
@@ -13685,10 +11973,6 @@ mod generics {
             }
         }
     }
-    /// A generic type parameter: `T: Into<String>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeParam {
         pub attrs: Vec<Attribute>,
         pub ident: Ident,
@@ -13697,20 +11981,12 @@ mod generics {
         pub eq_token: Option<crate::token::Eq>,
         pub default: Option<Type>,
     }
-    /// A lifetime definition: `'a: 'b + 'c + 'd`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct LifetimeDef {
         pub attrs: Vec<Attribute>,
         pub lifetime: Lifetime,
         pub colon_token: Option<crate::token::Colon>,
         pub bounds: Punctuated<Lifetime, crate::token::Add>,
     }
-    /// A const generic parameter: `const LENGTH: usize`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct ConstParam {
         pub attrs: Vec<Attribute>,
         pub const_token: crate::token::Const,
@@ -13731,67 +12007,24 @@ mod generics {
         }
     }
     impl Generics {
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;</code><a
-        ///   href="struct.TypeParam.html"><code
-        ///   style="padding-left:0;padding-right:0;">TypeParam</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the type parameters in `self.params`.
         pub fn type_params(&self) -> TypeParams {
             TypeParams(self.params.iter())
         }
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;mut </code><a
-        ///   href="struct.TypeParam.html"><code
-        ///   style="padding-left:0;padding-right:0;">TypeParam</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the type parameters in `self.params`.
         pub fn type_params_mut(&mut self) -> TypeParamsMut {
             TypeParamsMut(self.params.iter_mut())
         }
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;</code><a
-        ///   href="struct.LifetimeDef.html"><code
-        ///   style="padding-left:0;padding-right:0;">LifetimeDef</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the lifetime parameters in `self.params`.
         pub fn lifetimes(&self) -> Lifetimes {
             Lifetimes(self.params.iter())
         }
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;mut </code><a
-        ///   href="struct.LifetimeDef.html"><code
-        ///   style="padding-left:0;padding-right:0;">LifetimeDef</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the lifetime parameters in `self.params`.
         pub fn lifetimes_mut(&mut self) -> LifetimesMut {
             LifetimesMut(self.params.iter_mut())
         }
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;</code><a
-        ///   href="struct.ConstParam.html"><code
-        ///   style="padding-left:0;padding-right:0;">ConstParam</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the constant parameters in `self.params`.
         pub fn const_params(&self) -> ConstParams {
             ConstParams(self.params.iter())
         }
-        /// Returns an
-        /// <code
-        ///   style="padding-right:0;">Iterator&lt;Item = &amp;mut </code><a
-        ///   href="struct.ConstParam.html"><code
-        ///   style="padding-left:0;padding-right:0;">ConstParam</code></a><code
-        ///   style="padding-left:0;">&gt;</code>
-        /// over the constant parameters in `self.params`.
         pub fn const_params_mut(&mut self) -> ConstParamsMut {
             ConstParamsMut(self.params.iter_mut())
         }
-        /// Initializes an empty `where`-clause if there is not one present already.
         pub fn make_where_clause(&mut self) -> &mut WhereClause {
             self.where_clause
                 .get_or_insert_with(|| WhereClause {
@@ -13890,47 +12123,14 @@ mod generics {
             }
         }
     }
-    /// Returned by `Generics::split_for_impl`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature and the `"printing"` feature.*
     #[cfg(feature = "printing")]
     pub struct ImplGenerics<'a>(&'a Generics);
-    /// Returned by `Generics::split_for_impl`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature and the `"printing"` feature.*
     #[cfg(feature = "printing")]
     pub struct TypeGenerics<'a>(&'a Generics);
-    /// Returned by `TypeGenerics::as_turbofish`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature and the `"printing"` feature.*
     #[cfg(feature = "printing")]
     pub struct Turbofish<'a>(&'a Generics);
     #[cfg(feature = "printing")]
     impl Generics {
-        /// Split a type's generics into the pieces required for impl'ing a trait
-        /// for that type.
-        ///
-        /// ```
-        /// # use proc_macro2::{Span, Ident};
-        /// # use quote::quote;
-        /// #
-        /// # let generics: syn::Generics = Default::default();
-        /// # let name = Ident::new("MyType", Span::call_site());
-        /// #
-        /// let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        /// quote! {
-        ///     impl #impl_generics MyTrait for #name #ty_generics #where_clause {
-        ///         // ...
-        ///     }
-        /// }
-        /// # ;
-        /// ```
-        ///
-        /// *This method is available only if Syn is built with the `"derive"` or
-        /// `"full"` feature and the `"printing"` feature.*
         pub fn split_for_impl(
             &self,
         ) -> (ImplGenerics, TypeGenerics, Option<&WhereClause>) {
@@ -14017,18 +12217,10 @@ mod generics {
     }
     #[cfg(feature = "printing")]
     impl<'a> TypeGenerics<'a> {
-        /// Turn a type's generics like `<X, Y>` into a turbofish like `::<X, Y>`.
-        ///
-        /// *This method is available only if Syn is built with the `"derive"` or
-        /// `"full"` feature and the `"printing"` feature.*
         pub fn as_turbofish(&self) -> Turbofish {
             Turbofish(self.0)
         }
     }
-    /// A set of bound lifetimes: `for<'a, 'b, 'c>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct BoundLifetimes {
         pub for_token: crate::token::For,
         pub lt_token: crate::token::Lt,
@@ -14067,10 +12259,6 @@ mod generics {
             }
         }
     }
-    /// A trait or lifetime used as a bound on a type parameter.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum TypeParamBound {
         Trait(TraitBound),
         Lifetime(Lifetime),
@@ -14093,52 +12281,23 @@ mod generics {
             }
         }
     }
-    /// A trait used as a bound on a type parameter.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct TraitBound {
         pub paren_token: Option<token::Paren>,
         pub modifier: TraitBoundModifier,
-        /// The `for<'a>` in `for<'a> Foo<&'a T>`
         pub lifetimes: Option<BoundLifetimes>,
-        /// The `Foo<&'a T>` in `for<'a> Foo<&'a T>`
         pub path: Path,
     }
-    /// A modifier on a trait bound, currently only used for the `?` in
-    /// `?Sized`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum TraitBoundModifier {
         None,
         Maybe(crate::token::Question),
     }
-    /// A `where` clause in a definition: `where T: Deserialize<'de>, D:
-    /// 'static`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct WhereClause {
         pub where_token: crate::token::Where,
         pub predicates: Punctuated<WherePredicate, crate::token::Comma>,
     }
-    /// A single predicate in a `where` clause: `T: Deserialize<'de>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum WherePredicate {
-        /// A type predicate in a `where` clause: `for<'c> Foo<'c>: Trait<'c>`.
         Type(PredicateType),
-        /// A lifetime predicate in a `where` clause: `'a: 'b + 'c`.
         Lifetime(PredicateLifetime),
-        /// An equality predicate in a `where` clause (unsupported).
         Eq(PredicateEq),
     }
     impl From<PredicateType> for WherePredicate {
@@ -14165,32 +12324,17 @@ mod generics {
             }
         }
     }
-    /// A type predicate in a `where` clause: `for<'c> Foo<'c>: Trait<'c>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct PredicateType {
-        /// Any lifetimes from a `for` binding
         pub lifetimes: Option<BoundLifetimes>,
-        /// The type being bounded
         pub bounded_ty: Type,
         pub colon_token: crate::token::Colon,
-        /// Trait and lifetime bounds (`Clone+Send+'static`)
         pub bounds: Punctuated<TypeParamBound, crate::token::Add>,
     }
-    /// A lifetime predicate in a `where` clause: `'a: 'b + 'c`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct PredicateLifetime {
         pub lifetime: Lifetime,
         pub colon_token: crate::token::Colon,
         pub bounds: Punctuated<Lifetime, crate::token::Add>,
     }
-    /// An equality predicate in a `where` clause (unsupported).
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct PredicateEq {
         pub lhs_ty: Type,
         pub eq_token: crate::token::Eq,
@@ -14912,52 +13056,24 @@ mod item {
     use proc_macro2::TokenStream;
     #[cfg(feature = "parsing")]
     use std::mem;
-    /// Things that can appear directly inside of a module or scope.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum Item {
-        /// A constant item: `const MAX: u16 = 65535`.
         Const(ItemConst),
-        /// An enum definition: `enum Foo<A, B> { A(A), B(B) }`.
         Enum(ItemEnum),
-        /// An `extern crate` item: `extern crate serde`.
         ExternCrate(ItemExternCrate),
-        /// A free-standing function: `fn process(n: usize) -> Result<()> { ...
-        /// }`.
         Fn(ItemFn),
-        /// A block of foreign items: `extern "C" { ... }`.
         ForeignMod(ItemForeignMod),
-        /// An impl block providing trait or associated items: `impl<A> Trait
-        /// for Data<A> { ... }`.
         Impl(ItemImpl),
-        /// A macro invocation, which includes `macro_rules!` definitions.
         Macro(ItemMacro),
-        /// A 2.0-style declarative macro introduced by the `macro` keyword.
         Macro2(ItemMacro2),
-        /// A module or module declaration: `mod m` or `mod m { ... }`.
         Mod(ItemMod),
-        /// A static item: `static BIKE: Shed = Shed(42)`.
         Static(ItemStatic),
-        /// A struct definition: `struct Foo<A> { x: A }`.
         Struct(ItemStruct),
-        /// A trait definition: `pub trait Iterator { ... }`.
         Trait(ItemTrait),
-        /// A trait alias: `pub trait SharableIterator = Iterator + Sync`.
         TraitAlias(ItemTraitAlias),
-        /// A type alias: `type Result<T> = std::result::Result<T, MyError>`.
         Type(ItemType),
-        /// A union definition: `union Foo<A, B> { x: A, y: B }`.
         Union(ItemUnion),
-        /// A use declaration: `use std::collections::HashMap`.
         Use(ItemUse),
-        /// Tokens forming an item not interpreted by Syn.
         Verbatim(TokenStream),
     }
     impl From<ItemConst> for Item {
@@ -15063,9 +13179,6 @@ mod item {
             }
         }
     }
-    /// A constant item: `const MAX: u16 = 65535`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemConst {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15077,9 +13190,6 @@ mod item {
         pub expr: Box<Expr>,
         pub semi_token: crate::token::Semi,
     }
-    /// An enum definition: `enum Foo<A, B> { A(A), B(B) }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemEnum {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15089,9 +13199,6 @@ mod item {
         pub brace_token: token::Brace,
         pub variants: Punctuated<Variant, crate::token::Comma>,
     }
-    /// An `extern crate` item: `extern crate serde`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemExternCrate {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15101,55 +13208,35 @@ mod item {
         pub rename: Option<(crate::token::As, Ident)>,
         pub semi_token: crate::token::Semi,
     }
-    /// A free-standing function: `fn process(n: usize) -> Result<()> { ...
-    /// }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemFn {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
         pub sig: Signature,
         pub block: Box<Block>,
     }
-    /// A block of foreign items: `extern "C" { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemForeignMod {
         pub attrs: Vec<Attribute>,
         pub abi: Abi,
         pub brace_token: token::Brace,
         pub items: Vec<ForeignItem>,
     }
-    /// An impl block providing trait or associated items: `impl<A> Trait
-    /// for Data<A> { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemImpl {
         pub attrs: Vec<Attribute>,
         pub defaultness: Option<crate::token::Default>,
         pub unsafety: Option<crate::token::Unsafe>,
         pub impl_token: crate::token::Impl,
         pub generics: Generics,
-        /// Trait this impl implements.
         pub trait_: Option<(Option<crate::token::Bang>, Path, crate::token::For)>,
-        /// The Self type of the impl.
         pub self_ty: Box<Type>,
         pub brace_token: token::Brace,
         pub items: Vec<ImplItem>,
     }
-    /// A macro invocation, which includes `macro_rules!` definitions.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemMacro {
         pub attrs: Vec<Attribute>,
-        /// The `example` in `macro_rules! example { ... }`.
         pub ident: Option<Ident>,
         pub mac: Macro,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// A 2.0-style declarative macro introduced by the `macro` keyword.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemMacro2 {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15157,9 +13244,6 @@ mod item {
         pub ident: Ident,
         pub rules: TokenStream,
     }
-    /// A module or module declaration: `mod m` or `mod m { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemMod {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15168,9 +13252,6 @@ mod item {
         pub content: Option<(token::Brace, Vec<Item>)>,
         pub semi: Option<crate::token::Semi>,
     }
-    /// A static item: `static BIKE: Shed = Shed(42)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemStatic {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15183,9 +13264,6 @@ mod item {
         pub expr: Box<Expr>,
         pub semi_token: crate::token::Semi,
     }
-    /// A struct definition: `struct Foo<A> { x: A }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemStruct {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15195,9 +13273,6 @@ mod item {
         pub fields: Fields,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// A trait definition: `pub trait Iterator { ... }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemTrait {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15211,9 +13286,6 @@ mod item {
         pub brace_token: token::Brace,
         pub items: Vec<TraitItem>,
     }
-    /// A trait alias: `pub trait SharableIterator = Iterator + Sync`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemTraitAlias {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15224,9 +13296,6 @@ mod item {
         pub bounds: Punctuated<TypeParamBound, crate::token::Add>,
         pub semi_token: crate::token::Semi,
     }
-    /// A type alias: `type Result<T> = std::result::Result<T, MyError>`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemType {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15237,9 +13306,6 @@ mod item {
         pub ty: Box<Type>,
         pub semi_token: crate::token::Semi,
     }
-    /// A union definition: `union Foo<A, B> { x: A, y: B }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemUnion {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15248,9 +13314,6 @@ mod item {
         pub generics: Generics,
         pub fields: FieldsNamed,
     }
-    /// A use declaration: `use std::collections::HashMap`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ItemUse {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15365,25 +13428,11 @@ mod item {
             }
         }
     }
-    /// A suffix of an import tree in a `use` item: `Type as Renamed` or `*`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum UseTree {
-        /// A path prefix of imports in a `use` item: `std::...`.
         Path(UsePath),
-        /// An identifier imported by a `use` item: `HashMap`.
         Name(UseName),
-        /// An renamed identifier imported by a `use` item: `HashMap as Map`.
         Rename(UseRename),
-        /// A glob import in a `use` item: `*`.
         Glob(UseGlob),
-        /// A braced group of imports in a `use` item: `{A, B, C}`.
         Group(UseGroup),
     }
     impl From<UsePath> for UseTree {
@@ -15422,61 +13471,32 @@ mod item {
             }
         }
     }
-    /// A path prefix of imports in a `use` item: `std::...`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct UsePath {
         pub ident: Ident,
         pub colon2_token: crate::token::Colon2,
         pub tree: Box<UseTree>,
     }
-    /// An identifier imported by a `use` item: `HashMap`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct UseName {
         pub ident: Ident,
     }
-    /// An renamed identifier imported by a `use` item: `HashMap as Map`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct UseRename {
         pub ident: Ident,
         pub as_token: crate::token::As,
         pub rename: Ident,
     }
-    /// A glob import in a `use` item: `*`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct UseGlob {
         pub star_token: crate::token::Star,
     }
-    /// A braced group of imports in a `use` item: `{A, B, C}`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct UseGroup {
         pub brace_token: token::Brace,
         pub items: Punctuated<UseTree, crate::token::Comma>,
     }
-    /// An item within an `extern` block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum ForeignItem {
-        /// A foreign function in an `extern` block.
         Fn(ForeignItemFn),
-        /// A foreign static item in an `extern` block: `static ext: u8`.
         Static(ForeignItemStatic),
-        /// A foreign type in an `extern` block: `type void`.
         Type(ForeignItemType),
-        /// A macro invocation within an extern block.
         Macro(ForeignItemMacro),
-        /// Tokens in an `extern` block not interpreted by Syn.
         Verbatim(TokenStream),
     }
     impl From<ForeignItemFn> for ForeignItem {
@@ -15510,18 +13530,12 @@ mod item {
             }
         }
     }
-    /// A foreign function in an `extern` block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ForeignItemFn {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
         pub sig: Signature,
         pub semi_token: crate::token::Semi,
     }
-    /// A foreign static item in an `extern` block: `static ext: u8`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ForeignItemStatic {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15532,9 +13546,6 @@ mod item {
         pub ty: Box<Type>,
         pub semi_token: crate::token::Semi,
     }
-    /// A foreign type in an `extern` block: `type void`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ForeignItemType {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15542,34 +13553,17 @@ mod item {
         pub ident: Ident,
         pub semi_token: crate::token::Semi,
     }
-    /// A macro invocation within an extern block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ForeignItemMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// An item declaration within the definition of a trait.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum TraitItem {
-        /// An associated constant within the definition of a trait.
         Const(TraitItemConst),
-        /// A trait method within the definition of a trait.
         Method(TraitItemMethod),
-        /// An associated type within the definition of a trait.
         Type(TraitItemType),
-        /// A macro invocation within the definition of a trait.
         Macro(TraitItemMacro),
-        /// Tokens within the definition of a trait not interpreted by Syn.
         Verbatim(TokenStream),
     }
     impl From<TraitItemConst> for TraitItem {
@@ -15603,9 +13597,6 @@ mod item {
             }
         }
     }
-    /// An associated constant within the definition of a trait.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct TraitItemConst {
         pub attrs: Vec<Attribute>,
         pub const_token: crate::token::Const,
@@ -15615,18 +13606,12 @@ mod item {
         pub default: Option<(crate::token::Eq, Expr)>,
         pub semi_token: crate::token::Semi,
     }
-    /// A trait method within the definition of a trait.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct TraitItemMethod {
         pub attrs: Vec<Attribute>,
         pub sig: Signature,
         pub default: Option<Block>,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// An associated type within the definition of a trait.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct TraitItemType {
         pub attrs: Vec<Attribute>,
         pub type_token: crate::token::Type,
@@ -15637,34 +13622,17 @@ mod item {
         pub default: Option<(crate::token::Eq, Type)>,
         pub semi_token: crate::token::Semi,
     }
-    /// A macro invocation within the definition of a trait.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct TraitItemMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// An item within an impl block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum ImplItem {
-        /// An associated constant within an impl block.
         Const(ImplItemConst),
-        /// A method within an impl block.
         Method(ImplItemMethod),
-        /// An associated type within an impl block.
         Type(ImplItemType),
-        /// A macro invocation within an impl block.
         Macro(ImplItemMacro),
-        /// Tokens within an impl block not interpreted by Syn.
         Verbatim(TokenStream),
     }
     impl From<ImplItemConst> for ImplItem {
@@ -15698,9 +13666,6 @@ mod item {
             }
         }
     }
-    /// An associated constant within an impl block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ImplItemConst {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15713,9 +13678,6 @@ mod item {
         pub expr: Expr,
         pub semi_token: crate::token::Semi,
     }
-    /// A method within an impl block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ImplItemMethod {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15723,9 +13685,6 @@ mod item {
         pub sig: Signature,
         pub block: Block,
     }
-    /// An associated type within an impl block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ImplItemType {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
@@ -15737,18 +13696,11 @@ mod item {
         pub ty: Type,
         pub semi_token: crate::token::Semi,
     }
-    /// A macro invocation within an impl block.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct ImplItemMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// A function signature in a trait or implementation: `unsafe fn
-    /// initialize(&self)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Signature {
         pub constness: Option<crate::token::Const>,
         pub asyncness: Option<crate::token::Async>,
@@ -15763,7 +13715,6 @@ mod item {
         pub output: ReturnType,
     }
     impl Signature {
-        /// A method's `self` receiver, such as `&self` or `self: Box<Self>`.
         pub fn receiver(&self) -> Option<&FnArg> {
             let arg = self.inputs.first()?;
             match arg {
@@ -15779,17 +13730,8 @@ mod item {
             }
         }
     }
-    /// An argument in a function signature: the `n: usize` in `fn f(n: usize)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub enum FnArg {
-        /// The `self` argument of an associated method, whether taken by value
-        /// or by reference.
-        ///
-        /// Note that `self` receivers with a specified type, such as `self:
-        /// Box<Self>`, are parsed as a `FnArg::Typed`.
         Receiver(Receiver),
-        /// A function argument accepted by pattern and type.
         Typed(PatType),
     }
     impl From<Receiver> for FnArg {
@@ -15810,13 +13752,6 @@ mod item {
             }
         }
     }
-    /// The `self` argument of an associated method, whether taken by value
-    /// or by reference.
-    ///
-    /// Note that `self` receivers with a specified type, such as `self:
-    /// Box<Self>`, are parsed as a `FnArg::Typed`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Receiver {
         pub attrs: Vec<Attribute>,
         pub reference: Option<(crate::token::And, Option<Lifetime>)>,
@@ -18308,82 +16243,6 @@ pub use crate::item::{
 #[cfg(feature = "full")]
 mod file {
     use super::*;
-    /// A complete file of Rust source code.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Example
-    ///
-    /// Parse a Rust source file into a `syn::File` and print out a debug
-    /// representation of the syntax tree.
-    ///
-    /// ```
-    /// use std::env;
-    /// use std::fs::File;
-    /// use std::io::Read;
-    /// use std::process;
-    ///
-    /// fn main() {
-    /// # }
-    /// #
-    /// # fn fake_main() {
-    ///     let mut args = env::args();
-    ///     let _ = args.next(); // executable name
-    ///
-    ///     let filename = match (args.next(), args.next()) {
-    ///         (Some(filename), None) => filename,
-    ///         _ => {
-    ///             eprintln!("Usage: dump-syntax path/to/filename.rs");
-    ///             process::exit(1);
-    ///         }
-    ///     };
-    ///
-    ///     let mut file = File::open(&filename).expect("Unable to open file");
-    ///
-    ///     let mut src = String::new();
-    ///     file.read_to_string(&mut src).expect("Unable to read file");
-    ///
-    ///     let syntax = syn::parse_file(&src).expect("Unable to parse file");
-    ///
-    ///     // Debug impl is available if Syn is built with "extra-traits" feature.
-    ///     println!("{:#?}", syntax);
-    /// }
-    /// ```
-    ///
-    /// Running with its own source code as input, this program prints output
-    /// that begins with:
-    ///
-    /// ```text
-    /// File {
-    ///     shebang: None,
-    ///     attrs: [],
-    ///     items: [
-    ///         Use(
-    ///             ItemUse {
-    ///                 attrs: [],
-    ///                 vis: Inherited,
-    ///                 use_token: Use,
-    ///                 leading_colon: None,
-    ///                 tree: Path(
-    ///                     UsePath {
-    ///                         ident: Ident(
-    ///                             std,
-    ///                         ),
-    ///                         colon2_token: Colon2,
-    ///                         tree: Name(
-    ///                             UseName {
-    ///                                 ident: Ident(
-    ///                                     env,
-    ///                                 ),
-    ///                             },
-    ///                         ),
-    ///                     },
-    ///                 ),
-    ///                 semi_token: Semi,
-    ///             },
-    ///         ),
-    /// ...
-    /// ```
     pub struct File {
         pub shebang: Option<String>,
         pub attrs: Vec<Attribute>,
@@ -18432,35 +16291,11 @@ mod lifetime {
     use std::hash::{Hash, Hasher};
     #[cfg(feature = "parsing")]
     use crate::lookahead;
-    /// A Rust lifetime: `'a`.
-    ///
-    /// Lifetime names must conform to the following rules:
-    ///
-    /// - Must start with an apostrophe.
-    /// - Must not consist of just an apostrophe: `'`.
-    /// - Character after the apostrophe must be `_` or a Unicode code point with
-    ///   the XID_Start property.
-    /// - All following characters must be Unicode code points with the XID_Continue
-    ///   property.
     pub struct Lifetime {
         pub apostrophe: Span,
         pub ident: Ident,
     }
     impl Lifetime {
-        /// # Panics
-        ///
-        /// Panics if the lifetime does not conform to the bulleted rules above.
-        ///
-        /// # Invocation
-        ///
-        /// ```
-        /// # use proc_macro2::Span;
-        /// # use syn::Lifetime;
-        /// #
-        /// # fn f() -> Lifetime {
-        /// Lifetime::new("'a", Span::call_site())
-        /// # }
-        /// ```
         pub fn new(symbol: &str, span: Span) -> Self {
             if !symbol.starts_with('\'') {
                 {
@@ -18585,31 +16420,14 @@ mod lit {
     #[cfg(feature = "extra-traits")]
     use std::hash::{Hash, Hasher};
     use std::str::{self, FromStr};
-    /// A Rust literal such as a string or integer or boolean.
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: crate::Expr#syntax-tree-enums
     pub enum Lit {
-        /// A UTF-8 string literal: `"foo"`.
         Str(LitStr),
-        /// A byte string literal: `b"foo"`.
         ByteStr(LitByteStr),
-        /// A byte literal: `b'f'`.
         Byte(LitByte),
-        /// A character literal: `'a'`.
         Char(LitChar),
-        /// An integer literal: `1` or `1u16`.
         Int(LitInt),
-        /// A floating point literal: `1f64` or `1.0e10f64`.
-        ///
-        /// Must be finite. May not be infinite or NaN.
         Float(LitFloat),
-        /// A boolean literal: `true` or `false`.
         Bool(LitBool),
-        /// A raw token literal not interpreted by Syn.
         Verbatim(Literal),
     }
     impl From<LitStr> for Lit {
@@ -18661,19 +16479,15 @@ mod lit {
             }
         }
     }
-    /// A UTF-8 string literal: `"foo"`.
     pub struct LitStr {
         repr: Box<LitRepr>,
     }
-    /// A byte string literal: `b"foo"`.
     pub struct LitByteStr {
         repr: Box<LitRepr>,
     }
-    /// A byte literal: `b'f'`.
     pub struct LitByte {
         repr: Box<LitRepr>,
     }
-    /// A character literal: `'a'`.
     pub struct LitChar {
         repr: Box<LitRepr>,
     }
@@ -18681,7 +16495,6 @@ mod lit {
         token: Literal,
         suffix: Box<str>,
     }
-    /// An integer literal: `1` or `1u16`.
     pub struct LitInt {
         repr: Box<LitIntRepr>,
     }
@@ -18690,9 +16503,6 @@ mod lit {
         digits: Box<str>,
         suffix: Box<str>,
     }
-    /// A floating point literal: `1f64` or `1.0e10f64`.
-    ///
-    /// Must be finite. May not be infinite or NaN.
     pub struct LitFloat {
         repr: Box<LitFloatRepr>,
     }
@@ -18701,7 +16511,6 @@ mod lit {
         digits: Box<str>,
         suffix: Box<str>,
     }
-    /// A boolean literal: `true` or `false`.
     pub struct LitBool {
         pub value: bool,
         pub span: Span,
@@ -18722,65 +16531,10 @@ mod lit {
             let (value, _suffix) = value::parse_lit_str(&repr);
             String::from(value)
         }
-        /// Parse a syntax tree node from the content of this string literal.
-        ///
-        /// All spans in the syntax tree will point to the span of this `LitStr`.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use proc_macro2::Span;
-        /// use syn::{Attribute, Error, Ident, Lit, Meta, MetaNameValue, Path, Result};
-        ///
-        /// // Parses the path from an attribute that looks like:
-        /// //
-        /// //     #[path = "a::b::c"]
-        /// //
-        /// // or returns `None` if the input is some other attribute.
-        /// fn get_path(attr: &Attribute) -> Result<Option<Path>> {
-        ///     if !attr.path.is_ident("path") {
-        ///         return Ok(None);
-        ///     }
-        ///
-        ///     match attr.parse_meta()? {
-        ///         Meta::NameValue(MetaNameValue { lit: Lit::Str(lit_str), .. }) => {
-        ///             lit_str.parse().map(Some)
-        ///         }
-        ///         _ => {
-        ///             let message = "expected #[path = \"...\"]";
-        ///             Err(Error::new_spanned(attr, message))
-        ///         }
-        ///     }
-        /// }
-        /// ```
         #[cfg(feature = "parsing")]
         pub fn parse<T: Parse>(&self) -> Result<T> {
             self.parse_with(T::parse)
         }
-        /// Invoke parser on the content of this string literal.
-        ///
-        /// All spans in the syntax tree will point to the span of this `LitStr`.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// # use proc_macro2::Span;
-        /// # use syn::{LitStr, Result};
-        /// #
-        /// # fn main() -> Result<()> {
-        /// #     let lit_str = LitStr::new("a::b::c", Span::call_site());
-        /// #
-        /// #     const IGNORE: &str = stringify! {
-        /// let lit_str: LitStr = /* ... */;
-        /// #     };
-        ///
-        /// // Parse a string literal like "a::b::c" into a Path, not allowing
-        /// // generic arguments on any of the path segments.
-        /// let basic_path = lit_str.parse_with(syn::Path::parse_mod_style)?;
-        /// #
-        /// #     Ok(())
-        /// # }
-        /// ```
         #[cfg(feature = "parsing")]
         pub fn parse_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             use proc_macro2::Group;
@@ -18938,28 +16692,6 @@ mod lit {
         pub fn base10_digits(&self) -> &str {
             &self.repr.digits
         }
-        /// Parses the literal into a selected number type.
-        ///
-        /// This is equivalent to `lit.base10_digits().parse()` except that the
-        /// resulting errors will be correctly spanned to point to the literal token
-        /// in the macro input.
-        ///
-        /// ```
-        /// use syn::LitInt;
-        /// use syn::parse::{Parse, ParseStream, Result};
-        ///
-        /// struct Port {
-        ///     value: u16,
-        /// }
-        ///
-        /// impl Parse for Port {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let lit: LitInt = input.parse()?;
-        ///         let value = lit.base10_parse::<u16>()?;
-        ///         Ok(Port { value })
-        ///     }
-        /// }
-        /// ```
         pub fn base10_parse<N>(&self) -> Result<N>
         where
             N: FromStr,
@@ -19405,14 +17137,8 @@ mod lit {
     pub fn LitBool(marker: lookahead::TokenMarker) -> LitBool {
         match marker {}
     }
-    /// The style of a string literal, either plain quoted or a raw string like
-    /// `r##"data"##`.
     pub enum StrStyle {
-        /// An ordinary string like `"data"`.
         Cooked,
-        /// A raw string like `r##"data"##`.
-        ///
-        /// The unsigned integer is the number of `#` symbols used.
         Raw(usize),
     }
     #[cfg(feature = "parsing")]
@@ -19601,7 +17327,6 @@ mod lit {
         use std::char;
         use std::ops::{Index, RangeFrom};
         impl Lit {
-            /// Interpret a Syn literal from a proc-macro2 literal.
             pub fn new(token: Literal) -> Self {
                 let repr = token.to_string();
                 match byte(&repr, 0) {
@@ -19709,8 +17434,6 @@ mod lit {
                 }
             }
         }
-        /// Get the byte at offset idx, or a default of `b'\0'` if we're looking
-        /// past the end of the input buffer.
         pub fn byte<S: AsRef<[u8]> + ?Sized>(s: &S, idx: usize) -> u8 {
             let s = s.as_ref();
             if idx < s.len() { s[idx] } else { 0 }
@@ -20451,20 +18174,12 @@ mod mac {
     use proc_macro2::{Delimiter, Group, Span, TokenTree};
     #[cfg(feature = "parsing")]
     use crate::parse::{Parse, ParseStream, Parser, Result};
-    /// A macro invocation: `println!("{}", mac)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Macro {
         pub path: Path,
         pub bang_token: crate::token::Bang,
         pub delimiter: MacroDelimiter,
         pub tokens: TokenStream,
     }
-    /// A grouping token that surrounds a macro body: `m!(...)` or `m!{...}` or `m![...]`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum MacroDelimiter {
         Paren(Paren),
         Brace(Brace),
@@ -20489,94 +18204,10 @@ mod mac {
         group.span_close()
     }
     impl Macro {
-        /// Parse the tokens within the macro invocation's delimiters into a syntax
-        /// tree.
-        ///
-        /// This is equivalent to `syn::parse2::<T>(mac.tokens)` except that it
-        /// produces a more useful span when `tokens` is empty.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{parse_quote, Expr, ExprLit, Ident, Lit, LitStr, Macro, Token};
-        /// use syn::ext::IdentExt;
-        /// use syn::parse::{Error, Parse, ParseStream, Result};
-        /// use syn::punctuated::Punctuated;
-        ///
-        /// // The arguments expected by libcore's format_args macro, and as a
-        /// // result most other formatting and printing macros like println.
-        /// //
-        /// //     println!("{} is {number:.prec$}", "x", prec=5, number=0.01)
-        /// struct FormatArgs {
-        ///     format_string: Expr,
-        ///     positional_args: Vec<Expr>,
-        ///     named_args: Vec<(Ident, Expr)>,
-        /// }
-        ///
-        /// impl Parse for FormatArgs {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let format_string: Expr;
-        ///         let mut positional_args = Vec::new();
-        ///         let mut named_args = Vec::new();
-        ///
-        ///         format_string = input.parse()?;
-        ///         while !input.is_empty() {
-        ///             input.parse::<Token![,]>()?;
-        ///             if input.is_empty() {
-        ///                 break;
-        ///             }
-        ///             if input.peek(Ident::peek_any) && input.peek2(Token![=]) {
-        ///                 while !input.is_empty() {
-        ///                     let name: Ident = input.call(Ident::parse_any)?;
-        ///                     input.parse::<Token![=]>()?;
-        ///                     let value: Expr = input.parse()?;
-        ///                     named_args.push((name, value));
-        ///                     if input.is_empty() {
-        ///                         break;
-        ///                     }
-        ///                     input.parse::<Token![,]>()?;
-        ///                 }
-        ///                 break;
-        ///             }
-        ///             positional_args.push(input.parse()?);
-        ///         }
-        ///
-        ///         Ok(FormatArgs {
-        ///             format_string,
-        ///             positional_args,
-        ///             named_args,
-        ///         })
-        ///     }
-        /// }
-        ///
-        /// // Extract the first argument, the format string literal, from an
-        /// // invocation of a formatting or printing macro.
-        /// fn get_format_string(m: &Macro) -> Result<LitStr> {
-        ///     let args: FormatArgs = m.parse_body()?;
-        ///     match args.format_string {
-        ///         Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) => Ok(lit),
-        ///         other => {
-        ///             // First argument was not a string literal expression.
-        ///             // Maybe something like: println!(concat!(...), ...)
-        ///             Err(Error::new_spanned(other, "format string must be a string literal"))
-        ///         }
-        ///     }
-        /// }
-        ///
-        /// fn main() {
-        ///     let invocation = parse_quote! {
-        ///         println!("{:?}", Instant::now())
-        ///     };
-        ///     let lit = get_format_string(&invocation).unwrap();
-        ///     assert_eq!(lit.value(), "{:?}");
-        /// }
-        /// ```
         #[cfg(feature = "parsing")]
         pub fn parse_body<T: Parse>(&self) -> Result<T> {
             self.parse_body_with(T::parse)
         }
-        /// Parse the tokens within the macro invocation's delimiters using the
-        /// given parser.
         #[cfg(feature = "parsing")]
         pub fn parse_body_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             let scope = delimiter_span_close(&self.delimiter);
@@ -20653,36 +18284,16 @@ pub use crate::mac::{Macro, MacroDelimiter};
 mod derive {
     use super::*;
     use crate::punctuated::Punctuated;
-    /// Data structure sent to a `proc_macro_derive` macro.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` feature.*
     pub struct DeriveInput {
-        /// Attributes tagged on the whole struct or enum.
         pub attrs: Vec<Attribute>,
-        /// Visibility of the struct or enum.
         pub vis: Visibility,
-        /// Name of the struct or enum.
         pub ident: Ident,
-        /// Generics required to complete the definition.
         pub generics: Generics,
-        /// Data within the struct or enum.
         pub data: Data,
     }
-    /// The storage of a struct, enum or union data structure.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     pub enum Data {
-        /// A struct input to a `proc_macro_derive` macro.
         Struct(DataStruct),
-        /// An enum input to a `proc_macro_derive` macro.
         Enum(DataEnum),
-        /// An untagged union input to a `proc_macro_derive` macro.
         Union(DataUnion),
     }
     impl From<DataStruct> for Data {
@@ -20700,28 +18311,16 @@ mod derive {
             Data::Union(e)
         }
     }
-    /// A struct input to a `proc_macro_derive` macro.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"`
-    /// feature.*
     pub struct DataStruct {
         pub struct_token: crate::token::Struct,
         pub fields: Fields,
         pub semi_token: Option<crate::token::Semi>,
     }
-    /// An enum input to a `proc_macro_derive` macro.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"`
-    /// feature.*
     pub struct DataEnum {
         pub enum_token: crate::token::Enum,
         pub brace_token: token::Brace,
         pub variants: Punctuated<Variant, crate::token::Comma>,
     }
-    /// An untagged union input to a `proc_macro_derive` macro.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"`
-    /// feature.*
     pub struct DataUnion {
         pub union_token: crate::token::Union,
         pub fields: FieldsNamed,
@@ -20913,78 +18512,39 @@ mod derive {
 pub use crate::derive::{Data, DataEnum, DataStruct, DataUnion, DeriveInput};
 #[cfg(any(feature = "full", feature = "derive"))]
 mod op {
-    /// A binary operator: `+`, `+=`, `&`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum BinOp {
-        /// The `+` operator (addition)
         Add(crate::token::Add),
-        /// The `-` operator (subtraction)
         Sub(crate::token::Sub),
-        /// The `*` operator (multiplication)
         Mul(crate::token::Star),
-        /// The `/` operator (division)
         Div(crate::token::Div),
-        /// The `%` operator (modulus)
         Rem(crate::token::Rem),
-        /// The `&&` operator (logical and)
         And(crate::token::AndAnd),
-        /// The `||` operator (logical or)
         Or(crate::token::OrOr),
-        /// The `^` operator (bitwise xor)
         BitXor(crate::token::Caret),
-        /// The `&` operator (bitwise and)
         BitAnd(crate::token::And),
-        /// The `|` operator (bitwise or)
         BitOr(crate::token::Or),
-        /// The `<<` operator (shift left)
         Shl(crate::token::Shl),
-        /// The `>>` operator (shift right)
         Shr(crate::token::Shr),
-        /// The `==` operator (equality)
         Eq(crate::token::EqEq),
-        /// The `<` operator (less than)
         Lt(crate::token::Lt),
-        /// The `<=` operator (less than or equal to)
         Le(crate::token::Le),
-        /// The `!=` operator (not equal to)
         Ne(crate::token::Ne),
-        /// The `>=` operator (greater than or equal to)
         Ge(crate::token::Ge),
-        /// The `>` operator (greater than)
         Gt(crate::token::Gt),
-        /// The `+=` operator
         AddEq(crate::token::AddEq),
-        /// The `-=` operator
         SubEq(crate::token::SubEq),
-        /// The `*=` operator
         MulEq(crate::token::MulEq),
-        /// The `/=` operator
         DivEq(crate::token::DivEq),
-        /// The `%=` operator
         RemEq(crate::token::RemEq),
-        /// The `^=` operator
         BitXorEq(crate::token::CaretEq),
-        /// The `&=` operator
         BitAndEq(crate::token::AndEq),
-        /// The `|=` operator
         BitOrEq(crate::token::OrEq),
-        /// The `<<=` operator
         ShlEq(crate::token::ShlEq),
-        /// The `>>=` operator
         ShrEq(crate::token::ShrEq),
     }
-    /// A unary operator: `*`, `!`, `-`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum UnOp {
-        /// The `*` operator for dereferencing
         Deref(crate::token::Star),
-        /// The `!` operator for logical inversion
         Not(crate::token::Bang),
-        /// The `-` operator for negation
         Neg(crate::token::Sub),
     }
     #[cfg(feature = "parsing")]
@@ -21130,30 +18690,16 @@ pub use crate::op::{BinOp, UnOp};
 #[cfg(feature = "full")]
 mod stmt {
     use super::*;
-    /// A braced block containing Rust statements.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Block {
         pub brace_token: token::Brace,
-        /// Statements in a block
         pub stmts: Vec<Stmt>,
     }
-    /// A statement, usually ending in a semicolon.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub enum Stmt {
-        /// A local (let) binding.
         Local(Local),
-        /// An item definition.
         Item(Item),
-        /// Expr without trailing semicolon.
         Expr(Expr),
-        /// Expression with trailing semicolon.
         Semi(Expr, crate::token::Semi),
     }
-    /// A local `let` binding: `let x: u64 = s.parse()?`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct Local {
         pub attrs: Vec<Attribute>,
         pub let_token: crate::token::Let,
@@ -21168,58 +18714,6 @@ mod stmt {
         use crate::parse::{Parse, ParseBuffer, ParseStream, Result};
         use proc_macro2::TokenStream;
         impl Block {
-            /// Parse the body of a block as zero or more statements, possibly
-            /// including one trailing expression.
-            ///
-            /// *This function is available only if Syn is built with the `"parsing"`
-            /// feature.*
-            ///
-            /// # Example
-            ///
-            /// ```
-            /// use syn::{braced, token, Attribute, Block, Ident, Result, Stmt, Token};
-            /// use syn::parse::{Parse, ParseStream};
-            ///
-            /// // Parse a function with no generics or parameter list.
-            /// //
-            /// //     fn playground {
-            /// //         let mut x = 1;
-            /// //         x += 1;
-            /// //         println!("{}", x);
-            /// //     }
-            /// struct MiniFunction {
-            ///     attrs: Vec<Attribute>,
-            ///     fn_token: Token![fn],
-            ///     name: Ident,
-            ///     brace_token: token::Brace,
-            ///     stmts: Vec<Stmt>,
-            /// }
-            ///
-            /// impl Parse for MiniFunction {
-            ///     fn parse(input: ParseStream) -> Result<Self> {
-            ///         let outer_attrs = input.call(Attribute::parse_outer)?;
-            ///         let fn_token: Token![fn] = input.parse()?;
-            ///         let name: Ident = input.parse()?;
-            ///
-            ///         let content;
-            ///         let brace_token = braced!(content in input);
-            ///         let inner_attrs = content.call(Attribute::parse_inner)?;
-            ///         let stmts = content.call(Block::parse_within)?;
-            ///
-            ///         Ok(MiniFunction {
-            ///             attrs: {
-            ///                 let mut attrs = outer_attrs;
-            ///                 attrs.extend(inner_attrs);
-            ///                 attrs
-            ///             },
-            ///             fn_token,
-            ///             name,
-            ///             brace_token,
-            ///             stmts,
-            ///         })
-            ///     }
-            /// }
-            /// ```
             pub fn parse_within(input: ParseStream) -> Result<Vec<Stmt>> {
                 let mut stmts = Vec::new();
                 loop {
@@ -21469,50 +18963,22 @@ mod ty {
     use super::*;
     use crate::punctuated::Punctuated;
     use proc_macro2::TokenStream;
-    /// The possible types that a Rust value could have.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum Type {
-        /// A fixed size array type: `[T; n]`.
         Array(TypeArray),
-        /// A bare function type: `fn(usize) -> bool`.
         BareFn(TypeBareFn),
-        /// A type contained within invisible delimiters.
         Group(TypeGroup),
-        /// An `impl Bound1 + Bound2 + Bound3` type where `Bound` is a trait or
-        /// a lifetime.
         ImplTrait(TypeImplTrait),
-        /// Indication that a type should be inferred by the compiler: `_`.
         Infer(TypeInfer),
-        /// A macro in the type position.
         Macro(TypeMacro),
-        /// The never type: `!`.
         Never(TypeNever),
-        /// A parenthesized type equivalent to the inner type.
         Paren(TypeParen),
-        /// A path like `std::slice::Iter`, optionally qualified with a
-        /// self-type as in `<Vec<T> as SomeTrait>::Associated`.
         Path(TypePath),
-        /// A raw pointer type: `*const T` or `*mut T`.
         Ptr(TypePtr),
-        /// A reference type: `&'a T` or `&'a mut T`.
         Reference(TypeReference),
-        /// A dynamically sized slice type: `[T]`.
         Slice(TypeSlice),
-        /// A trait object type `dyn Bound1 + Bound2 + Bound3` where `Bound` is a
-        /// trait or a lifetime.
         TraitObject(TypeTraitObject),
-        /// A tuple type: `(A, B, C, String)`.
         Tuple(TypeTuple),
-        /// Tokens in type position not interpreted by Syn.
         Verbatim(TokenStream),
     }
     impl From<TypeArray> for Type {
@@ -21606,20 +19072,12 @@ mod ty {
             }
         }
     }
-    /// A fixed size array type: `[T; n]`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeArray {
         pub bracket_token: token::Bracket,
         pub elem: Box<Type>,
         pub semi_token: crate::token::Semi,
         pub len: Expr,
     }
-    /// A bare function type: `fn(usize) -> bool`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeBareFn {
         pub lifetimes: Option<BoundLifetimes>,
         pub unsafety: Option<crate::token::Unsafe>,
@@ -21630,151 +19088,70 @@ mod ty {
         pub variadic: Option<Variadic>,
         pub output: ReturnType,
     }
-    /// A type contained within invisible delimiters.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeGroup {
         pub group_token: token::Group,
         pub elem: Box<Type>,
     }
-    /// An `impl Bound1 + Bound2 + Bound3` type where `Bound` is a trait or
-    /// a lifetime.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeImplTrait {
         pub impl_token: crate::token::Impl,
         pub bounds: Punctuated<TypeParamBound, crate::token::Add>,
     }
-    /// Indication that a type should be inferred by the compiler: `_`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeInfer {
         pub underscore_token: crate::token::Underscore,
     }
-    /// A macro in the type position.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeMacro {
         pub mac: Macro,
     }
-    /// The never type: `!`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeNever {
         pub bang_token: crate::token::Bang,
     }
-    /// A parenthesized type equivalent to the inner type.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeParen {
         pub paren_token: token::Paren,
         pub elem: Box<Type>,
     }
-    /// A path like `std::slice::Iter`, optionally qualified with a
-    /// self-type as in `<Vec<T> as SomeTrait>::Associated`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypePath {
         pub qself: Option<QSelf>,
         pub path: Path,
     }
-    /// A raw pointer type: `*const T` or `*mut T`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypePtr {
         pub star_token: crate::token::Star,
         pub const_token: Option<crate::token::Const>,
         pub mutability: Option<crate::token::Mut>,
         pub elem: Box<Type>,
     }
-    /// A reference type: `&'a T` or `&'a mut T`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeReference {
         pub and_token: crate::token::And,
         pub lifetime: Option<Lifetime>,
         pub mutability: Option<crate::token::Mut>,
         pub elem: Box<Type>,
     }
-    /// A dynamically sized slice type: `[T]`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeSlice {
         pub bracket_token: token::Bracket,
         pub elem: Box<Type>,
     }
-    /// A trait object type `dyn Bound1 + Bound2 + Bound3` where `Bound` is a
-    /// trait or a lifetime.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeTraitObject {
         pub dyn_token: Option<crate::token::Dyn>,
         pub bounds: Punctuated<TypeParamBound, crate::token::Add>,
     }
-    /// A tuple type: `(A, B, C, String)`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or
-    /// `"full"` feature.*
     pub struct TypeTuple {
         pub paren_token: token::Paren,
         pub elems: Punctuated<Type, crate::token::Comma>,
     }
-    /// The binary interface of a function: `extern "C"`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Abi {
         pub extern_token: crate::token::Extern,
         pub name: Option<LitStr>,
     }
-    /// An argument in a function type: the `usize` in `fn(usize) -> bool`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct BareFnArg {
         pub attrs: Vec<Attribute>,
         pub name: Option<(Ident, crate::token::Colon)>,
         pub ty: Type,
     }
-    /// The variadic argument of a foreign function.
-    ///
-    /// ```rust
-    /// # struct c_char;
-    /// # struct c_int;
-    /// #
-    /// extern "C" {
-    ///     fn printf(format: *const c_char, ...) -> c_int;
-    ///     //                               ^^^
-    /// }
-    /// ```
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Variadic {
         pub attrs: Vec<Attribute>,
         pub dots: crate::token::Dot3,
     }
-    /// Return type of a function signature.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum ReturnType {
-        /// Return type is not specified.
-        ///
-        /// Functions default to `()` and closures default to type inference.
         Default,
-        /// A particular type is returned.
         Type(crate::token::RArrow, Box<Type>),
     }
     #[cfg(feature = "parsing")]
@@ -21791,11 +19168,6 @@ mod ty {
             }
         }
         impl Type {
-            /// In some positions, types may not contain the `+` character, to
-            /// disambiguate them. For example in the expression `1 as T`, T may not
-            /// contain a `+` character.
-            ///
-            /// This parser does not allow a `+`, while the default parser does.
             pub fn without_plus(input: ParseStream) -> Result<Self> {
                 let allow_plus = false;
                 ambig_ty(input, allow_plus)
@@ -22707,58 +20079,23 @@ mod pat {
     use super::*;
     use crate::punctuated::Punctuated;
     use proc_macro2::TokenStream;
-    /// A pattern in a local binding, function signature, match expression, or
-    /// various other places.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
-    ///
-    /// # Syntax tree enum
-    ///
-    /// This type is a [syntax tree enum].
-    ///
-    /// [syntax tree enum]: Expr#syntax-tree-enums
     #[non_exhaustive]
     pub enum Pat {
-        /// A box pattern: `box v`.
         Box(PatBox),
-        /// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.
         Ident(PatIdent),
-        /// A literal pattern: `0`.
-        ///
-        /// This holds an `Expr` rather than a `Lit` because negative numbers
-        /// are represented as an `Expr::Unary`.
         Lit(PatLit),
-        /// A macro in pattern position.
         Macro(PatMacro),
-        /// A pattern that matches any one of a set of cases.
         Or(PatOr),
-        /// A path pattern like `Color::Red`, optionally qualified with a
-        /// self-type.
-        ///
-        /// Unqualified path patterns can legally refer to variants, structs,
-        /// constants or associated constants. Qualified path patterns like
-        /// `<A>::B::C` and `<A as Trait>::B::C` can only legally refer to
-        /// associated constants.
         Path(PatPath),
-        /// A range pattern: `1..=2`.
         Range(PatRange),
-        /// A reference pattern: `&mut var`.
         Reference(PatReference),
-        /// The dots in a tuple or slice pattern: `[0, 1, ..]`
         Rest(PatRest),
-        /// A dynamically sized slice pattern: `[a, b, ref i @ .., y, z]`.
         Slice(PatSlice),
-        /// A struct or struct variant pattern: `Variant { x, y, .. }`.
         Struct(PatStruct),
-        /// A tuple pattern: `(a, b)`.
         Tuple(PatTuple),
-        /// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.
         TupleStruct(PatTupleStruct),
-        /// A type ascription pattern: `foo: f64`.
         Type(PatType),
-        /// Tokens in pattern position not interpreted by Syn.
         Verbatim(TokenStream),
-        /// A pattern that matches any value: `_`.
         Wild(PatWild),
     }
     impl From<PatBox> for Pat {
@@ -22858,20 +20195,11 @@ mod pat {
             }
         }
     }
-    /// A box pattern: `box v`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatBox {
         pub attrs: Vec<Attribute>,
         pub box_token: crate::token::Box,
         pub pat: Box<Pat>,
     }
-    /// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.
-    ///
-    /// It may also be a unit struct or struct variant (e.g. `None`), or a
-    /// constant; these cannot be distinguished syntactically.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatIdent {
         pub attrs: Vec<Attribute>,
         pub by_ref: Option<crate::token::Ref>,
@@ -22879,81 +20207,45 @@ mod pat {
         pub ident: Ident,
         pub subpat: Option<(crate::token::At, Box<Pat>)>,
     }
-    /// A literal pattern: `0`.
-    ///
-    /// This holds an `Expr` rather than a `Lit` because negative numbers
-    /// are represented as an `Expr::Unary`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatLit {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
     }
-    /// A macro in pattern position.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
     }
-    /// A pattern that matches any one of a set of cases.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatOr {
         pub attrs: Vec<Attribute>,
         pub leading_vert: Option<crate::token::Or>,
         pub cases: Punctuated<Pat, crate::token::Or>,
     }
-    /// A path pattern like `Color::Red`, optionally qualified with a
-    /// self-type.
-    ///
-    /// Unqualified path patterns can legally refer to variants, structs,
-    /// constants or associated constants. Qualified path patterns like
-    /// `<A>::B::C` and `<A as Trait>::B::C` can only legally refer to
-    /// associated constants.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatPath {
         pub attrs: Vec<Attribute>,
         pub qself: Option<QSelf>,
         pub path: Path,
     }
-    /// A range pattern: `1..=2`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatRange {
         pub attrs: Vec<Attribute>,
         pub lo: Box<Expr>,
         pub limits: RangeLimits,
         pub hi: Box<Expr>,
     }
-    /// A reference pattern: `&mut var`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatReference {
         pub attrs: Vec<Attribute>,
         pub and_token: crate::token::And,
         pub mutability: Option<crate::token::Mut>,
         pub pat: Box<Pat>,
     }
-    /// The dots in a tuple or slice pattern: `[0, 1, ..]`
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatRest {
         pub attrs: Vec<Attribute>,
         pub dot2_token: crate::token::Dot2,
     }
-    /// A dynamically sized slice pattern: `[a, b, ref i @ .., y, z]`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatSlice {
         pub attrs: Vec<Attribute>,
         pub bracket_token: token::Bracket,
         pub elems: Punctuated<Pat, crate::token::Comma>,
     }
-    /// A struct or struct variant pattern: `Variant { x, y, .. }`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatStruct {
         pub attrs: Vec<Attribute>,
         pub path: Path,
@@ -22961,44 +20253,26 @@ mod pat {
         pub fields: Punctuated<FieldPat, crate::token::Comma>,
         pub dot2_token: Option<crate::token::Dot2>,
     }
-    /// A tuple pattern: `(a, b)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatTuple {
         pub attrs: Vec<Attribute>,
         pub paren_token: token::Paren,
         pub elems: Punctuated<Pat, crate::token::Comma>,
     }
-    /// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatTupleStruct {
         pub attrs: Vec<Attribute>,
         pub path: Path,
         pub pat: PatTuple,
     }
-    /// A type ascription pattern: `foo: f64`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatType {
         pub attrs: Vec<Attribute>,
         pub pat: Box<Pat>,
         pub colon_token: crate::token::Colon,
         pub ty: Box<Type>,
     }
-    /// A pattern that matches any value: `_`.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct PatWild {
         pub attrs: Vec<Attribute>,
         pub underscore_token: crate::token::Underscore,
     }
-    /// A single field in a struct pattern.
-    ///
-    /// Patterns like the fields of Foo `{ x, ref y, ref mut z }` are treated
-    /// the same as `x: x, y: ref y, z: ref mut z` but there is no colon token.
-    ///
-    /// *This type is available only if Syn is built with the `"full"` feature.*
     pub struct FieldPat {
         pub attrs: Vec<Attribute>,
         pub member: Member,
@@ -23637,10 +20911,6 @@ pub use crate::pat::{
 mod path {
     use super::*;
     use crate::punctuated::Punctuated;
-    /// A path at which a named item is exported (e.g. `std::collections::HashMap`).
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Path {
         pub leading_colon: Option<crate::token::Colon2>,
         pub segments: Punctuated<PathSegment, crate::token::Colon2>,
@@ -23658,10 +20928,6 @@ mod path {
             path
         }
     }
-    /// A segment of a path together with any path arguments on that segment.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct PathSegment {
         pub ident: Ident,
         pub arguments: PathArguments,
@@ -23677,23 +20943,9 @@ mod path {
             }
         }
     }
-    /// Angle bracketed or parenthesized arguments of a path segment.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
-    ///
-    /// ## Angle bracketed
-    ///
-    /// The `<'a, T>` in `std::slice::iter<'a, T>`.
-    ///
-    /// ## Parenthesized
-    ///
-    /// The `(A, B) -> C` in `Fn(A, B) -> C`.
     pub enum PathArguments {
         None,
-        /// The `<'a, T>` in `std::slice::iter<'a, T>`.
         AngleBracketed(AngleBracketedGenericArguments),
-        /// The `(A, B) -> C` in `Fn(A, B) -> C`.
         Parenthesized(ParenthesizedGenericArguments),
     }
     impl Default for PathArguments {
@@ -23719,86 +20971,34 @@ mod path {
             }
         }
     }
-    /// An individual generic argument, like `'a`, `T`, or `Item = T`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub enum GenericArgument {
-        /// A lifetime argument.
         Lifetime(Lifetime),
-        /// A type argument.
         Type(Type),
-        /// A binding (equality constraint) on an associated type: the `Item =
-        /// u8` in `Iterator<Item = u8>`.
         Binding(Binding),
-        /// An associated type bound: `Iterator<Item: Display>`.
         Constraint(Constraint),
-        /// A const expression. Must be inside of a block.
-        ///
-        /// NOTE: Identity expressions are represented as Type arguments, as
-        /// they are indistinguishable syntactically.
         Const(Expr),
     }
-    /// Angle bracketed arguments of a path segment: the `<K, V>` in `HashMap<K,
-    /// V>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct AngleBracketedGenericArguments {
         pub colon2_token: Option<crate::token::Colon2>,
         pub lt_token: crate::token::Lt,
         pub args: Punctuated<GenericArgument, crate::token::Comma>,
         pub gt_token: crate::token::Gt,
     }
-    /// A binding (equality constraint) on an associated type: `Item = u8`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Binding {
         pub ident: Ident,
         pub eq_token: crate::token::Eq,
         pub ty: Type,
     }
-    /// An associated type bound: `Iterator<Item: Display>`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct Constraint {
         pub ident: Ident,
         pub colon_token: crate::token::Colon,
         pub bounds: Punctuated<TypeParamBound, crate::token::Add>,
     }
-    /// Arguments of a function path segment: the `(A, B) -> C` in `Fn(A,B) ->
-    /// C`.
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct ParenthesizedGenericArguments {
         pub paren_token: token::Paren,
-        /// `(A, B)`
         pub inputs: Punctuated<Type, crate::token::Comma>,
-        /// `C`
         pub output: ReturnType,
     }
-    /// The explicit Self type in a qualified path: the `T` in `<T as
-    /// Display>::fmt`.
-    ///
-    /// The actual path, including the trait and the associated item, is stored
-    /// separately. The `position` field represents the index of the associated
-    /// item qualified with this Self type.
-    ///
-    /// ```text
-    /// <Vec<T> as a::b::Trait>::AssociatedItem
-    ///  ^~~~~~    ~~~~~~~~~~~~~~^
-    ///  ty        position = 3
-    ///
-    /// <Vec<T>>::AssociatedItem
-    ///  ^~~~~~   ^
-    ///  ty       position = 0
-    /// ```
-    ///
-    /// *This type is available only if Syn is built with the `"derive"` or `"full"`
-    /// feature.*
     pub struct QSelf {
         pub lt_token: crate::token::Lt,
         pub ty: Box<Type>,
@@ -24029,39 +21229,6 @@ mod path {
             Ok(bounds)
         }
         impl Path {
-            /// Parse a `Path` containing no path arguments on any of its segments.
-            ///
-            /// *This function is available only if Syn is built with the `"parsing"`
-            /// feature.*
-            ///
-            /// # Example
-            ///
-            /// ```
-            /// use syn::{Path, Result, Token};
-            /// use syn::parse::{Parse, ParseStream};
-            ///
-            /// // A simplified single `use` statement like:
-            /// //
-            /// //     use std::collections::HashMap;
-            /// //
-            /// // Note that generic parameters are not allowed in a `use` statement
-            /// // so the following must not be accepted.
-            /// //
-            /// //     use a::<b>::c;
-            /// struct SingleUse {
-            ///     use_token: Token![use],
-            ///     path: Path,
-            /// }
-            ///
-            /// impl Parse for SingleUse {
-            ///     fn parse(input: ParseStream) -> Result<Self> {
-            ///         Ok(SingleUse {
-            ///             use_token: input.parse()?,
-            ///             path: input.call(Path::parse_mod_style)?,
-            ///         })
-            ///     }
-            /// }
-            /// ```
             pub fn parse_mod_style(input: ParseStream) -> Result<Self> {
                 Ok(Path {
                     leading_colon: input.parse()?,
@@ -24092,37 +21259,6 @@ mod path {
                     },
                 })
             }
-            /// Determines whether this is a path of length 1 equal to the given
-            /// ident.
-            ///
-            /// For them to compare equal, it must be the case that:
-            ///
-            /// - the path has no leading colon,
-            /// - the number of path segments is 1,
-            /// - the first path segment has no angle bracketed or parenthesized
-            ///   path arguments, and
-            /// - the ident of the first path segment is equal to the given one.
-            ///
-            /// *This function is available only if Syn is built with the `"parsing"`
-            /// feature.*
-            ///
-            /// # Example
-            ///
-            /// ```
-            /// use syn::{Attribute, Error, Meta, NestedMeta, Result};
-            /// # use std::iter::FromIterator;
-            ///
-            /// fn get_serde_meta_items(attr: &Attribute) -> Result<Vec<NestedMeta>> {
-            ///     if attr.path.is_ident("serde") {
-            ///         match attr.parse_meta()? {
-            ///             Meta::List(meta) => Ok(Vec::from_iter(meta.nested)),
-            ///             bad => Err(Error::new_spanned(bad, "unrecognized attribute")),
-            ///         }
-            ///     } else {
-            ///         Ok(Vec::new())
-            ///     }
-            /// }
-            /// ```
             pub fn is_ident<I: ?Sized>(&self, ident: &I) -> bool
             where
                 Ident: PartialEq<I>,
@@ -24132,17 +21268,6 @@ mod path {
                     None => false,
                 }
             }
-            /// If this path consists of a single ident, returns the ident.
-            ///
-            /// A path is considered an ident if:
-            ///
-            /// - the path has no leading colon,
-            /// - the number of path segments is 1, and
-            /// - the first path segment has no angle bracketed or parenthesized
-            ///   path arguments.
-            ///
-            /// *This function is available only if Syn is built with the `"parsing"`
-            /// feature.*
             pub fn get_ident(&self) -> Option<&Ident> {
                 if self.leading_colon.is_none() && self.segments.len() == 1
                     && self.segments[0].arguments.is_none()
@@ -24415,10 +21540,6 @@ pub use crate::path::{
 };
 #[cfg(feature = "parsing")]
 pub mod buffer {
-    //! A stably addressed token buffer supporting efficient traversal based on a
-    //! cheaply copyable cursor.
-    //!
-    //! *This module is available only if Syn is built with the `"parsing"` feature.*
     #[cfg(
         all(
             not(
@@ -24438,8 +21559,6 @@ pub mod buffer {
     use std::marker::PhantomData;
     use std::ptr;
     use std::slice;
-    /// Internal type which is used instead of `TokenTree` to represent a token tree
-    /// within a `TokenBuffer`.
     enum Entry {
         Group(Group, TokenBuffer),
         Ident(Ident),
@@ -24447,11 +21566,6 @@ pub mod buffer {
         Literal(Literal),
         End(*const Entry),
     }
-    /// A buffer that can be efficiently traversed multiple times, unlike
-    /// `TokenStream` which requires a deep copy in order to traverse more than
-    /// once.
-    ///
-    /// *This type is available only if Syn is built with the `"parsing"` feature.*
     pub struct TokenBuffer {
         ptr: *const Entry,
         len: usize,
@@ -24496,11 +21610,6 @@ pub mod buffer {
             }
             TokenBuffer { ptr: entries, len }
         }
-        /// Creates a `TokenBuffer` containing all the tokens from the input
-        /// `proc_macro::TokenStream`.
-        ///
-        /// *This method is available only if Syn is built with both the `"parsing"` and
-        /// `"proc-macro"` features.*
         #[cfg(
             all(
                 not(
@@ -24515,37 +21624,19 @@ pub mod buffer {
         pub fn new(stream: pm::TokenStream) -> Self {
             Self::new2(stream.into())
         }
-        /// Creates a `TokenBuffer` containing all the tokens from the input
-        /// `proc_macro2::TokenStream`.
         pub fn new2(stream: TokenStream) -> Self {
             Self::inner_new(stream, ptr::null())
         }
-        /// Creates a cursor referencing the first token in the buffer and able to
-        /// traverse until the end of the buffer.
         pub fn begin(&self) -> Cursor {
             unsafe { Cursor::create(self.ptr, self.ptr.add(self.len - 1)) }
         }
     }
-    /// A cheaply copyable cursor into a `TokenBuffer`.
-    ///
-    /// This cursor holds a shared reference into the immutable data which is used
-    /// internally to represent a `TokenStream`, and can be efficiently manipulated
-    /// and copied around.
-    ///
-    /// An empty `Cursor` can be created directly, or one may create a `TokenBuffer`
-    /// object and get a cursor to its first token with `begin()`.
-    ///
-    /// Two cursors are equal if they have the same location in the same input
-    /// stream, and have the same scope.
-    ///
-    /// *This type is available only if Syn is built with the `"parsing"` feature.*
     pub struct Cursor<'a> {
         ptr: *const Entry,
         scope: *const Entry,
         marker: PhantomData<&'a Entry>,
     }
     impl<'a> Cursor<'a> {
-        /// Creates a cursor referencing a static empty TokenStream.
         pub fn empty() -> Self {
             struct UnsafeSyncEntry(Entry);
             unsafe impl Sync for UnsafeSyncEntry {}
@@ -24558,9 +21649,6 @@ pub mod buffer {
                 marker: PhantomData,
             }
         }
-        /// This create method intelligently exits non-explicitly-entered
-        /// `None`-delimited scopes when the cursor reaches the end of them,
-        /// allowing for them to be treated transparently.
         unsafe fn create(mut ptr: *const Entry, scope: *const Entry) -> Self {
             while let Entry::End(exit) = *ptr {
                 if ptr == scope {
@@ -24574,21 +21662,12 @@ pub mod buffer {
                 marker: PhantomData,
             }
         }
-        /// Get the current entry.
         fn entry(self) -> &'a Entry {
             unsafe { &*self.ptr }
         }
-        /// Bump the cursor to point at the next token after the current one. This
-        /// is undefined behavior if the cursor is currently looking at an
-        /// `Entry::End`.
         unsafe fn bump(self) -> Cursor<'a> {
             Cursor::create(self.ptr.offset(1), self.scope)
         }
-        /// While the cursor is looking at a `None`-delimited group, move it to look
-        /// at the first token inside instead. If the group is empty, this will move
-        /// the cursor past the `None`-delimited group.
-        ///
-        /// WARNING: This mutates its argument.
         fn ignore_none(&mut self) {
             while let Entry::Group(group, buf) = self.entry() {
                 if group.delimiter() == Delimiter::None {
@@ -24600,13 +21679,9 @@ pub mod buffer {
                 }
             }
         }
-        /// Checks whether the cursor is currently pointing at the end of its valid
-        /// scope.
         pub fn eof(self) -> bool {
             self.ptr == self.scope
         }
-        /// If the cursor is pointing at a `Group` with the given delimiter, returns
-        /// a cursor into that group and one pointing to the next `TokenTree`.
         pub fn group(
             mut self,
             delim: Delimiter,
@@ -24621,8 +21696,6 @@ pub mod buffer {
             }
             None
         }
-        /// If the cursor is pointing at a `Ident`, returns it along with a cursor
-        /// pointing at the next `TokenTree`.
         pub fn ident(mut self) -> Option<(Ident, Cursor<'a>)> {
             self.ignore_none();
             match self.entry() {
@@ -24630,8 +21703,6 @@ pub mod buffer {
                 _ => None,
             }
         }
-        /// If the cursor is pointing at a `Punct`, returns it along with a cursor
-        /// pointing at the next `TokenTree`.
         pub fn punct(mut self) -> Option<(Punct, Cursor<'a>)> {
             self.ignore_none();
             match self.entry() {
@@ -24641,8 +21712,6 @@ pub mod buffer {
                 _ => None,
             }
         }
-        /// If the cursor is pointing at a `Literal`, return it along with a cursor
-        /// pointing at the next `TokenTree`.
         pub fn literal(mut self) -> Option<(Literal, Cursor<'a>)> {
             self.ignore_none();
             match self.entry() {
@@ -24650,8 +21719,6 @@ pub mod buffer {
                 _ => None,
             }
         }
-        /// If the cursor is pointing at a `Lifetime`, returns it along with a
-        /// cursor pointing at the next `TokenTree`.
         pub fn lifetime(mut self) -> Option<(Lifetime, Cursor<'a>)> {
             self.ignore_none();
             match self.entry() {
@@ -24673,8 +21740,6 @@ pub mod buffer {
                 _ => None,
             }
         }
-        /// Copies all remaining tokens visible from this cursor into a
-        /// `TokenStream`.
         pub fn token_stream(self) -> TokenStream {
             let mut tts = Vec::new();
             let mut cursor = self;
@@ -24684,13 +21749,6 @@ pub mod buffer {
             }
             tts.into_iter().collect()
         }
-        /// If the cursor is pointing at a `TokenTree`, returns it along with a
-        /// cursor pointing at the next `TokenTree`.
-        ///
-        /// Returns `None` if the cursor has reached the end of its stream.
-        ///
-        /// This method does not treat `None`-delimited groups as transparent, and
-        /// will return a `Group(None, ..)` if the cursor is looking at one.
         pub fn token_tree(self) -> Option<(TokenTree, Cursor<'a>)> {
             let tree = match self.entry() {
                 Entry::Group(group, _) => group.clone().into(),
@@ -24701,8 +21759,6 @@ pub mod buffer {
             };
             Some((tree, unsafe { self.bump() }))
         }
-        /// Returns the `Span` of the current token, or `Span::call_site()` if this
-        /// cursor points to eof.
         pub fn span(self) -> Span {
             match self.entry() {
                 Entry::Group(group, _) => group.span(),
@@ -24712,10 +21768,6 @@ pub mod buffer {
                 Entry::End(..) => Span::call_site(),
             }
         }
-        /// Skip over the next token without cloning it. Returns `None` if this
-        /// cursor points to eof.
-        ///
-        /// This method treats `'lifetimes` as a single token.
         pub(crate) fn skip(self) -> Option<Cursor<'a>> {
             match self.entry() {
                 Entry::End(..) => None,
@@ -24764,87 +21816,16 @@ pub mod buffer {
 }
 #[cfg(feature = "parsing")]
 pub mod ext {
-    //! Extension traits to provide parsing methods on foreign types.
-    //!
-    //! *This module is available only if Syn is built with the `"parsing"` feature.*
     use crate::buffer::Cursor;
     use crate::parse::Peek;
     use crate::parse::{ParseStream, Result};
     use crate::sealed::lookahead;
     use crate::token::CustomToken;
     use proc_macro2::Ident;
-    /// Additional methods for `Ident` not provided by proc-macro2 or libproc_macro.
-    ///
-    /// This trait is sealed and cannot be implemented for types outside of Syn. It
-    /// is implemented only for `proc_macro2::Ident`.
-    ///
-    /// *This trait is available only if Syn is built with the `"parsing"` feature.*
     pub trait IdentExt: Sized + private::Sealed {
-        /// Parses any identifier including keywords.
-        ///
-        /// This is useful when parsing macro input which allows Rust keywords as
-        /// identifiers.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{Error, Ident, Result, Token};
-        /// use syn::ext::IdentExt;
-        /// use syn::parse::ParseStream;
-        ///
-        /// mod kw {
-        ///     syn::custom_keyword!(name);
-        /// }
-        ///
-        /// // Parses input that looks like `name = NAME` where `NAME` can be
-        /// // any identifier.
-        /// //
-        /// // Examples:
-        /// //
-        /// //     name = anything
-        /// //     name = impl
-        /// fn parse_dsl(input: ParseStream) -> Result<Ident> {
-        ///     input.parse::<kw::name>()?;
-        ///     input.parse::<Token![=]>()?;
-        ///     let name = input.call(Ident::parse_any)?;
-        ///     Ok(name)
-        /// }
-        /// ```
         fn parse_any(input: ParseStream) -> Result<Self>;
-        /// Peeks any identifier including keywords. Usage:
-        /// `input.peek(Ident::peek_any)`
-        ///
-        /// This is different from `input.peek(Ident)` which only returns true in
-        /// the case of an ident which is not a Rust keyword.
         #[allow(non_upper_case_globals)]
         const peek_any: private::PeekFn = private::PeekFn;
-        /// Strips the raw marker `r#`, if any, from the beginning of an ident.
-        ///
-        ///   - unraw(`x`) = `x`
-        ///   - unraw(`move`) = `move`
-        ///   - unraw(`r#move`) = `move`
-        ///
-        /// # Example
-        ///
-        /// In the case of interop with other languages like Python that have a
-        /// different set of keywords than Rust, we might come across macro input
-        /// that involves raw identifiers to refer to ordinary variables in the
-        /// other language with a name that happens to be a Rust keyword.
-        ///
-        /// The function below appends an identifier from the caller's input onto a
-        /// fixed prefix. Without using `unraw()`, this would tend to produce
-        /// invalid identifiers like `__pyo3_get_r#move`.
-        ///
-        /// ```
-        /// use proc_macro2::Span;
-        /// use syn::Ident;
-        /// use syn::ext::IdentExt;
-        ///
-        /// fn ident_for_getter(variable: &Ident) -> Ident {
-        ///     let getter = format!("__pyo3_get_{}", variable.unraw());
-        ///     Ident::new(&getter, Span::call_site())
-        /// }
-        /// ```
         fn unraw(&self) -> Ident;
     }
     impl IdentExt for Ident {
@@ -24891,27 +21872,6 @@ pub mod ext {
     }
 }
 pub mod punctuated {
-    //! A punctuated sequence of syntax tree nodes separated by punctuation.
-    //!
-    //! Lots of things in Rust are punctuated sequences.
-    //!
-    //! - The fields of a struct are `Punctuated<Field, Token![,]>`.
-    //! - The segments of a path are `Punctuated<PathSegment, Token![::]>`.
-    //! - The bounds on a generic parameter are `Punctuated<TypeParamBound,
-    //!   Token![+]>`.
-    //! - The arguments to a function call are `Punctuated<Expr, Token![,]>`.
-    //!
-    //! This module provides a common representation for these punctuated sequences
-    //! in the form of the [`Punctuated<T, P>`] type. We store a vector of pairs of
-    //! syntax tree node + punctuation, where every node in the sequence is followed
-    //! by punctuation except for possibly the final one.
-    //!
-    //! [`Punctuated<T, P>`]: Punctuated
-    //!
-    //! ```text
-    //! a_function_call(arg1, arg2, arg3);
-    //!                 ~~~~^ ~~~~^ ~~~~
-    //! ```
     #[cfg(feature = "extra-traits")]
     use std::fmt::{self, Debug};
     #[cfg(feature = "extra-traits")]
@@ -24927,18 +21887,11 @@ pub mod punctuated {
     use crate::parse::{Parse, ParseStream, Result};
     #[cfg(feature = "parsing")]
     use crate::token::Token;
-    /// A punctuated sequence of syntax tree nodes of type `T` separated by
-    /// punctuation of type `P`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct Punctuated<T, P> {
         inner: Vec<(T, P)>,
         last: Option<Box<T>>,
     }
     impl<T, P> Punctuated<T, P> {
-        /// Creates an empty punctuated sequence.
         #[cfg(not(syn_no_const_vec_new))]
         pub const fn new() -> Self {
             Punctuated {
@@ -24946,35 +21899,24 @@ pub mod punctuated {
                 last: None,
             }
         }
-        /// Determines whether this punctuated sequence is empty, meaning it
-        /// contains no syntax tree nodes or punctuation.
         pub fn is_empty(&self) -> bool {
             self.inner.len() == 0 && self.last.is_none()
         }
-        /// Returns the number of syntax tree nodes in this punctuated sequence.
-        ///
-        /// This is the number of nodes of type `T`, not counting the punctuation of
-        /// type `P`.
         pub fn len(&self) -> usize {
             self.inner.len() + if self.last.is_some() { 1 } else { 0 }
         }
-        /// Borrows the first element in this sequence.
         pub fn first(&self) -> Option<&T> {
             self.iter().next()
         }
-        /// Mutably borrows the first element in this sequence.
         pub fn first_mut(&mut self) -> Option<&mut T> {
             self.iter_mut().next()
         }
-        /// Borrows the last element in this sequence.
         pub fn last(&self) -> Option<&T> {
             self.iter().next_back()
         }
-        /// Mutably borrows the last element in this sequence.
         pub fn last_mut(&mut self) -> Option<&mut T> {
             self.iter_mut().next_back()
         }
-        /// Returns an iterator over borrowed syntax tree nodes of type `&T`.
         pub fn iter(&self) -> Iter<T> {
             Iter {
                 inner: Box::new(PrivateIter {
@@ -24983,8 +21925,6 @@ pub mod punctuated {
                 }),
             }
         }
-        /// Returns an iterator over mutably borrowed syntax tree nodes of type
-        /// `&mut T`.
         pub fn iter_mut(&mut self) -> IterMut<T> {
             IterMut {
                 inner: Box::new(PrivateIterMut {
@@ -24993,42 +21933,24 @@ pub mod punctuated {
                 }),
             }
         }
-        /// Returns an iterator over the contents of this sequence as borrowed
-        /// punctuated pairs.
         pub fn pairs(&self) -> Pairs<T, P> {
             Pairs {
                 inner: self.inner.iter(),
                 last: self.last.as_ref().map(Box::as_ref).into_iter(),
             }
         }
-        /// Returns an iterator over the contents of this sequence as mutably
-        /// borrowed punctuated pairs.
         pub fn pairs_mut(&mut self) -> PairsMut<T, P> {
             PairsMut {
                 inner: self.inner.iter_mut(),
                 last: self.last.as_mut().map(Box::as_mut).into_iter(),
             }
         }
-        /// Returns an iterator over the contents of this sequence as owned
-        /// punctuated pairs.
         pub fn into_pairs(self) -> IntoPairs<T, P> {
             IntoPairs {
                 inner: self.inner.into_iter(),
                 last: self.last.map(|t| *t).into_iter(),
             }
         }
-        /// Appends a syntax tree node onto the end of this punctuated sequence. The
-        /// sequence must previously have a trailing punctuation.
-        ///
-        /// Use [`push`] instead if the punctuated sequence may or may not already
-        /// have trailing punctuation.
-        ///
-        /// [`push`]: Punctuated::push
-        ///
-        /// # Panics
-        ///
-        /// Panics if the sequence does not already have a trailing punctuation when
-        /// this method is called.
         pub fn push_value(&mut self, value: T) {
             if !self.empty_or_trailing() {
                 {
@@ -25039,13 +21961,6 @@ pub mod punctuated {
             }
             self.last = Some(Box::new(value));
         }
-        /// Appends a trailing punctuation onto the end of this punctuated sequence.
-        /// The sequence must be non-empty and must not already have trailing
-        /// punctuation.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the sequence is empty or already has a trailing punctuation.
         pub fn push_punct(&mut self, punctuation: P) {
             if !self.last.is_some() {
                 {
@@ -25057,8 +21972,6 @@ pub mod punctuated {
             let last = self.last.take().unwrap();
             self.inner.push((*last, punctuation));
         }
-        /// Removes the last punctuated pair from this sequence, or `None` if the
-        /// sequence is empty.
         pub fn pop(&mut self) -> Option<Pair<T, P>> {
             if self.last.is_some() {
                 self.last.take().map(|t| Pair::End(*t))
@@ -25066,23 +21979,12 @@ pub mod punctuated {
                 self.inner.pop().map(|(t, p)| Pair::Punctuated(t, p))
             }
         }
-        /// Determines whether this punctuated sequence ends with a trailing
-        /// punctuation.
         pub fn trailing_punct(&self) -> bool {
             self.last.is_none() && !self.is_empty()
         }
-        /// Returns true if either this `Punctuated` is empty, or it has a trailing
-        /// punctuation.
-        ///
-        /// Equivalent to `punctuated.is_empty() || punctuated.trailing_punct()`.
         pub fn empty_or_trailing(&self) -> bool {
             self.last.is_none()
         }
-        /// Appends a syntax tree node onto the end of this punctuated sequence.
-        ///
-        /// If there is not a trailing punctuation in this sequence when this method
-        /// is called, the default value of punctuation type `P` is inserted before
-        /// the given value of type `T`.
         pub fn push(&mut self, value: T)
         where
             P: Default,
@@ -25092,12 +21994,6 @@ pub mod punctuated {
             }
             self.push_value(value);
         }
-        /// Inserts an element at position `index`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `index` is greater than the number of elements previously in
-        /// this punctuated sequence.
         pub fn insert(&mut self, index: usize, value: T)
         where
             P: Default,
@@ -25111,19 +22007,10 @@ pub mod punctuated {
                 self.inner.insert(index, (value, Default::default()));
             }
         }
-        /// Clears the sequence of all values and punctuation, making it empty.
         pub fn clear(&mut self) {
             self.inner.clear();
             self.last = None;
         }
-        /// Parses zero or more occurrences of `T` separated by punctuation of type
-        /// `P`, with optional trailing punctuation.
-        ///
-        /// Parsing continues until the end of this parse stream. The entire content
-        /// of this parse stream must consist of `T` and `P`.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_terminated(input: ParseStream) -> Result<Self>
         where
@@ -25132,17 +22019,6 @@ pub mod punctuated {
         {
             Self::parse_terminated_with(input, T::parse)
         }
-        /// Parses zero or more occurrences of `T` using the given parse function,
-        /// separated by punctuation of type `P`, with optional trailing
-        /// punctuation.
-        ///
-        /// Like [`parse_terminated`], the entire content of this stream is expected
-        /// to be parsed.
-        ///
-        /// [`parse_terminated`]: Punctuated::parse_terminated
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_terminated_with(
             input: ParseStream,
@@ -25166,16 +22042,6 @@ pub mod punctuated {
             }
             Ok(punctuated)
         }
-        /// Parses one or more occurrences of `T` separated by punctuation of type
-        /// `P`, not accepting trailing punctuation.
-        ///
-        /// Parsing continues as long as punctuation `P` is present at the head of
-        /// the stream. This method returns upon parsing a `T` and observing that it
-        /// is not followed by a `P`, even if there are remaining tokens in the
-        /// stream.
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_separated_nonempty(input: ParseStream) -> Result<Self>
         where
@@ -25184,17 +22050,6 @@ pub mod punctuated {
         {
             Self::parse_separated_nonempty_with(input, T::parse)
         }
-        /// Parses one or more occurrences of `T` using the given parse function,
-        /// separated by punctuation of type `P`, not accepting trailing
-        /// punctuation.
-        ///
-        /// Like [`parse_separated_nonempty`], may complete early without parsing
-        /// the entire content of this stream.
-        ///
-        /// [`parse_separated_nonempty`]: Punctuated::parse_separated_nonempty
-        ///
-        /// *This function is available only if Syn is built with the `"parsing"`
-        /// feature.*
         #[cfg(feature = "parsing")]
         pub fn parse_separated_nonempty_with(
             input: ParseStream,
@@ -25358,11 +22213,6 @@ pub mod punctuated {
             Punctuated::new()
         }
     }
-    /// An iterator over borrowed pairs of type `Pair<&T, &P>`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct Pairs<'a, T: 'a, P: 'a> {
         inner: slice::Iter<'a, (T, P)>,
         last: option::IntoIter<&'a T>,
@@ -25400,11 +22250,6 @@ pub mod punctuated {
             }
         }
     }
-    /// An iterator over mutably borrowed pairs of type `Pair<&mut T, &mut P>`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct PairsMut<'a, T: 'a, P: 'a> {
         inner: slice::IterMut<'a, (T, P)>,
         last: option::IntoIter<&'a mut T>,
@@ -25434,11 +22279,6 @@ pub mod punctuated {
             self.inner.len() + self.last.len()
         }
     }
-    /// An iterator over owned pairs of type `Pair<T, P>`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct IntoPairs<T, P> {
         inner: vec::IntoIter<(T, P)>,
         last: option::IntoIter<T>,
@@ -25480,11 +22320,6 @@ pub mod punctuated {
             }
         }
     }
-    /// An iterator over owned values of type `T`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct IntoIter<T> {
         inner: vec::IntoIter<T>,
     }
@@ -25517,11 +22352,6 @@ pub mod punctuated {
             }
         }
     }
-    /// An iterator over borrowed values of type `&T`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct Iter<'a, T: 'a> {
         inner: Box<dyn IterTrait<'a, T, Item = &'a T> + 'a>,
     }
@@ -25601,11 +22431,6 @@ pub mod punctuated {
             Box::new(self.clone())
         }
     }
-    /// An iterator over mutably borrowed values of type `&mut T`.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub struct IterMut<'a, T: 'a> {
         inner: Box<dyn IterMutTrait<'a, T, Item = &'a mut T> + 'a>,
     }
@@ -25664,78 +22489,44 @@ pub mod punctuated {
         I: DoubleEndedIterator<Item = &'a mut T> + ExactSizeIterator<Item = &'a mut T>
             + 'a,
     {}
-    /// A single syntax tree node of type `T` followed by its trailing punctuation
-    /// of type `P` if any.
-    ///
-    /// Refer to the [module documentation] for details about punctuated sequences.
-    ///
-    /// [module documentation]: self
     pub enum Pair<T, P> {
         Punctuated(T, P),
         End(T),
     }
     impl<T, P> Pair<T, P> {
-        /// Extracts the syntax tree node from this punctuated pair, discarding the
-        /// following punctuation.
         pub fn into_value(self) -> T {
             match self {
                 Pair::Punctuated(t, _) | Pair::End(t) => t,
             }
         }
-        /// Borrows the syntax tree node from this punctuated pair.
         pub fn value(&self) -> &T {
             match self {
                 Pair::Punctuated(t, _) | Pair::End(t) => t,
             }
         }
-        /// Mutably borrows the syntax tree node from this punctuated pair.
         pub fn value_mut(&mut self) -> &mut T {
             match self {
                 Pair::Punctuated(t, _) | Pair::End(t) => t,
             }
         }
-        /// Borrows the punctuation from this punctuated pair, unless this pair is
-        /// the final one and there is no trailing punctuation.
         pub fn punct(&self) -> Option<&P> {
             match self {
                 Pair::Punctuated(_, p) => Some(p),
                 Pair::End(_) => None,
             }
         }
-        /// Mutably borrows the punctuation from this punctuated pair, unless the
-        /// pair is the final one and there is no trailing punctuation.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// # use proc_macro2::Span;
-        /// # use syn::punctuated::Punctuated;
-        /// # use syn::{parse_quote, Token, TypeParamBound};
-        /// #
-        /// # let mut punctuated = Punctuated::<TypeParamBound, Token![+]>::new();
-        /// # let span = Span::call_site();
-        /// #
-        /// punctuated.insert(0, parse_quote!('lifetime));
-        /// if let Some(punct) = punctuated.pairs_mut().next().unwrap().punct_mut() {
-        ///     punct.span = span;
-        /// }
-        /// ```
         pub fn punct_mut(&mut self) -> Option<&mut P> {
             match self {
                 Pair::Punctuated(_, p) => Some(p),
                 Pair::End(_) => None,
             }
         }
-        /// Creates a punctuated pair out of a syntax tree node and an optional
-        /// following punctuation.
         pub fn new(t: T, p: Option<P>) -> Self {
             match p {
                 Some(p) => Pair::Punctuated(t, p),
                 None => Pair::End(t),
             }
         }
-        /// Produces this punctuated pair as a tuple of syntax tree node and
-        /// optional following punctuation.
         pub fn into_tuple(self) -> (T, Option<P>) {
             match self {
                 Pair::Punctuated(t, p) => (t, Some(p)),
@@ -26010,110 +22801,9 @@ pub mod parse_macro_input {
 }
 #[cfg(all(feature = "parsing", feature = "printing"))]
 pub mod spanned {
-    //! A trait that can provide the `Span` of the complete contents of a syntax
-    //! tree node.
-    //!
-    //! *This module is available only if Syn is built with both the `"parsing"` and
-    //! `"printing"` features.*
-    //!
-    //! <br>
-    //!
-    //! # Example
-    //!
-    //! Suppose in a procedural macro we have a [`Type`] that we want to assert
-    //! implements the [`Sync`] trait. Maybe this is the type of one of the fields
-    //! of a struct for which we are deriving a trait implementation, and we need to
-    //! be able to pass a reference to one of those fields across threads.
-    //!
-    //! [`Type`]: crate::Type
-    //! [`Sync`]: std::marker::Sync
-    //!
-    //! If the field type does *not* implement `Sync` as required, we want the
-    //! compiler to report an error pointing out exactly which type it was.
-    //!
-    //! The following macro code takes a variable `ty` of type `Type` and produces a
-    //! static assertion that `Sync` is implemented for that type.
-    //!
-    //! ```
-    //! # extern crate proc_macro;
-    //! #
-    //! use proc_macro::TokenStream;
-    //! use proc_macro2::Span;
-    //! use quote::quote_spanned;
-    //! use syn::Type;
-    //! use syn::spanned::Spanned;
-    //!
-    //! # const IGNORE_TOKENS: &str = stringify! {
-    //! #[proc_macro_derive(MyMacro)]
-    //! # };
-    //! pub fn my_macro(input: TokenStream) -> TokenStream {
-    //!     # let ty = get_a_type();
-    //!     /* ... */
-    //!
-    //!     let assert_sync = quote_spanned! {ty.span()=>
-    //!         struct _AssertSync where #ty: Sync;
-    //!     };
-    //!
-    //!     /* ... */
-    //!     # input
-    //! }
-    //! #
-    //! # fn get_a_type() -> Type {
-    //! #     unimplemented!()
-    //! # }
-    //! ```
-    //!
-    //! By inserting this `assert_sync` fragment into the output code generated by
-    //! our macro, the user's code will fail to compile if `ty` does not implement
-    //! `Sync`. The errors they would see look like the following.
-    //!
-    //! ```text
-    //! error[E0277]: the trait bound `*const i32: std::marker::Sync` is not satisfied
-    //!   --> src/main.rs:10:21
-    //!    |
-    //! 10 |     bad_field: *const i32,
-    //!    |                ^^^^^^^^^^ `*const i32` cannot be shared between threads safely
-    //! ```
-    //!
-    //! In this technique, using the `Type`'s span for the error message makes the
-    //! error appear in the correct place underlining the right type.
-    //!
-    //! <br>
-    //!
-    //! # Limitations
-    //!
-    //! The underlying [`proc_macro::Span::join`] method is nightly-only. When
-    //! called from within a procedural macro in a nightly compiler, `Spanned` will
-    //! use `join` to produce the intended span. When not using a nightly compiler,
-    //! only the span of the *first token* of the syntax tree node is returned.
-    //!
-    //! In the common case of wanting to use the joined span as the span of a
-    //! `syn::Error`, consider instead using [`syn::Error::new_spanned`] which is
-    //! able to span the error correctly under the complete syntax tree node without
-    //! needing the unstable `join`.
-    //!
-    //! [`syn::Error::new_spanned`]: crate::Error::new_spanned
     use proc_macro2::Span;
     use quote::spanned::Spanned as ToTokens;
-    /// A trait that can provide the `Span` of the complete contents of a syntax
-    /// tree node.
-    ///
-    /// This trait is automatically implemented for all types that implement
-    /// [`ToTokens`] from the `quote` crate, as well as for `Span` itself.
-    ///
-    /// [`ToTokens`]: quote::ToTokens
-    ///
-    /// See the [module documentation] for an example.
-    ///
-    /// [module documentation]: self
-    ///
-    /// *This trait is available only if Syn is built with both the `"parsing"` and
-    /// `"printing"` features.*
     pub trait Spanned {
-        /// Returns a `Span` covering the complete contents of this syntax tree
-        /// node, or [`Span::call_site()`] if this node is empty.
-        ///
-        /// [`Span::call_site()`]: proc_macro2::Span::call_site
         fn span(&self) -> Span;
     }
     impl<T: ?Sized + ToTokens> Spanned for T {
@@ -26189,122 +22879,6 @@ mod whitespace {
     }
 }
 mod gen {
-    /// Syntax tree traversal to walk a shared borrow of a syntax tree.
-    ///
-    /// Each method of the [`Visit`] trait is a hook that can be overridden to
-    /// customize the behavior when visiting the corresponding type of node. By
-    /// default, every method recursively visits the substructure of the input
-    /// by invoking the right visitor method of each of its fields.
-    ///
-    /// [`Visit`]: visit::Visit
-    ///
-    /// ```
-    /// # use syn::{Attribute, BinOp, Expr, ExprBinary};
-    /// #
-    /// pub trait Visit<'ast> {
-    ///     /* ... */
-    ///
-    ///     fn visit_expr_binary(&mut self, node: &'ast ExprBinary) {
-    ///         visit_expr_binary(self, node);
-    ///     }
-    ///
-    ///     /* ... */
-    ///     # fn visit_attribute(&mut self, node: &'ast Attribute);
-    ///     # fn visit_expr(&mut self, node: &'ast Expr);
-    ///     # fn visit_bin_op(&mut self, node: &'ast BinOp);
-    /// }
-    ///
-    /// pub fn visit_expr_binary<'ast, V>(v: &mut V, node: &'ast ExprBinary)
-    /// where
-    ///     V: Visit<'ast> + ?Sized,
-    /// {
-    ///     for attr in &node.attrs {
-    ///         v.visit_attribute(attr);
-    ///     }
-    ///     v.visit_expr(&*node.left);
-    ///     v.visit_bin_op(&node.op);
-    ///     v.visit_expr(&*node.right);
-    /// }
-    ///
-    /// /* ... */
-    /// ```
-    ///
-    /// *This module is available only if Syn is built with the `"visit"` feature.*
-    ///
-    /// <br>
-    ///
-    /// # Example
-    ///
-    /// This visitor will print the name of every freestanding function in the
-    /// syntax tree, including nested functions.
-    ///
-    /// ```
-    /// // [dependencies]
-    /// // quote = "1.0"
-    /// // syn = { version = "1.0", features = ["full", "visit"] }
-    ///
-    /// use quote::quote;
-    /// use syn::visit::{self, Visit};
-    /// use syn::{File, ItemFn};
-    ///
-    /// struct FnVisitor;
-    ///
-    /// impl<'ast> Visit<'ast> for FnVisitor {
-    ///     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
-    ///         println!("Function with name={}", node.sig.ident);
-    ///
-    ///         // Delegate to the default impl to visit any nested functions.
-    ///         visit::visit_item_fn(self, node);
-    ///     }
-    /// }
-    ///
-    /// fn main() {
-    ///     let code = quote! {
-    ///         pub fn f() {
-    ///             fn g() {}
-    ///         }
-    ///     };
-    ///
-    ///     let syntax_tree: File = syn::parse2(code).unwrap();
-    ///     FnVisitor.visit_file(&syntax_tree);
-    /// }
-    /// ```
-    ///
-    /// The `'ast` lifetime on the input references means that the syntax tree
-    /// outlives the complete recursive visit call, so the visitor is allowed to
-    /// hold on to references into the syntax tree.
-    ///
-    /// ```
-    /// use quote::quote;
-    /// use syn::visit::{self, Visit};
-    /// use syn::{File, ItemFn};
-    ///
-    /// struct FnVisitor<'ast> {
-    ///     functions: Vec<&'ast ItemFn>,
-    /// }
-    ///
-    /// impl<'ast> Visit<'ast> for FnVisitor<'ast> {
-    ///     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
-    ///         self.functions.push(node);
-    ///         visit::visit_item_fn(self, node);
-    ///     }
-    /// }
-    ///
-    /// fn main() {
-    ///     let code = quote! {
-    ///         pub fn f() {
-    ///             fn g() {}
-    ///         }
-    ///     };
-    ///
-    ///     let syntax_tree: File = syn::parse2(code).unwrap();
-    ///     let mut visitor = FnVisitor { functions: Vec::new() };
-    ///     visitor.visit_file(&syntax_tree);
-    ///     for f in visitor.functions {
-    ///         println!("Function with name={}", f.sig.ident);
-    ///     }
-    /// }
-    /// ```
     #[cfg(feature = "visit")]
     #[rustfmt::skip]
     pub mod visit {
@@ -26315,13 +22889,6 @@ mod gen {
         use crate::punctuated::Punctuated;
         use crate::*;
         use proc_macro2::Span;
-        /// Syntax tree traversal to walk a shared borrow of a syntax tree.
-        ///
-        /// See the [module documentation] for details.
-        ///
-        /// [module documentation]: self
-        ///
-        /// *This trait is available only if Syn is built with the `"visit"` feature.*
         pub trait Visit<'ast> {
             #[cfg(any(feature = "derive", feature = "full"))]
             fn visit_abi(&mut self, i: &'ast Abi) {
@@ -30049,98 +26616,6 @@ mod gen {
             }
         }
     }
-    /// Syntax tree traversal to mutate an exclusive borrow of a syntax tree in
-    /// place.
-    ///
-    /// Each method of the [`VisitMut`] trait is a hook that can be overridden
-    /// to customize the behavior when mutating the corresponding type of node.
-    /// By default, every method recursively visits the substructure of the
-    /// input by invoking the right visitor method of each of its fields.
-    ///
-    /// [`VisitMut`]: visit_mut::VisitMut
-    ///
-    /// ```
-    /// # use syn::{Attribute, BinOp, Expr, ExprBinary};
-    /// #
-    /// pub trait VisitMut {
-    ///     /* ... */
-    ///
-    ///     fn visit_expr_binary_mut(&mut self, node: &mut ExprBinary) {
-    ///         visit_expr_binary_mut(self, node);
-    ///     }
-    ///
-    ///     /* ... */
-    ///     # fn visit_attribute_mut(&mut self, node: &mut Attribute);
-    ///     # fn visit_expr_mut(&mut self, node: &mut Expr);
-    ///     # fn visit_bin_op_mut(&mut self, node: &mut BinOp);
-    /// }
-    ///
-    /// pub fn visit_expr_binary_mut<V>(v: &mut V, node: &mut ExprBinary)
-    /// where
-    ///     V: VisitMut + ?Sized,
-    /// {
-    ///     for attr in &mut node.attrs {
-    ///         v.visit_attribute_mut(attr);
-    ///     }
-    ///     v.visit_expr_mut(&mut *node.left);
-    ///     v.visit_bin_op_mut(&mut node.op);
-    ///     v.visit_expr_mut(&mut *node.right);
-    /// }
-    ///
-    /// /* ... */
-    /// ```
-    ///
-    /// *This module is available only if Syn is built with the `"visit-mut"`
-    /// feature.*
-    ///
-    /// <br>
-    ///
-    /// # Example
-    ///
-    /// This mut visitor replace occurrences of u256 suffixed integer literals
-    /// like `999u256` with a macro invocation `bigint::u256!(999)`.
-    ///
-    /// ```
-    /// // [dependencies]
-    /// // quote = "1.0"
-    /// // syn = { version = "1.0", features = ["full", "visit-mut"] }
-    ///
-    /// use quote::quote;
-    /// use syn::visit_mut::{self, VisitMut};
-    /// use syn::{parse_quote, Expr, File, Lit, LitInt};
-    ///
-    /// struct BigintReplace;
-    ///
-    /// impl VisitMut for BigintReplace {
-    ///     fn visit_expr_mut(&mut self, node: &mut Expr) {
-    ///         if let Expr::Lit(expr) = &node {
-    ///             if let Lit::Int(int) = &expr.lit {
-    ///                 if int.suffix() == "u256" {
-    ///                     let digits = int.base10_digits();
-    ///                     let unsuffixed: LitInt = syn::parse_str(digits).unwrap();
-    ///                     *node = parse_quote!(bigint::u256!(#unsuffixed));
-    ///                     return;
-    ///                 }
-    ///             }
-    ///         }
-    ///
-    ///         // Delegate to the default impl to visit nested expressions.
-    ///         visit_mut::visit_expr_mut(self, node);
-    ///     }
-    /// }
-    ///
-    /// fn main() {
-    ///     let code = quote! {
-    ///         fn main() {
-    ///             let _ = 999u256;
-    ///         }
-    ///     };
-    ///
-    ///     let mut syntax_tree: File = syn::parse2(code).unwrap();
-    ///     BigintReplace.visit_file_mut(&mut syntax_tree);
-    ///     println!("{}", quote!(#syntax_tree));
-    /// }
-    /// ```
     #[cfg(feature = "visit-mut")]
     #[rustfmt::skip]
     pub mod visit_mut {
@@ -30151,14 +26626,6 @@ mod gen {
         use crate::punctuated::Punctuated;
         use crate::*;
         use proc_macro2::Span;
-        /// Syntax tree traversal to mutate an exclusive borrow of a syntax tree in
-        /// place.
-        ///
-        /// See the [module documentation] for details.
-        ///
-        /// [module documentation]: self
-        ///
-        /// *This trait is available only if Syn is built with the `"visit-mut"` feature.*
         pub trait VisitMut {
             #[cfg(any(feature = "derive", feature = "full"))]
             fn visit_abi_mut(&mut self, i: &mut Abi) {
@@ -33885,88 +30352,6 @@ mod gen {
             }
         }
     }
-    /// Syntax tree traversal to transform the nodes of an owned syntax tree.
-    ///
-    /// Each method of the [`Fold`] trait is a hook that can be overridden to
-    /// customize the behavior when transforming the corresponding type of node.
-    /// By default, every method recursively visits the substructure of the
-    /// input by invoking the right visitor method of each of its fields.
-    ///
-    /// [`Fold`]: fold::Fold
-    ///
-    /// ```
-    /// # use syn::{Attribute, BinOp, Expr, ExprBinary};
-    /// #
-    /// pub trait Fold {
-    ///     /* ... */
-    ///
-    ///     fn fold_expr_binary(&mut self, node: ExprBinary) -> ExprBinary {
-    ///         fold_expr_binary(self, node)
-    ///     }
-    ///
-    ///     /* ... */
-    ///     # fn fold_attribute(&mut self, node: Attribute) -> Attribute;
-    ///     # fn fold_expr(&mut self, node: Expr) -> Expr;
-    ///     # fn fold_bin_op(&mut self, node: BinOp) -> BinOp;
-    /// }
-    ///
-    /// pub fn fold_expr_binary<V>(v: &mut V, node: ExprBinary) -> ExprBinary
-    /// where
-    ///     V: Fold + ?Sized,
-    /// {
-    ///     ExprBinary {
-    ///         attrs: node
-    ///             .attrs
-    ///             .into_iter()
-    ///             .map(|attr| v.fold_attribute(attr))
-    ///             .collect(),
-    ///         left: Box::new(v.fold_expr(*node.left)),
-    ///         op: v.fold_bin_op(node.op),
-    ///         right: Box::new(v.fold_expr(*node.right)),
-    ///     }
-    /// }
-    ///
-    /// /* ... */
-    /// ```
-    ///
-    /// *This module is available only if Syn is built with the `"fold"` feature.*
-    ///
-    /// <br>
-    ///
-    /// # Example
-    ///
-    /// This fold inserts parentheses to fully parenthesizes any expression.
-    ///
-    /// ```
-    /// // [dependencies]
-    /// // quote = "1.0"
-    /// // syn = { version = "1.0", features = ["fold", "full"] }
-    ///
-    /// use quote::quote;
-    /// use syn::fold::{fold_expr, Fold};
-    /// use syn::{token, Expr, ExprParen};
-    ///
-    /// struct ParenthesizeEveryExpr;
-    ///
-    /// impl Fold for ParenthesizeEveryExpr {
-    ///     fn fold_expr(&mut self, expr: Expr) -> Expr {
-    ///         Expr::Paren(ExprParen {
-    ///             attrs: Vec::new(),
-    ///             expr: Box::new(fold_expr(self, expr)),
-    ///             paren_token: token::Paren::default(),
-    ///         })
-    ///     }
-    /// }
-    ///
-    /// fn main() {
-    ///     let code = quote! { a() + b(1) * c.d };
-    ///     let expr: Expr = syn::parse2(code).unwrap();
-    ///     let parenthesized = ParenthesizeEveryExpr.fold_expr(expr);
-    ///     println!("{}", quote!(#parenthesized));
-    ///
-    ///     // Output: (((a)()) + (((b)((1))) * ((c).d)))
-    /// }
-    /// ```
     #[cfg(feature = "fold")]
     #[rustfmt::skip]
     pub mod fold {
@@ -33978,13 +30363,6 @@ mod gen {
         use crate::token::{Brace, Bracket, Group, Paren};
         use crate::*;
         use proc_macro2::Span;
-        /// Syntax tree traversal to transform the nodes of an owned syntax tree.
-        ///
-        /// See the [module documentation] for details.
-        ///
-        /// [module documentation]: self
-        ///
-        /// *This trait is available only if Syn is built with the `"fold"` feature.*
         pub trait Fold {
             #[cfg(any(feature = "derive", feature = "full"))]
             fn fold_abi(&mut self, i: Abi) -> Abi {
@@ -47311,9 +43689,6 @@ mod span {
 mod thread {
     use std::fmt::{self, Debug};
     use std::thread::{self, ThreadId};
-    /// ThreadBound is a Sync-maker and Send-maker that allows accessing a value
-    /// of type T only from the original thread on which the ThreadBound was
-    /// constructed.
     pub struct ThreadBound<T> {
         value: T,
         thread_id: ThreadId,
@@ -47353,59 +43728,6 @@ mod lookahead {
     use crate::token::Token;
     use proc_macro2::{Delimiter, Span};
     use std::cell::RefCell;
-    /// Support for checking the next token in a stream to decide how to parse.
-    ///
-    /// An important advantage over [`ParseStream::peek`] is that here we
-    /// automatically construct an appropriate error message based on the token
-    /// alternatives that get peeked. If you are producing your own error message,
-    /// go ahead and use `ParseStream::peek` instead.
-    ///
-    /// Use [`ParseStream::lookahead1`] to construct this object.
-    ///
-    /// [`ParseStream::peek`]: crate::parse::ParseBuffer::peek
-    /// [`ParseStream::lookahead1`]: crate::parse::ParseBuffer::lookahead1
-    ///
-    /// Consuming tokens from the source stream after constructing a lookahead
-    /// object does not also advance the lookahead object.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use syn::{ConstParam, Ident, Lifetime, LifetimeDef, Result, Token, TypeParam};
-    /// use syn::parse::{Parse, ParseStream};
-    ///
-    /// // A generic parameter, a single one of the comma-separated elements inside
-    /// // angle brackets in:
-    /// //
-    /// //     fn f<T: Clone, 'a, 'b: 'a, const N: usize>() { ... }
-    /// //
-    /// // On invalid input, lookahead gives us a reasonable error message.
-    /// //
-    /// //     error: expected one of: identifier, lifetime, `const`
-    /// //       |
-    /// //     5 |     fn f<!Sized>() {}
-    /// //       |          ^
-    /// enum GenericParam {
-    ///     Type(TypeParam),
-    ///     Lifetime(LifetimeDef),
-    ///     Const(ConstParam),
-    /// }
-    ///
-    /// impl Parse for GenericParam {
-    ///     fn parse(input: ParseStream) -> Result<Self> {
-    ///         let lookahead = input.lookahead1();
-    ///         if lookahead.peek(Ident) {
-    ///             input.parse().map(GenericParam::Type)
-    ///         } else if lookahead.peek(Lifetime) {
-    ///             input.parse().map(GenericParam::Lifetime)
-    ///         } else if lookahead.peek(Token![const]) {
-    ///             input.parse().map(GenericParam::Const)
-    ///         } else {
-    ///             Err(lookahead.error())
-    ///         }
-    ///     }
-    /// }
-    /// ```
     pub struct Lookahead1<'a> {
         scope: Span,
         cursor: Cursor<'a>,
@@ -47430,28 +43752,10 @@ mod lookahead {
         false
     }
     impl<'a> Lookahead1<'a> {
-        /// Looks at the next token in the parse stream to determine whether it
-        /// matches the requested type of token.
-        ///
-        /// # Syntax
-        ///
-        /// Note that this method does not use turbofish syntax. Pass the peek type
-        /// inside of parentheses.
-        ///
-        /// - `input.peek(Token![struct])`
-        /// - `input.peek(Token![==])`
-        /// - `input.peek(Ident)`&emsp;*(does not accept keywords)*
-        /// - `input.peek(Ident::peek_any)`
-        /// - `input.peek(Lifetime)`
-        /// - `input.peek(token::Brace)`
         pub fn peek<T: Peek>(&self, token: T) -> bool {
             let _ = token;
             peek_impl(self, T::Token::peek, T::Token::display)
         }
-        /// Triggers an error at the current position of the parse stream.
-        ///
-        /// The error message will identify all of the expected token types that
-        /// have been peeked against this lookahead instance.
         pub fn error(self) -> Error {
             let comparisons = self.comparisons.borrow();
             match comparisons.len() {
@@ -47505,14 +43809,6 @@ mod lookahead {
             }
         }
     }
-    /// Types that can be parsed by looking at just one token.
-    ///
-    /// Use [`ParseStream::peek`] to peek one of these types in a parse stream
-    /// without consuming it from the stream.
-    ///
-    /// This trait is sealed and cannot be implemented for types outside of Syn.
-    ///
-    /// [`ParseStream::peek`]: crate::parse::ParseBuffer::peek
     pub trait Peek: Sealed {
         #[doc(hidden)]
         type Token: Token;
@@ -47533,346 +43829,10 @@ mod lookahead {
 }
 #[cfg(feature = "parsing")]
 pub mod parse {
-    //! Parsing interface for parsing a token stream into a syntax tree node.
-    //!
-    //! Parsing in Syn is built on parser functions that take in a [`ParseStream`]
-    //! and produce a [`Result<T>`] where `T` is some syntax tree node. Underlying
-    //! these parser functions is a lower level mechanism built around the
-    //! [`Cursor`] type. `Cursor` is a cheaply copyable cursor over a range of
-    //! tokens in a token stream.
-    //!
-    //! [`Result<T>`]: Result
-    //! [`Cursor`]: crate::buffer::Cursor
-    //!
-    //! # Example
-    //!
-    //! Here is a snippet of parsing code to get a feel for the style of the
-    //! library. We define data structures for a subset of Rust syntax including
-    //! enums (not shown) and structs, then provide implementations of the [`Parse`]
-    //! trait to parse these syntax tree data structures from a token stream.
-    //!
-    //! Once `Parse` impls have been defined, they can be called conveniently from a
-    //! procedural macro through [`parse_macro_input!`] as shown at the bottom of
-    //! the snippet. If the caller provides syntactically invalid input to the
-    //! procedural macro, they will receive a helpful compiler error message
-    //! pointing out the exact token that triggered the failure to parse.
-    //!
-    //! [`parse_macro_input!`]: crate::parse_macro_input!
-    //!
-    //! ```
-    //! # extern crate proc_macro;
-    //! #
-    //! use proc_macro::TokenStream;
-    //! use syn::{braced, parse_macro_input, token, Field, Ident, Result, Token};
-    //! use syn::parse::{Parse, ParseStream};
-    //! use syn::punctuated::Punctuated;
-    //!
-    //! enum Item {
-    //!     Struct(ItemStruct),
-    //!     Enum(ItemEnum),
-    //! }
-    //!
-    //! struct ItemStruct {
-    //!     struct_token: Token![struct],
-    //!     ident: Ident,
-    //!     brace_token: token::Brace,
-    //!     fields: Punctuated<Field, Token![,]>,
-    //! }
-    //! #
-    //! # enum ItemEnum {}
-    //!
-    //! impl Parse for Item {
-    //!     fn parse(input: ParseStream) -> Result<Self> {
-    //!         let lookahead = input.lookahead1();
-    //!         if lookahead.peek(Token![struct]) {
-    //!             input.parse().map(Item::Struct)
-    //!         } else if lookahead.peek(Token![enum]) {
-    //!             input.parse().map(Item::Enum)
-    //!         } else {
-    //!             Err(lookahead.error())
-    //!         }
-    //!     }
-    //! }
-    //!
-    //! impl Parse for ItemStruct {
-    //!     fn parse(input: ParseStream) -> Result<Self> {
-    //!         let content;
-    //!         Ok(ItemStruct {
-    //!             struct_token: input.parse()?,
-    //!             ident: input.parse()?,
-    //!             brace_token: braced!(content in input),
-    //!             fields: content.parse_terminated(Field::parse_named)?,
-    //!         })
-    //!     }
-    //! }
-    //! #
-    //! # impl Parse for ItemEnum {
-    //! #     fn parse(input: ParseStream) -> Result<Self> {
-    //! #         unimplemented!()
-    //! #     }
-    //! # }
-    //!
-    //! # const IGNORE: &str = stringify! {
-    //! #[proc_macro]
-    //! # };
-    //! pub fn my_macro(tokens: TokenStream) -> TokenStream {
-    //!     let input = parse_macro_input!(tokens as Item);
-    //!
-    //!     /* ... */
-    //! #   "".parse().unwrap()
-    //! }
-    //! ```
-    //!
-    //! # The `syn::parse*` functions
-    //!
-    //! The [`syn::parse`], [`syn::parse2`], and [`syn::parse_str`] functions serve
-    //! as an entry point for parsing syntax tree nodes that can be parsed in an
-    //! obvious default way. These functions can return any syntax tree node that
-    //! implements the [`Parse`] trait, which includes most types in Syn.
-    //!
-    //! [`syn::parse`]: crate::parse()
-    //! [`syn::parse2`]: crate::parse2()
-    //! [`syn::parse_str`]: crate::parse_str()
-    //!
-    //! ```
-    //! use syn::Type;
-    //!
-    //! # fn run_parser() -> syn::Result<()> {
-    //! let t: Type = syn::parse_str("std::collections::HashMap<String, Value>")?;
-    //! #     Ok(())
-    //! # }
-    //! #
-    //! # run_parser().unwrap();
-    //! ```
-    //!
-    //! The [`parse_quote!`] macro also uses this approach.
-    //!
-    //! [`parse_quote!`]: crate::parse_quote!
-    //!
-    //! # The `Parser` trait
-    //!
-    //! Some types can be parsed in several ways depending on context. For example
-    //! an [`Attribute`] can be either "outer" like `#[...]` or "inner" like
-    //! `#![...]` and parsing the wrong one would be a bug. Similarly [`Punctuated`]
-    //! may or may not allow trailing punctuation, and parsing it the wrong way
-    //! would either reject valid input or accept invalid input.
-    //!
-    //! [`Attribute`]: crate::Attribute
-    //! [`Punctuated`]: crate::punctuated
-    //!
-    //! The `Parse` trait is not implemented in these cases because there is no good
-    //! behavior to consider the default.
-    //!
-    //! ```compile_fail
-    //! # extern crate proc_macro;
-    //! #
-    //! # use syn::punctuated::Punctuated;
-    //! # use syn::{PathSegment, Result, Token};
-    //! #
-    //! # fn f(tokens: proc_macro::TokenStream) -> Result<()> {
-    //! #
-    //! // Can't parse `Punctuated` without knowing whether trailing punctuation
-    //! // should be allowed in this context.
-    //! let path: Punctuated<PathSegment, Token![::]> = syn::parse(tokens)?;
-    //! #
-    //! #     Ok(())
-    //! # }
-    //! ```
-    //!
-    //! In these cases the types provide a choice of parser functions rather than a
-    //! single `Parse` implementation, and those parser functions can be invoked
-    //! through the [`Parser`] trait.
-    //!
-    //!
-    //! ```
-    //! # extern crate proc_macro;
-    //! #
-    //! use proc_macro::TokenStream;
-    //! use syn::parse::Parser;
-    //! use syn::punctuated::Punctuated;
-    //! use syn::{Attribute, Expr, PathSegment, Result, Token};
-    //!
-    //! fn call_some_parser_methods(input: TokenStream) -> Result<()> {
-    //!     // Parse a nonempty sequence of path segments separated by `::` punctuation
-    //!     // with no trailing punctuation.
-    //!     let tokens = input.clone();
-    //!     let parser = Punctuated::<PathSegment, Token![::]>::parse_separated_nonempty;
-    //!     let _path = parser.parse(tokens)?;
-    //!
-    //!     // Parse a possibly empty sequence of expressions terminated by commas with
-    //!     // an optional trailing punctuation.
-    //!     let tokens = input.clone();
-    //!     let parser = Punctuated::<Expr, Token![,]>::parse_terminated;
-    //!     let _args = parser.parse(tokens)?;
-    //!
-    //!     // Parse zero or more outer attributes but not inner attributes.
-    //!     let tokens = input.clone();
-    //!     let parser = Attribute::parse_outer;
-    //!     let _attrs = parser.parse(tokens)?;
-    //!
-    //!     Ok(())
-    //! }
-    //! ```
-    //!
-    //! ---
-    //!
-    //! *This module is available only if Syn is built with the `"parsing"` feature.*
     #[path = "discouraged.rs"]
     pub mod discouraged {
-        //! Extensions to the parsing API with niche applicability.
         use super::*;
-        /// Extensions to the `ParseStream` API to support speculative parsing.
         pub trait Speculative {
-            /// Advance this parse stream to the position of a forked parse stream.
-            ///
-            /// This is the opposite operation to [`ParseStream::fork`]. You can fork a
-            /// parse stream, perform some speculative parsing, then join the original
-            /// stream to the fork to "commit" the parsing from the fork to the main
-            /// stream.
-            ///
-            /// If you can avoid doing this, you should, as it limits the ability to
-            /// generate useful errors. That said, it is often the only way to parse
-            /// syntax of the form `A* B*` for arbitrary syntax `A` and `B`. The problem
-            /// is that when the fork fails to parse an `A`, it's impossible to tell
-            /// whether that was because of a syntax error and the user meant to provide
-            /// an `A`, or that the `A`s are finished and it's time to start parsing
-            /// `B`s. Use with care.
-            ///
-            /// Also note that if `A` is a subset of `B`, `A* B*` can be parsed by
-            /// parsing `B*` and removing the leading members of `A` from the
-            /// repetition, bypassing the need to involve the downsides associated with
-            /// speculative parsing.
-            ///
-            /// [`ParseStream::fork`]: ParseBuffer::fork
-            ///
-            /// # Example
-            ///
-            /// There has been chatter about the possibility of making the colons in the
-            /// turbofish syntax like `path::to::<T>` no longer required by accepting
-            /// `path::to<T>` in expression position. Specifically, according to [RFC
-            /// 2544], [`PathSegment`] parsing should always try to consume a following
-            /// `<` token as the start of generic arguments, and reset to the `<` if
-            /// that fails (e.g. the token is acting as a less-than operator).
-            ///
-            /// This is the exact kind of parsing behavior which requires the "fork,
-            /// try, commit" behavior that [`ParseStream::fork`] discourages. With
-            /// `advance_to`, we can avoid having to parse the speculatively parsed
-            /// content a second time.
-            ///
-            /// This change in behavior can be implemented in syn by replacing just the
-            /// `Parse` implementation for `PathSegment`:
-            ///
-            /// ```
-            /// # use syn::ext::IdentExt;
-            /// use syn::parse::discouraged::Speculative;
-            /// # use syn::parse::{Parse, ParseStream};
-            /// # use syn::{Ident, PathArguments, Result, Token};
-            ///
-            /// pub struct PathSegment {
-            ///     pub ident: Ident,
-            ///     pub arguments: PathArguments,
-            /// }
-            /// #
-            /// # impl<T> From<T> for PathSegment
-            /// # where
-            /// #     T: Into<Ident>,
-            /// # {
-            /// #     fn from(ident: T) -> Self {
-            /// #         PathSegment {
-            /// #             ident: ident.into(),
-            /// #             arguments: PathArguments::None,
-            /// #         }
-            /// #     }
-            /// # }
-            ///
-            /// impl Parse for PathSegment {
-            ///     fn parse(input: ParseStream) -> Result<Self> {
-            ///         if input.peek(Token![super])
-            ///             || input.peek(Token![self])
-            ///             || input.peek(Token![Self])
-            ///             || input.peek(Token![crate])
-            ///         {
-            ///             let ident = input.call(Ident::parse_any)?;
-            ///             return Ok(PathSegment::from(ident));
-            ///         }
-            ///
-            ///         let ident = input.parse()?;
-            ///         if input.peek(Token![::]) && input.peek3(Token![<]) {
-            ///             return Ok(PathSegment {
-            ///                 ident,
-            ///                 arguments: PathArguments::AngleBracketed(input.parse()?),
-            ///             });
-            ///         }
-            ///         if input.peek(Token![<]) && !input.peek(Token![<=]) {
-            ///             let fork = input.fork();
-            ///             if let Ok(arguments) = fork.parse() {
-            ///                 input.advance_to(&fork);
-            ///                 return Ok(PathSegment {
-            ///                     ident,
-            ///                     arguments: PathArguments::AngleBracketed(arguments),
-            ///                 });
-            ///             }
-            ///         }
-            ///         Ok(PathSegment::from(ident))
-            ///     }
-            /// }
-            ///
-            /// # syn::parse_str::<PathSegment>("a<b,c>").unwrap();
-            /// ```
-            ///
-            /// # Drawbacks
-            ///
-            /// The main drawback of this style of speculative parsing is in error
-            /// presentation. Even if the lookahead is the "correct" parse, the error
-            /// that is shown is that of the "fallback" parse. To use the same example
-            /// as the turbofish above, take the following unfinished "turbofish":
-            ///
-            /// ```text
-            /// let _ = f<&'a fn(), for<'a> serde::>();
-            /// ```
-            ///
-            /// If this is parsed as generic arguments, we can provide the error message
-            ///
-            /// ```text
-            /// error: expected identifier
-            ///  --> src.rs:L:C
-            ///   |
-            /// L | let _ = f<&'a fn(), for<'a> serde::>();
-            ///   |                                    ^
-            /// ```
-            ///
-            /// but if parsed using the above speculative parsing, it falls back to
-            /// assuming that the `<` is a less-than when it fails to parse the generic
-            /// arguments, and tries to interpret the `&'a` as the start of a labelled
-            /// loop, resulting in the much less helpful error
-            ///
-            /// ```text
-            /// error: expected `:`
-            ///  --> src.rs:L:C
-            ///   |
-            /// L | let _ = f<&'a fn(), for<'a> serde::>();
-            ///   |               ^^
-            /// ```
-            ///
-            /// This can be mitigated with various heuristics (two examples: show both
-            /// forks' parse errors, or show the one that consumed more tokens), but
-            /// when you can control the grammar, sticking to something that can be
-            /// parsed LL(3) and without the LL(*) speculative parsing this makes
-            /// possible, displaying reasonable errors becomes much more simple.
-            ///
-            /// [RFC 2544]: https://github.com/rust-lang/rfcs/pull/2544
-            /// [`PathSegment`]: crate::PathSegment
-            ///
-            /// # Performance
-            ///
-            /// This method performs a cheap fixed amount of work that does not depend
-            /// on how far apart the two streams are positioned.
-            ///
-            /// # Panics
-            ///
-            /// The forked stream in the argument of `advance_to` must have been
-            /// obtained by forking `self`. Attempting to advance to any other stream
-            /// will cause a panic.
             fn advance_to(&self, fork: &Self);
         }
         impl<'a> Speculative for ParseBuffer<'a> {
@@ -47937,43 +43897,10 @@ pub mod parse {
     use std::str::FromStr;
     pub use crate::error::{Error, Result};
     pub use crate::lookahead::{Lookahead1, Peek};
-    /// Parsing interface implemented by all types that can be parsed in a default
-    /// way from a token stream.
-    ///
-    /// Refer to the [module documentation] for details about implementing and using
-    /// the `Parse` trait.
-    ///
-    /// [module documentation]: self
     pub trait Parse: Sized {
         fn parse(input: ParseStream) -> Result<Self>;
     }
-    /// Input to a Syn parser function.
-    ///
-    /// See the methods of this type under the documentation of [`ParseBuffer`]. For
-    /// an overview of parsing in Syn, refer to the [module documentation].
-    ///
-    /// [module documentation]: self
     pub type ParseStream<'a> = &'a ParseBuffer<'a>;
-    /// Cursor position within a buffered token stream.
-    ///
-    /// This type is more commonly used through the type alias [`ParseStream`] which
-    /// is an alias for `&ParseBuffer`.
-    ///
-    /// `ParseStream` is the input type for all parser functions in Syn. They have
-    /// the signature `fn(ParseStream) -> Result<T>`.
-    ///
-    /// ## Calling a parser function
-    ///
-    /// There is no public way to construct a `ParseBuffer`. Instead, if you are
-    /// looking to invoke a parser function that requires `ParseStream` as input,
-    /// you will need to go through one of the public parsing entry points.
-    ///
-    /// - The [`parse_macro_input!`] macro if parsing input of a procedural macro;
-    /// - One of [the `syn::parse*` functions][syn-parse]; or
-    /// - A method of the [`Parser`] trait.
-    ///
-    /// [`parse_macro_input!`]: crate::parse_macro_input!
-    /// [syn-parse]: self#the-synparse-functions
     pub struct ParseBuffer<'a> {
         scope: Span,
         cell: Cell<Cursor<'static>>,
@@ -48001,50 +43928,6 @@ pub mod parse {
             Debug::fmt(&self.cursor().token_stream(), f)
         }
     }
-    /// Cursor state associated with speculative parsing.
-    ///
-    /// This type is the input of the closure provided to [`ParseStream::step`].
-    ///
-    /// [`ParseStream::step`]: ParseBuffer::step
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use proc_macro2::TokenTree;
-    /// use syn::Result;
-    /// use syn::parse::ParseStream;
-    ///
-    /// // This function advances the stream past the next occurrence of `@`. If
-    /// // no `@` is present in the stream, the stream position is unchanged and
-    /// // an error is returned.
-    /// fn skip_past_next_at(input: ParseStream) -> Result<()> {
-    ///     input.step(|cursor| {
-    ///         let mut rest = *cursor;
-    ///         while let Some((tt, next)) = rest.token_tree() {
-    ///             match &tt {
-    ///                 TokenTree::Punct(punct) if punct.as_char() == '@' => {
-    ///                     return Ok(((), next));
-    ///                 }
-    ///                 _ => rest = next,
-    ///             }
-    ///         }
-    ///         Err(cursor.error("no `@` was found after this point"))
-    ///     })
-    /// }
-    /// #
-    /// # fn remainder_after_skipping_past_next_at(
-    /// #     input: ParseStream,
-    /// # ) -> Result<proc_macro2::TokenStream> {
-    /// #     skip_past_next_at(input)?;
-    /// #     input.parse()
-    /// # }
-    /// #
-    /// # use syn::parse::Parser;
-    /// # let remainder = remainder_after_skipping_past_next_at
-    /// #     .parse_str("a @ b c")
-    /// #     .unwrap();
-    /// # assert_eq!(remainder.to_string(), "b c");
-    /// ```
     pub struct StepCursor<'c, 'a> {
         scope: Span,
         cursor: Cursor<'c>,
@@ -48063,10 +43946,6 @@ pub mod parse {
         }
     }
     impl<'c, 'a> StepCursor<'c, 'a> {
-        /// Triggers an error at the current position of the parse stream.
-        ///
-        /// The `ParseStream::step` invocation will return this same error without
-        /// advancing the stream state.
         pub fn error<T: Display>(self, message: T) -> Error {
             error::new_at(self.scope, self.cursor, message)
         }
@@ -48143,160 +44022,16 @@ pub mod parse {
         if cursor.eof() { None } else { Some(cursor.span()) }
     }
     impl<'a> ParseBuffer<'a> {
-        /// Parses a syntax tree node of type `T`, advancing the position of our
-        /// parse stream past it.
         pub fn parse<T: Parse>(&self) -> Result<T> {
             T::parse(self)
         }
-        /// Calls the given parser function to parse a syntax tree node of type `T`
-        /// from this stream.
-        ///
-        /// # Example
-        ///
-        /// The parser below invokes [`Attribute::parse_outer`] to parse a vector of
-        /// zero or more outer attributes.
-        ///
-        /// [`Attribute::parse_outer`]: crate::Attribute::parse_outer
-        ///
-        /// ```
-        /// use syn::{Attribute, Ident, Result, Token};
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// // Parses a unit struct with attributes.
-        /// //
-        /// //     #[path = "s.tmpl"]
-        /// //     struct S;
-        /// struct UnitStruct {
-        ///     attrs: Vec<Attribute>,
-        ///     struct_token: Token![struct],
-        ///     name: Ident,
-        ///     semi_token: Token![;],
-        /// }
-        ///
-        /// impl Parse for UnitStruct {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         Ok(UnitStruct {
-        ///             attrs: input.call(Attribute::parse_outer)?,
-        ///             struct_token: input.parse()?,
-        ///             name: input.parse()?,
-        ///             semi_token: input.parse()?,
-        ///         })
-        ///     }
-        /// }
-        /// ```
         pub fn call<T>(&self, function: fn(ParseStream) -> Result<T>) -> Result<T> {
             function(self)
         }
-        /// Looks at the next token in the parse stream to determine whether it
-        /// matches the requested type of token.
-        ///
-        /// Does not advance the position of the parse stream.
-        ///
-        /// # Syntax
-        ///
-        /// Note that this method does not use turbofish syntax. Pass the peek type
-        /// inside of parentheses.
-        ///
-        /// - `input.peek(Token![struct])`
-        /// - `input.peek(Token![==])`
-        /// - `input.peek(Ident)`&emsp;*(does not accept keywords)*
-        /// - `input.peek(Ident::peek_any)`
-        /// - `input.peek(Lifetime)`
-        /// - `input.peek(token::Brace)`
-        ///
-        /// # Example
-        ///
-        /// In this example we finish parsing the list of supertraits when the next
-        /// token in the input is either `where` or an opening curly brace.
-        ///
-        /// ```
-        /// use syn::{braced, token, Generics, Ident, Result, Token, TypeParamBound};
-        /// use syn::parse::{Parse, ParseStream};
-        /// use syn::punctuated::Punctuated;
-        ///
-        /// // Parses a trait definition containing no associated items.
-        /// //
-        /// //     trait Marker<'de, T>: A + B<'de> where Box<T>: Clone {}
-        /// struct MarkerTrait {
-        ///     trait_token: Token![trait],
-        ///     ident: Ident,
-        ///     generics: Generics,
-        ///     colon_token: Option<Token![:]>,
-        ///     supertraits: Punctuated<TypeParamBound, Token![+]>,
-        ///     brace_token: token::Brace,
-        /// }
-        ///
-        /// impl Parse for MarkerTrait {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let trait_token: Token![trait] = input.parse()?;
-        ///         let ident: Ident = input.parse()?;
-        ///         let mut generics: Generics = input.parse()?;
-        ///         let colon_token: Option<Token![:]> = input.parse()?;
-        ///
-        ///         let mut supertraits = Punctuated::new();
-        ///         if colon_token.is_some() {
-        ///             loop {
-        ///                 supertraits.push_value(input.parse()?);
-        ///                 if input.peek(Token![where]) || input.peek(token::Brace) {
-        ///                     break;
-        ///                 }
-        ///                 supertraits.push_punct(input.parse()?);
-        ///             }
-        ///         }
-        ///
-        ///         generics.where_clause = input.parse()?;
-        ///         let content;
-        ///         let empty_brace_token = braced!(content in input);
-        ///
-        ///         Ok(MarkerTrait {
-        ///             trait_token,
-        ///             ident,
-        ///             generics,
-        ///             colon_token,
-        ///             supertraits,
-        ///             brace_token: empty_brace_token,
-        ///         })
-        ///     }
-        /// }
-        /// ```
         pub fn peek<T: Peek>(&self, token: T) -> bool {
             let _ = token;
             T::Token::peek(self.cursor())
         }
-        /// Looks at the second-next token in the parse stream.
-        ///
-        /// This is commonly useful as a way to implement contextual keywords.
-        ///
-        /// # Example
-        ///
-        /// This example needs to use `peek2` because the symbol `union` is not a
-        /// keyword in Rust. We can't use just `peek` and decide to parse a union if
-        /// the very next token is `union`, because someone is free to write a `mod
-        /// union` and a macro invocation that looks like `union::some_macro! { ...
-        /// }`. In other words `union` is a contextual keyword.
-        ///
-        /// ```
-        /// use syn::{Ident, ItemUnion, Macro, Result, Token};
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// // Parses either a union or a macro invocation.
-        /// enum UnionOrMacro {
-        ///     // union MaybeUninit<T> { uninit: (), value: T }
-        ///     Union(ItemUnion),
-        ///     // lazy_static! { ... }
-        ///     Macro(Macro),
-        /// }
-        ///
-        /// impl Parse for UnionOrMacro {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         if input.peek(Token![union]) && input.peek2(Ident) {
-        ///             input.parse().map(UnionOrMacro::Union)
-        ///         } else {
-        ///             input.parse().map(UnionOrMacro::Macro)
-        ///         }
-        ///     }
-        /// }
-        /// ```
         pub fn peek2<T: Peek>(&self, token: T) -> bool {
             fn peek2(buffer: &ParseBuffer, peek: fn(Cursor) -> bool) -> bool {
                 if let Some(group) = buffer.cursor().group(Delimiter::None) {
@@ -48309,7 +44044,6 @@ pub mod parse {
             let _ = token;
             peek2(self, T::Token::peek)
         }
-        /// Looks at the third-next token in the parse stream.
         pub fn peek3<T: Peek>(&self, token: T) -> bool {
             fn peek3(buffer: &ParseBuffer, peek: fn(Cursor) -> bool) -> bool {
                 if let Some(group) = buffer.cursor().group(Delimiter::None) {
@@ -48322,266 +44056,18 @@ pub mod parse {
             let _ = token;
             peek3(self, T::Token::peek)
         }
-        /// Parses zero or more occurrences of `T` separated by punctuation of type
-        /// `P`, with optional trailing punctuation.
-        ///
-        /// Parsing continues until the end of this parse stream. The entire content
-        /// of this parse stream must consist of `T` and `P`.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// # use quote::quote;
-        /// #
-        /// use syn::{parenthesized, token, Ident, Result, Token, Type};
-        /// use syn::parse::{Parse, ParseStream};
-        /// use syn::punctuated::Punctuated;
-        ///
-        /// // Parse a simplified tuple struct syntax like:
-        /// //
-        /// //     struct S(A, B);
-        /// struct TupleStruct {
-        ///     struct_token: Token![struct],
-        ///     ident: Ident,
-        ///     paren_token: token::Paren,
-        ///     fields: Punctuated<Type, Token![,]>,
-        ///     semi_token: Token![;],
-        /// }
-        ///
-        /// impl Parse for TupleStruct {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let content;
-        ///         Ok(TupleStruct {
-        ///             struct_token: input.parse()?,
-        ///             ident: input.parse()?,
-        ///             paren_token: parenthesized!(content in input),
-        ///             fields: content.parse_terminated(Type::parse)?,
-        ///             semi_token: input.parse()?,
-        ///         })
-        ///     }
-        /// }
-        /// #
-        /// # let input = quote! {
-        /// #     struct S(A, B);
-        /// # };
-        /// # syn::parse2::<TupleStruct>(input).unwrap();
-        /// ```
         pub fn parse_terminated<T, P: Parse>(
             &self,
             parser: fn(ParseStream) -> Result<T>,
         ) -> Result<Punctuated<T, P>> {
             Punctuated::parse_terminated_with(self, parser)
         }
-        /// Returns whether there are tokens remaining in this stream.
-        ///
-        /// This method returns true at the end of the content of a set of
-        /// delimiters, as well as at the very end of the complete macro input.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{braced, token, Ident, Item, Result, Token};
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// // Parses a Rust `mod m { ... }` containing zero or more items.
-        /// struct Mod {
-        ///     mod_token: Token![mod],
-        ///     name: Ident,
-        ///     brace_token: token::Brace,
-        ///     items: Vec<Item>,
-        /// }
-        ///
-        /// impl Parse for Mod {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let content;
-        ///         Ok(Mod {
-        ///             mod_token: input.parse()?,
-        ///             name: input.parse()?,
-        ///             brace_token: braced!(content in input),
-        ///             items: {
-        ///                 let mut items = Vec::new();
-        ///                 while !content.is_empty() {
-        ///                     items.push(content.parse()?);
-        ///                 }
-        ///                 items
-        ///             },
-        ///         })
-        ///     }
-        /// }
-        /// ```
         pub fn is_empty(&self) -> bool {
             self.cursor().eof()
         }
-        /// Constructs a helper for peeking at the next token in this stream and
-        /// building an error message if it is not one of a set of expected tokens.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{ConstParam, Ident, Lifetime, LifetimeDef, Result, Token, TypeParam};
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// // A generic parameter, a single one of the comma-separated elements inside
-        /// // angle brackets in:
-        /// //
-        /// //     fn f<T: Clone, 'a, 'b: 'a, const N: usize>() { ... }
-        /// //
-        /// // On invalid input, lookahead gives us a reasonable error message.
-        /// //
-        /// //     error: expected one of: identifier, lifetime, `const`
-        /// //       |
-        /// //     5 |     fn f<!Sized>() {}
-        /// //       |          ^
-        /// enum GenericParam {
-        ///     Type(TypeParam),
-        ///     Lifetime(LifetimeDef),
-        ///     Const(ConstParam),
-        /// }
-        ///
-        /// impl Parse for GenericParam {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let lookahead = input.lookahead1();
-        ///         if lookahead.peek(Ident) {
-        ///             input.parse().map(GenericParam::Type)
-        ///         } else if lookahead.peek(Lifetime) {
-        ///             input.parse().map(GenericParam::Lifetime)
-        ///         } else if lookahead.peek(Token![const]) {
-        ///             input.parse().map(GenericParam::Const)
-        ///         } else {
-        ///             Err(lookahead.error())
-        ///         }
-        ///     }
-        /// }
-        /// ```
         pub fn lookahead1(&self) -> Lookahead1<'a> {
             lookahead::new(self.scope, self.cursor())
         }
-        /// Forks a parse stream so that parsing tokens out of either the original
-        /// or the fork does not advance the position of the other.
-        ///
-        /// # Performance
-        ///
-        /// Forking a parse stream is a cheap fixed amount of work and does not
-        /// involve copying token buffers. Where you might hit performance problems
-        /// is if your macro ends up parsing a large amount of content more than
-        /// once.
-        ///
-        /// ```
-        /// # use syn::{Expr, Result};
-        /// # use syn::parse::ParseStream;
-        /// #
-        /// # fn bad(input: ParseStream) -> Result<Expr> {
-        /// // Do not do this.
-        /// if input.fork().parse::<Expr>().is_ok() {
-        ///     return input.parse::<Expr>();
-        /// }
-        /// # unimplemented!()
-        /// # }
-        /// ```
-        ///
-        /// As a rule, avoid parsing an unbounded amount of tokens out of a forked
-        /// parse stream. Only use a fork when the amount of work performed against
-        /// the fork is small and bounded.
-        ///
-        /// When complex speculative parsing against the forked stream is
-        /// unavoidable, use [`parse::discouraged::Speculative`] to advance the
-        /// original stream once the fork's parse is determined to have been
-        /// successful.
-        ///
-        /// For a lower level way to perform speculative parsing at the token level,
-        /// consider using [`ParseStream::step`] instead.
-        ///
-        /// [`parse::discouraged::Speculative`]: discouraged::Speculative
-        /// [`ParseStream::step`]: ParseBuffer::step
-        ///
-        /// # Example
-        ///
-        /// The parse implementation shown here parses possibly restricted `pub`
-        /// visibilities.
-        ///
-        /// - `pub`
-        /// - `pub(crate)`
-        /// - `pub(self)`
-        /// - `pub(super)`
-        /// - `pub(in some::path)`
-        ///
-        /// To handle the case of visibilities inside of tuple structs, the parser
-        /// needs to distinguish parentheses that specify visibility restrictions
-        /// from parentheses that form part of a tuple type.
-        ///
-        /// ```
-        /// # struct A;
-        /// # struct B;
-        /// # struct C;
-        /// #
-        /// struct S(pub(crate) A, pub (B, C));
-        /// ```
-        ///
-        /// In this example input the first tuple struct element of `S` has
-        /// `pub(crate)` visibility while the second tuple struct element has `pub`
-        /// visibility; the parentheses around `(B, C)` are part of the type rather
-        /// than part of a visibility restriction.
-        ///
-        /// The parser uses a forked parse stream to check the first token inside of
-        /// parentheses after the `pub` keyword. This is a small bounded amount of
-        /// work performed against the forked parse stream.
-        ///
-        /// ```
-        /// use syn::{parenthesized, token, Ident, Path, Result, Token};
-        /// use syn::ext::IdentExt;
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// struct PubVisibility {
-        ///     pub_token: Token![pub],
-        ///     restricted: Option<Restricted>,
-        /// }
-        ///
-        /// struct Restricted {
-        ///     paren_token: token::Paren,
-        ///     in_token: Option<Token![in]>,
-        ///     path: Path,
-        /// }
-        ///
-        /// impl Parse for PubVisibility {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         let pub_token: Token![pub] = input.parse()?;
-        ///
-        ///         if input.peek(token::Paren) {
-        ///             let ahead = input.fork();
-        ///             let mut content;
-        ///             parenthesized!(content in ahead);
-        ///
-        ///             if content.peek(Token![crate])
-        ///                 || content.peek(Token![self])
-        ///                 || content.peek(Token![super])
-        ///             {
-        ///                 return Ok(PubVisibility {
-        ///                     pub_token,
-        ///                     restricted: Some(Restricted {
-        ///                         paren_token: parenthesized!(content in input),
-        ///                         in_token: None,
-        ///                         path: Path::from(content.call(Ident::parse_any)?),
-        ///                     }),
-        ///                 });
-        ///             } else if content.peek(Token![in]) {
-        ///                 return Ok(PubVisibility {
-        ///                     pub_token,
-        ///                     restricted: Some(Restricted {
-        ///                         paren_token: parenthesized!(content in input),
-        ///                         in_token: Some(content.parse()?),
-        ///                         path: content.call(Path::parse_mod_style)?,
-        ///                     }),
-        ///                 });
-        ///             }
-        ///         }
-        ///
-        ///         Ok(PubVisibility {
-        ///             pub_token,
-        ///             restricted: None,
-        ///         })
-        ///     }
-        /// }
-        /// ```
         pub fn fork(&self) -> Self {
             ParseBuffer {
                 scope: self.scope,
@@ -48590,82 +44076,9 @@ pub mod parse {
                 unexpected: Cell::new(Some(Rc::new(Cell::new(Unexpected::None)))),
             }
         }
-        /// Triggers an error at the current position of the parse stream.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{Expr, Result, Token};
-        /// use syn::parse::{Parse, ParseStream};
-        ///
-        /// // Some kind of loop: `while` or `for` or `loop`.
-        /// struct Loop {
-        ///     expr: Expr,
-        /// }
-        ///
-        /// impl Parse for Loop {
-        ///     fn parse(input: ParseStream) -> Result<Self> {
-        ///         if input.peek(Token![while])
-        ///             || input.peek(Token![for])
-        ///             || input.peek(Token![loop])
-        ///         {
-        ///             Ok(Loop {
-        ///                 expr: input.parse()?,
-        ///             })
-        ///         } else {
-        ///             Err(input.error("expected some kind of loop"))
-        ///         }
-        ///     }
-        /// }
-        /// ```
         pub fn error<T: Display>(&self, message: T) -> Error {
             error::new_at(self.scope, self.cursor(), message)
         }
-        /// Speculatively parses tokens from this parse stream, advancing the
-        /// position of this stream only if parsing succeeds.
-        ///
-        /// This is a powerful low-level API used for defining the `Parse` impls of
-        /// the basic built-in token types. It is not something that will be used
-        /// widely outside of the Syn codebase.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use proc_macro2::TokenTree;
-        /// use syn::Result;
-        /// use syn::parse::ParseStream;
-        ///
-        /// // This function advances the stream past the next occurrence of `@`. If
-        /// // no `@` is present in the stream, the stream position is unchanged and
-        /// // an error is returned.
-        /// fn skip_past_next_at(input: ParseStream) -> Result<()> {
-        ///     input.step(|cursor| {
-        ///         let mut rest = *cursor;
-        ///         while let Some((tt, next)) = rest.token_tree() {
-        ///             match &tt {
-        ///                 TokenTree::Punct(punct) if punct.as_char() == '@' => {
-        ///                     return Ok(((), next));
-        ///                 }
-        ///                 _ => rest = next,
-        ///             }
-        ///         }
-        ///         Err(cursor.error("no `@` was found after this point"))
-        ///     })
-        /// }
-        /// #
-        /// # fn remainder_after_skipping_past_next_at(
-        /// #     input: ParseStream,
-        /// # ) -> Result<proc_macro2::TokenStream> {
-        /// #     skip_past_next_at(input)?;
-        /// #     input.parse()
-        /// # }
-        /// #
-        /// # use syn::parse::Parser;
-        /// # let remainder = remainder_after_skipping_past_next_at
-        /// #     .parse_str("a @ b c")
-        /// #     .unwrap();
-        /// # assert_eq!(remainder.to_string(), "b c");
-        /// ```
         pub fn step<F, R>(&self, function: F) -> Result<R>
         where
             F: for<'c> FnOnce(StepCursor<'c, 'a>) -> Result<(R, Cursor<'c>)>,
@@ -48678,9 +44091,6 @@ pub mod parse {
             self.cell.set(rest);
             Ok(node)
         }
-        /// Returns the `Span` of the next token in the parse stream, or
-        /// `Span::call_site()` if this parse stream has completely exhausted its
-        /// input `TokenStream`.
         pub fn span(&self) -> Span {
             let cursor = self.cursor();
             if cursor.eof() {
@@ -48689,11 +44099,6 @@ pub mod parse {
                 crate::buffer::open_span_of_group(cursor)
             }
         }
-        /// Provides low-level access to the token representation underlying this
-        /// parse stream.
-        ///
-        /// Cursors are immutable so no operations you perform against the cursor
-        /// will affect the state of this parse stream.
         pub fn cursor(&self) -> Cursor<'a> {
             self.cell.get()
         }
@@ -48765,27 +44170,9 @@ pub mod parse {
                 })
         }
     }
-    /// Parser that can parse Rust tokens into a particular syntax tree node.
-    ///
-    /// Refer to the [module documentation] for details about parsing in Syn.
-    ///
-    /// [module documentation]: self
-    ///
-    /// *This trait is available only if Syn is built with the `"parsing"` feature.*
     pub trait Parser: Sized {
         type Output;
-        /// Parse a proc-macro2 token stream into the chosen syntax tree node.
-        ///
-        /// This function will check that the input is fully parsed. If there are
-        /// any unparsed tokens at the end of the stream, an error is returned.
         fn parse2(self, tokens: TokenStream) -> Result<Self::Output>;
-        /// Parse tokens of source code into the chosen syntax tree node.
-        ///
-        /// This function will check that the input is fully parsed. If there are
-        /// any unparsed tokens at the end of the stream, an error is returned.
-        ///
-        /// *This method is available only if Syn is built with both the `"parsing"` and
-        /// `"proc-macro"` features.*
         #[cfg(
             all(
                 not(
@@ -48800,15 +44187,6 @@ pub mod parse {
         fn parse(self, tokens: proc_macro::TokenStream) -> Result<Self::Output> {
             self.parse2(proc_macro2::TokenStream::from(tokens))
         }
-        /// Parse a string of Rust code into the chosen syntax tree node.
-        ///
-        /// This function will check that the input is fully parsed. If there are
-        /// any unparsed tokens at the end of the string, an error is returned.
-        ///
-        /// # Hygiene
-        ///
-        /// Every span in the resulting syntax tree will be set to resolve at the
-        /// macro call site.
         fn parse_str(self, s: &str) -> Result<Self::Output> {
             self.parse2(proc_macro2::TokenStream::from_str(s)?)
         }
@@ -48890,36 +44268,6 @@ pub mod parse {
     ) -> Result<F::Output> {
         f.__parse_stream(input)
     }
-    /// An empty syntax tree node that consumes no tokens when parsed.
-    ///
-    /// This is useful for attribute macros that want to ensure they are not
-    /// provided any attribute args.
-    ///
-    /// ```
-    /// # extern crate proc_macro;
-    /// #
-    /// use proc_macro::TokenStream;
-    /// use syn::parse_macro_input;
-    /// use syn::parse::Nothing;
-    ///
-    /// # const IGNORE: &str = stringify! {
-    /// #[proc_macro_attribute]
-    /// # };
-    /// pub fn my_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    ///     parse_macro_input!(args as Nothing);
-    ///
-    ///     /* ... */
-    /// #   "".parse().unwrap()
-    /// }
-    /// ```
-    ///
-    /// ```text
-    /// error: unexpected token
-    ///  --> src/main.rs:3:19
-    ///   |
-    /// 3 | #[my_attr(asdf)]
-    ///   |           ^^^^
-    /// ```
     pub struct Nothing;
     impl Parse for Nothing {
         fn parse(_input: ParseStream) -> Result<Self> {
@@ -49026,76 +44374,7 @@ mod error {
     use std::iter::FromIterator;
     use std::slice;
     use std::vec;
-    /// The result of a Syn parser.
     pub type Result<T> = std::result::Result<T, Error>;
-    /// Error returned when a Syn parser cannot parse the input tokens.
-    ///
-    /// # Error reporting in proc macros
-    ///
-    /// The correct way to report errors back to the compiler from a procedural
-    /// macro is by emitting an appropriately spanned invocation of
-    /// [`compile_error!`] in the generated code. This produces a better diagnostic
-    /// message than simply panicking the macro.
-    ///
-    /// [`compile_error!`]: std::compile_error!
-    ///
-    /// When parsing macro input, the [`parse_macro_input!`] macro handles the
-    /// conversion to `compile_error!` automatically.
-    ///
-    /// [`parse_macro_input!`]: crate::parse_macro_input!
-    ///
-    /// ```
-    /// # extern crate proc_macro;
-    /// #
-    /// use proc_macro::TokenStream;
-    /// use syn::{parse_macro_input, AttributeArgs, ItemFn};
-    ///
-    /// # const IGNORE: &str = stringify! {
-    /// #[proc_macro_attribute]
-    /// # };
-    /// pub fn my_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    ///     let args = parse_macro_input!(args as AttributeArgs);
-    ///     let input = parse_macro_input!(input as ItemFn);
-    ///
-    ///     /* ... */
-    ///     # TokenStream::new()
-    /// }
-    /// ```
-    ///
-    /// For errors that arise later than the initial parsing stage, the
-    /// [`.to_compile_error()`] or [`.into_compile_error()`] methods can be used to
-    /// perform an explicit conversion to `compile_error!`.
-    ///
-    /// [`.to_compile_error()`]: Error::to_compile_error
-    /// [`.into_compile_error()`]: Error::into_compile_error
-    ///
-    /// ```
-    /// # extern crate proc_macro;
-    /// #
-    /// # use proc_macro::TokenStream;
-    /// # use syn::{parse_macro_input, DeriveInput};
-    /// #
-    /// # const IGNORE: &str = stringify! {
-    /// #[proc_macro_derive(MyDerive)]
-    /// # };
-    /// pub fn my_derive(input: TokenStream) -> TokenStream {
-    ///     let input = parse_macro_input!(input as DeriveInput);
-    ///
-    ///     // fn(DeriveInput) -> syn::Result<proc_macro2::TokenStream>
-    ///     expand::my_derive(input)
-    ///         .unwrap_or_else(syn::Error::into_compile_error)
-    ///         .into()
-    /// }
-    /// #
-    /// # mod expand {
-    /// #     use proc_macro2::TokenStream;
-    /// #     use syn::{DeriveInput, Result};
-    /// #
-    /// #     pub fn my_derive(input: DeriveInput) -> Result<TokenStream> {
-    /// #         unimplemented!()
-    /// #     }
-    /// # }
-    /// ```
     pub struct Error {
         messages: Vec<ErrorMessage>,
     }
@@ -49105,36 +44384,6 @@ mod error {
         message: String,
     }
     impl Error {
-        /// Usually the [`ParseStream::error`] method will be used instead, which
-        /// automatically uses the correct span from the current position of the
-        /// parse stream.
-        ///
-        /// Use `Error::new` when the error needs to be triggered on some span other
-        /// than where the parse stream is currently positioned.
-        ///
-        /// [`ParseStream::error`]: crate::parse::ParseBuffer::error
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use syn::{Error, Ident, LitStr, Result, Token};
-        /// use syn::parse::ParseStream;
-        ///
-        /// // Parses input that looks like `name = "string"` where the key must be
-        /// // the identifier `name` and the value may be any string literal.
-        /// // Returns the string literal.
-        /// fn parse_name(input: ParseStream) -> Result<LitStr> {
-        ///     let name_token: Ident = input.parse()?;
-        ///     if name_token != "name" {
-        ///         // Trigger an error not on the current position of the stream,
-        ///         // but on the position of the unexpected identifier.
-        ///         return Err(Error::new(name_token.span(), "expected `name`"));
-        ///     }
-        ///     input.parse::<Token![=]>()?;
-        ///     let s: LitStr = input.parse()?;
-        ///     Ok(s)
-        /// }
-        /// ```
         pub fn new<T: Display>(span: Span, message: T) -> Self {
             Error {
                 messages: <[_]>::into_vec(
@@ -49149,19 +44398,6 @@ mod error {
                 ),
             }
         }
-        /// Creates an error with the specified message spanning the given syntax
-        /// tree node.
-        ///
-        /// Unlike the `Error::new` constructor, this constructor takes an argument
-        /// `tokens` which is a syntax tree node. This allows the resulting `Error`
-        /// to attempt to span all tokens inside of `tokens`. While you would
-        /// typically be able to use the `Spanned` trait with the above `Error::new`
-        /// constructor, implementation limitations today mean that
-        /// `Error::new_spanned` may provide a higher-quality error message on
-        /// stable Rust.
-        ///
-        /// When in doubt it's recommended to stick to `Error::new` (or
-        /// `ParseStream::error`)!
         #[cfg(feature = "printing")]
         pub fn new_spanned<T: ToTokens, U: Display>(tokens: T, message: U) -> Self {
             let mut iter = tokens.into_token_stream().into_iter();
@@ -49180,11 +44416,6 @@ mod error {
                 ),
             }
         }
-        /// The source location of the error.
-        ///
-        /// Spans are not thread-safe so this function returns `Span::call_site()`
-        /// if called from a different thread than the one on which the `Error` was
-        /// originally created.
         pub fn span(&self) -> Span {
             let start = match self.messages[0].start_span.get() {
                 Some(span) => *span,
@@ -49196,53 +44427,12 @@ mod error {
             };
             start.join(end).unwrap_or(start)
         }
-        /// Render the error as an invocation of [`compile_error!`].
-        ///
-        /// The [`parse_macro_input!`] macro provides a convenient way to invoke
-        /// this method correctly in a procedural macro.
-        ///
-        /// [`compile_error!`]: std::compile_error!
-        /// [`parse_macro_input!`]: crate::parse_macro_input!
         pub fn to_compile_error(&self) -> TokenStream {
             self.messages.iter().map(ErrorMessage::to_compile_error).collect()
         }
-        /// Render the error as an invocation of [`compile_error!`].
-        ///
-        /// [`compile_error!`]: std::compile_error!
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// # extern crate proc_macro;
-        /// #
-        /// use proc_macro::TokenStream;
-        /// use syn::{parse_macro_input, DeriveInput, Error};
-        ///
-        /// # const _: &str = stringify! {
-        /// #[proc_macro_derive(MyTrait)]
-        /// # };
-        /// pub fn derive_my_trait(input: TokenStream) -> TokenStream {
-        ///     let input = parse_macro_input!(input as DeriveInput);
-        ///     my_trait::expand(input)
-        ///         .unwrap_or_else(Error::into_compile_error)
-        ///         .into()
-        /// }
-        ///
-        /// mod my_trait {
-        ///     use proc_macro2::TokenStream;
-        ///     use syn::{DeriveInput, Result};
-        ///
-        ///     pub(crate) fn expand(input: DeriveInput) -> Result<TokenStream> {
-        ///         /* ... */
-        ///         # unimplemented!()
-        ///     }
-        /// }
-        /// ```
         pub fn into_compile_error(self) -> TokenStream {
             self.to_compile_error()
         }
-        /// Add another error message to self such that when `to_compile_error()` is
-        /// called, both errors will be emitted together.
         pub fn combine(&mut self, another: Error) {
             self.messages.extend(another.messages);
         }
@@ -49420,47 +44610,6 @@ mod error {
     }
 }
 pub use crate::error::{Error, Result};
-/// Parse tokens of source code into the chosen syntax tree node.
-///
-/// This is preferred over parsing a string because tokens are able to preserve
-/// information about where in the user's code they were originally written (the
-/// "span" of the token), possibly allowing the compiler to produce better error
-/// messages.
-///
-/// This function parses a `proc_macro::TokenStream` which is the type used for
-/// interop with the compiler in a procedural macro. To parse a
-/// `proc_macro2::TokenStream`, use [`syn::parse2`] instead.
-///
-/// [`syn::parse2`]: parse2
-///
-/// *This function is available only if Syn is built with both the `"parsing"` and
-/// `"proc-macro"` features.*
-///
-/// # Examples
-///
-/// ```
-/// # extern crate proc_macro;
-/// #
-/// use proc_macro::TokenStream;
-/// use quote::quote;
-/// use syn::DeriveInput;
-///
-/// # const IGNORE_TOKENS: &str = stringify! {
-/// #[proc_macro_derive(MyMacro)]
-/// # };
-/// pub fn my_macro(input: TokenStream) -> TokenStream {
-///     // Parse the tokens into a syntax tree
-///     let ast: DeriveInput = syn::parse(input).unwrap();
-///
-///     // Build the output, possibly using quasi-quotation
-///     let expanded = quote! {
-///         /* ... */
-///     };
-///
-///     // Convert into a token stream and return it
-///     expanded.into()
-/// }
-/// ```
 #[cfg(
     all(
         not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "wasi"))),
@@ -49471,86 +44620,14 @@ pub use crate::error::{Error, Result};
 pub fn parse<T: parse::Parse>(tokens: proc_macro::TokenStream) -> Result<T> {
     parse::Parser::parse(T::parse, tokens)
 }
-/// Parse a proc-macro2 token stream into the chosen syntax tree node.
-///
-/// This function will check that the input is fully parsed. If there are
-/// any unparsed tokens at the end of the stream, an error is returned.
-///
-/// This function parses a `proc_macro2::TokenStream` which is commonly useful
-/// when the input comes from a node of the Syn syntax tree, for example the
-/// body tokens of a [`Macro`] node. When in a procedural macro parsing the
-/// `proc_macro::TokenStream` provided by the compiler, use [`syn::parse`]
-/// instead.
-///
-/// [`syn::parse`]: parse()
-///
-/// *This function is available only if Syn is built with the `"parsing"` feature.*
 #[cfg(feature = "parsing")]
 pub fn parse2<T: parse::Parse>(tokens: proc_macro2::TokenStream) -> Result<T> {
     parse::Parser::parse2(T::parse, tokens)
 }
-/// Parse a string of Rust code into the chosen syntax tree node.
-///
-/// *This function is available only if Syn is built with the `"parsing"` feature.*
-///
-/// # Hygiene
-///
-/// Every span in the resulting syntax tree will be set to resolve at the macro
-/// call site.
-///
-/// # Examples
-///
-/// ```
-/// use syn::{Expr, Result};
-///
-/// fn run() -> Result<()> {
-///     let code = "assert_eq!(u8::max_value(), 255)";
-///     let expr = syn::parse_str::<Expr>(code)?;
-///     println!("{:#?}", expr);
-///     Ok(())
-/// }
-/// #
-/// # run().unwrap();
-/// ```
 #[cfg(feature = "parsing")]
 pub fn parse_str<T: parse::Parse>(s: &str) -> Result<T> {
     parse::Parser::parse_str(T::parse, s)
 }
-/// Parse the content of a file of Rust code.
-///
-/// This is different from `syn::parse_str::<File>(content)` in two ways:
-///
-/// - It discards a leading byte order mark `\u{FEFF}` if the file has one.
-/// - It preserves the shebang line of the file, such as `#!/usr/bin/env rustx`.
-///
-/// If present, either of these would be an error using `from_str`.
-///
-/// *This function is available only if Syn is built with the `"parsing"` and
-/// `"full"` features.*
-///
-/// # Examples
-///
-/// ```no_run
-/// use std::error::Error;
-/// use std::fs::File;
-/// use std::io::Read;
-///
-/// fn run() -> Result<(), Box<Error>> {
-///     let mut file = File::open("path/to/code.rs")?;
-///     let mut content = String::new();
-///     file.read_to_string(&mut content)?;
-///
-///     let ast = syn::parse_file(&content)?;
-///     if let Some(shebang) = ast.shebang {
-///         println!("{}", shebang);
-///     }
-///     println!("{} items", ast.items.len());
-///
-///     Ok(())
-/// }
-/// #
-/// # run().unwrap();
-/// ```
 #[cfg(all(feature = "parsing", feature = "full"))]
 pub fn parse_file(mut content: &str) -> Result<File> {
     const BOM: &str = "\u{feff}";
