@@ -13234,8 +13234,9 @@ mod de {
         let field_names_idents: Vec<_> = fields
             .iter()
             .enumerate()
-            .filter(|&(_, field)| !field.attrs.skip_deserializing()
-                && !field.attrs.flatten())
+            .filter(|&(_, field)| {
+                !field.attrs.skip_deserializing() && !field.attrs.flatten()
+            })
             .map(|(i, field)| {
                 (
                     field.attrs.name().deserialize_name(),
@@ -13266,8 +13267,9 @@ mod de {
             .collect();
         let let_values = fields_names
             .iter()
-            .filter(|&&(field, _)| !field.attrs.skip_deserializing()
-                && !field.attrs.flatten())
+            .filter(|&&(field, _)| {
+                !field.attrs.skip_deserializing() && !field.attrs.flatten()
+            })
             .map(|(field, name)| {
                 let field_ty = field.ty;
                 {
@@ -13353,8 +13355,9 @@ mod de {
         };
         let value_arms = fields_names
             .iter()
-            .filter(|&&(field, _)| !field.attrs.skip_deserializing()
-                && !field.attrs.flatten())
+            .filter(|&&(field, _)| {
+                !field.attrs.skip_deserializing() && !field.attrs.flatten()
+            })
             .map(|(field, name)| {
                 let deser_name = field.attrs.name().deserialize_name();
                 let visit = match field.attrs.deserialize_with() {
@@ -13926,8 +13929,9 @@ mod de {
         };
         let extract_values = fields_names
             .iter()
-            .filter(|&&(field, _)| !field.attrs.skip_deserializing()
-                && !field.attrs.flatten())
+            .filter(|&&(field, _)| {
+                !field.attrs.skip_deserializing() && !field.attrs.flatten()
+            })
             .map(|(field, name)| {
                 let missing_expr = Match(expr_is_missing(field, cattrs));
                 {
@@ -13975,8 +13979,9 @@ mod de {
             });
         let extract_collected = fields_names
             .iter()
-            .filter(|&&(field, _)| field.attrs.flatten()
-                && !field.attrs.skip_deserializing())
+            .filter(|&&(field, _)| {
+                field.attrs.flatten() && !field.attrs.skip_deserializing()
+            })
             .map(|(field, name)| {
                 let field_ty = field.ty;
                 let func = match field.attrs.deserialize_with() {
