@@ -694,6 +694,7 @@ impl Printer {
 
         enum ExprVerbatim {
             Empty,
+            Infer,
             RawReference(RawReference),
             ConstBlock(ConstBlock),
         }
@@ -717,6 +718,9 @@ impl Printer {
                 let lookahead = input.lookahead1();
                 if input.is_empty() {
                     Ok(ExprVerbatim::Empty)
+                } else if lookahead.peek(Token![_]) {
+                    input.parse::<Token![_]>()?;
+                    Ok(ExprVerbatim::Infer)
                 } else if lookahead.peek(Token![&]) {
                     input.parse::<Token![&]>()?;
                     input.parse::<kw::raw>()?;
@@ -749,6 +753,9 @@ impl Printer {
 
         match expr {
             ExprVerbatim::Empty => {}
+            ExprVerbatim::Infer => {
+                self.word("_");
+            }
             ExprVerbatim::RawReference(expr) => {
                 self.word("&raw ");
                 self.word(if expr.mutable { "mut " } else { "const " });
