@@ -689,14 +689,15 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn expr_verbatim(&mut self, tokens: &TokenStream) {
-        use syn::braced;
         use syn::parse::{Parse, ParseStream, Result};
+        use syn::{braced, BoundLifetimes};
 
         enum ExprVerbatim {
             Empty,
             Infer,
             RawReference(RawReference),
             ConstBlock(ConstBlock),
+            ClosureWithLifetimes(ClosureWithLifetimes),
         }
 
         struct RawReference {
@@ -707,6 +708,11 @@ impl Printer {
         struct ConstBlock {
             attrs: Vec<Attribute>,
             block: Block,
+        }
+
+        struct ClosureWithLifetimes {
+            lifetimes: BoundLifetimes,
+            closure: ExprClosure,
         }
 
         mod kw {
@@ -740,6 +746,13 @@ impl Printer {
                         attrs,
                         block: Block { brace_token, stmts },
                     }))
+                } else if lookahead.peek(Token![for]) {
+                    let lifetimes = input.parse()?;
+                    let closure = input.parse()?;
+                    Ok(ExprVerbatim::ClosureWithLifetimes(ClosureWithLifetimes {
+                        lifetimes,
+                        closure,
+                    }))
                 } else {
                     Err(lookahead.error())
                 }
@@ -767,6 +780,10 @@ impl Printer {
                 self.word("const ");
                 self.small_block(&expr.block, &expr.attrs);
                 self.end();
+            }
+            ExprVerbatim::ClosureWithLifetimes(expr) => {
+                self.bound_lifetimes(&expr.lifetimes);
+                self.expr_closure(&expr.closure);
             }
         }
     }
