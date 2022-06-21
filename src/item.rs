@@ -532,11 +532,36 @@ impl Printer {
         self.hardbreak();
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn foreign_item_verbatim(&mut self, foreign_item: &TokenStream) {
         if !foreign_item.is_empty() {
             unimplemented!("ForeignItem::Verbatim `{}`", foreign_item);
         }
         self.hardbreak();
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn foreign_item_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+
+        enum ForeignItemVerbatim {
+            TypeAlias(ItemType),
+        }
+
+        impl Parse for ForeignItemVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                input.parse().map(ForeignItemVerbatim::TypeAlias)
+            }
+        }
+
+        let foreign_item: ForeignItemVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(foreign_item) => foreign_item,
+            Err(_) => unimplemented!("ForeignItem::Verbatim `{}`", tokens),
+        };
+
+        match foreign_item {
+            ForeignItemVerbatim::TypeAlias(item) => self.item_type(&item),
+        }
     }
 
     fn trait_item(&mut self, trait_item: &TraitItem) {
