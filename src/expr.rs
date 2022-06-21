@@ -12,7 +12,7 @@ use syn::{
     ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
     ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary,
     ExprUnsafe, ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member,
-    MethodTurbofish, PathArguments, RangeLimits, ReturnType, Stmt, Token, UnOp,
+    MethodTurbofish, PathArguments, QSelf, RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -582,10 +582,14 @@ impl Printer {
     }
 
     fn expr_struct(&mut self, expr: &ExprStruct) {
+        self.expr_qualified_struct(&None, expr);
+    }
+
+    fn expr_qualified_struct(&mut self, qself: &Option<QSelf>, expr: &ExprStruct) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
         self.ibox(-INDENT);
-        self.path(&expr.path);
+        self.qpath(qself, &expr.path);
         self.end();
         self.word(" {");
         self.space_if_nonempty();
@@ -698,6 +702,7 @@ impl Printer {
             RawReference(RawReference),
             ConstBlock(ConstBlock),
             ClosureWithLifetimes(ClosureWithLifetimes),
+            QualifiedStruct(QualifiedStruct),
         }
 
         struct RawReference {
@@ -713,6 +718,11 @@ impl Printer {
         struct ClosureWithLifetimes {
             lifetimes: BoundLifetimes,
             closure: ExprClosure,
+        }
+
+        struct QualifiedStruct {
+            qself: QSelf,
+            strct: ExprStruct,
         }
 
         mod kw {
@@ -753,6 +763,36 @@ impl Printer {
                         lifetimes,
                         closure,
                     }))
+                } else if lookahead.peek(Token![<]) {
+                    let path: ExprPath = input.parse()?;
+                    let content;
+                    let mut expr = QualifiedStruct {
+                        qself: path.qself.unwrap(),
+                        strct: ExprStruct {
+                            attrs: Vec::new(),
+                            brace_token: braced!(content in input),
+                            path: path.path,
+                            fields: Punctuated::new(),
+                            dot2_token: None,
+                            rest: None,
+                        },
+                    };
+                    while !content.is_empty() {
+                        if content.peek(Token![..]) {
+                            expr.strct.dot2_token = Some(content.parse()?);
+                            if !content.is_empty() {
+                                expr.strct.rest = Some(Box::new(content.parse()?));
+                            }
+                            break;
+                        }
+                        expr.strct.fields.push(content.parse()?);
+                        if content.is_empty() {
+                            break;
+                        }
+                        let punct: Token![,] = content.parse()?;
+                        expr.strct.fields.push_punct(punct);
+                    }
+                    Ok(ExprVerbatim::QualifiedStruct(expr))
                 } else {
                     Err(lookahead.error())
                 }
@@ -784,6 +824,9 @@ impl Printer {
             ExprVerbatim::ClosureWithLifetimes(expr) => {
                 self.bound_lifetimes(&expr.lifetimes);
                 self.expr_closure(&expr.closure);
+            }
+            ExprVerbatim::QualifiedStruct(expr) => {
+                self.expr_qualified_struct(&Some(expr.qself), &expr.strct);
             }
         }
     }
