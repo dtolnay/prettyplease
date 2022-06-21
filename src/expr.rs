@@ -689,16 +689,23 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn expr_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::braced;
         use syn::parse::{Parse, ParseStream, Result};
 
         enum ExprVerbatim {
             Empty,
             RawReference(RawReference),
+            ConstBlock(ConstBlock),
         }
 
         struct RawReference {
             mutable: bool,
             expr: Expr,
+        }
+
+        struct ConstBlock {
+            attrs: Vec<Attribute>,
+            block: Block,
         }
 
         mod kw {
@@ -707,9 +714,10 @@ impl Printer {
 
         impl Parse for ExprVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
+                let lookahead = input.lookahead1();
                 if input.is_empty() {
                     Ok(ExprVerbatim::Empty)
-                } else {
+                } else if lookahead.peek(Token![&]) {
                     input.parse::<Token![&]>()?;
                     input.parse::<kw::raw>()?;
                     let mutable = input.parse::<Option<Token![mut]>>()?.is_some();
@@ -718,6 +726,18 @@ impl Printer {
                     }
                     let expr: Expr = input.parse()?;
                     Ok(ExprVerbatim::RawReference(RawReference { mutable, expr }))
+                } else if lookahead.peek(Token![const]) {
+                    input.parse::<Token![const]>()?;
+                    let content;
+                    let brace_token = braced!(content in input);
+                    let attrs = content.call(Attribute::parse_inner)?;
+                    let stmts = content.call(Block::parse_within)?;
+                    Ok(ExprVerbatim::ConstBlock(ConstBlock {
+                        attrs,
+                        block: Block { brace_token, stmts },
+                    }))
+                } else {
+                    Err(lookahead.error())
                 }
             }
         }
@@ -733,6 +753,13 @@ impl Printer {
                 self.word("&raw ");
                 self.word(if expr.mutable { "mut " } else { "const " });
                 self.expr(&expr.expr);
+            }
+            ExprVerbatim::ConstBlock(expr) => {
+                self.outer_attrs(&expr.attrs);
+                self.cbox(INDENT);
+                self.word("const ");
+                self.small_block(&expr.block, &expr.attrs);
+                self.end();
             }
         }
     }
