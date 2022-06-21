@@ -160,11 +160,50 @@ impl Printer {
         self.word(")");
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn type_verbatim(&mut self, ty: &TokenStream) {
         if ty.to_string() == "..." {
             self.word("...");
         } else {
             unimplemented!("Type::Verbatim `{}`", ty);
+        }
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn type_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+        use syn::{token, ExprBlock, Lit};
+
+        enum TypeVerbatim {
+            Lit(Lit),
+            Block(ExprBlock),
+        }
+
+        impl Parse for TypeVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                let lookahead = input.lookahead1();
+                if lookahead.peek(Lit) {
+                    input.parse().map(TypeVerbatim::Lit)
+                } else if lookahead.peek(token::Brace) {
+                    input.parse().map(TypeVerbatim::Block)
+                } else {
+                    Err(lookahead.error())
+                }
+            }
+        }
+
+        let ty: TypeVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(ty) => ty,
+            Err(_) => unimplemented!("Type::Verbatim `{}`", tokens),
+        };
+
+        match ty {
+            TypeVerbatim::Lit(lit) => {
+                self.lit(&lit);
+            }
+            TypeVerbatim::Block(block) => {
+                self.expr_block(&block);
+            }
         }
     }
 
