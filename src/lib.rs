@@ -333,6 +333,7 @@
     clippy::must_use_candidate,
     clippy::needless_pass_by_value,
     clippy::similar_names,
+    clippy::too_many_lines,
     clippy::unused_self,
     clippy::vec_init_then_push
 )]
