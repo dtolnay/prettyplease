@@ -57,6 +57,10 @@ impl Printer {
     }
 
     fn angle_bracketed_generic_arguments(&mut self, generic: &AngleBracketedGenericArguments) {
+        if generic.args.is_empty() {
+            return;
+        }
+
         if generic.colon2_token.is_some() {
             self.word("::");
         }
