@@ -48,7 +48,7 @@ pretty-printer built into rustc, and rustfmt. The sections below go into more
 detail comparing the output of each of these libraries.
 
 | | prettyplease | rustc | rustfmt |
-| --- | --- | --- | --- |
+|:---|:---:|:---:|:---:|
 | non-pathological behavior on big or generated code | 💚 | ❌ | ❌ |
 | idiomatic modern formatting ("locally indistinguishable from rustfmt") | 💚 | ❌ | 💚 |
 | throughput | 60 MB/s | 39 MB/s | 2.8 MB/s |
