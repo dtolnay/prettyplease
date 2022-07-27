@@ -50,15 +50,15 @@
 //!
 //! | | prettyplease | rustc | rustfmt |
 //! | --- | --- | --- | --- |
-//! | non-pathological behavior on big or generated code | ✅ | ❌ | ❌ |
-//! | idiomatic modern formatting ("locally indistinguishable from rustfmt") | ✅ | ❌ | ✅ |
+//! | non-pathological behavior on big or generated code | 💚 | ❌ | ❌ |
+//! | idiomatic modern formatting ("locally indistinguishable from rustfmt") | 💚 | ❌ | 💚 |
 //! | throughput | 60 MB/s | 39 MB/s | 2.8 MB/s |
 //! | number of dependencies | 3 | 72 | 66 |
 //! | compile time including dependencies | 2.4 sec | 23.1 sec | 29.8 sec |
-//! | buildable using a stable Rust compiler | ✅ | ❌ | ❌ |
-//! | published to crates.io | ✅ | ❌ | ❌ |
-//! | extensively configurable output | ❌ | ❌ | ✅ |
-//! | intended to accommodate hand-maintained source code | ❌ | ❌ | ✅ |
+//! | buildable using a stable Rust compiler | 💚 | ❌ | ❌ |
+//! | published to crates.io | 💚 | ❌ | ❌ |
+//! | extensively configurable output | ❌ | ❌ | 💚 |
+//! | intended to accommodate hand-maintained source code | ❌ | ❌ | 💚 |
 //!
 //! <br>
 //!
