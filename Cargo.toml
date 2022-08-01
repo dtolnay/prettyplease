@@ -3,6 +3,7 @@ name = "prettyplease"
 version = "0.1.17"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 autoexamples = false
+categories = ["development-tools"]
 description = "A minimal `syn` syntax tree pretty-printer"
 documentation = "https://docs.rs/prettyplease"
 edition = "2021"
