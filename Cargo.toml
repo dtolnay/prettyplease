@@ -8,6 +8,7 @@ description = "A minimal `syn` syntax tree pretty-printer"
 documentation = "https://docs.rs/prettyplease"
 edition = "2021"
 exclude = ["cargo-expand"]
+keywords = ["rustfmt"]
 license = "MIT OR Apache-2.0"
 links = "prettyplease01"
 readme = "README.md"
