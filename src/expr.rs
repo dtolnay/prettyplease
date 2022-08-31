@@ -379,7 +379,9 @@ impl Printer {
                 match else_branch {
                     Expr::If(expr) => {
                         self.word("if ");
+                        self.cbox(-INDENT);
                         self.wrap_exterior_struct(&expr.cond);
+                        self.end();
                         self.small_block(&expr.then_branch, &[]);
                         if let Some((_else_token, next)) = &expr.else_branch {
                             else_branch = next;
