@@ -806,7 +806,8 @@ impl Printer {
             if last_is_variadic {
                 self.zerobreak();
             } else {
-                self.trailing_comma(input.is_last);
+                let is_last = input.is_last && signature.variadic.is_none();
+                self.trailing_comma(is_last);
             }
         }
         if signature.variadic.is_some() && !last_is_variadic {
