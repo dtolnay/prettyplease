@@ -22,7 +22,26 @@ impl Printer {
 
     fn attr(&mut self, attr: &Attribute) {
         if let Some(mut doc) = value_of_attribute("doc", attr) {
-            if doc.contains('\n') {
+            if !doc.contains('\n')
+                && match attr.style {
+                    AttrStyle::Outer => !doc.starts_with('/'),
+                    AttrStyle::Inner(_) => true,
+                }
+            {
+                trim_trailing_spaces(&mut doc);
+                self.word(match attr.style {
+                    AttrStyle::Outer => "///",
+                    AttrStyle::Inner(_) => "//!",
+                });
+                self.word(doc);
+                self.hardbreak();
+                return;
+            } else if can_be_block_comment(&doc)
+                && match attr.style {
+                    AttrStyle::Outer => !doc.starts_with(&['*', '/'][..]),
+                    AttrStyle::Inner(_) => true,
+                }
+            {
                 trim_interior_trailing_spaces(&mut doc);
                 self.word(match attr.style {
                     AttrStyle::Outer => "/**",
@@ -30,38 +49,35 @@ impl Printer {
                 });
                 self.word(doc);
                 self.word("*/");
-            } else {
-                trim_trailing_spaces(&mut doc);
-                self.word(match attr.style {
-                    AttrStyle::Outer => "///",
-                    AttrStyle::Inner(_) => "//!",
-                });
-                self.word(doc);
+                self.hardbreak();
+                return;
             }
-            self.hardbreak();
         } else if let Some(mut comment) = value_of_attribute("comment", attr) {
-            if comment.contains('\n') {
+            if !comment.contains('\n') {
+                trim_trailing_spaces(&mut comment);
+                self.word("//");
+                self.word(comment);
+                self.hardbreak();
+                return;
+            } else if can_be_block_comment(&comment) && !comment.starts_with(&['*', '!'][..]) {
                 trim_interior_trailing_spaces(&mut comment);
                 self.word("/*");
                 self.word(comment);
                 self.word("*/");
-            } else {
-                trim_trailing_spaces(&mut comment);
-                self.word("//");
-                self.word(comment);
+                self.hardbreak();
+                return;
             }
-            self.hardbreak();
-        } else {
-            self.word(match attr.style {
-                AttrStyle::Outer => "#",
-                AttrStyle::Inner(_) => "#!",
-            });
-            self.word("[");
-            self.path(&attr.path);
-            self.attr_tokens(attr.tokens.clone());
-            self.word("]");
-            self.space();
         }
+
+        self.word(match attr.style {
+            AttrStyle::Outer => "#",
+            AttrStyle::Inner(_) => "#!",
+        });
+        self.word("[");
+        self.path(&attr.path);
+        self.attr_tokens(attr.tokens.clone());
+        self.word("]");
+        self.space();
     }
 
     fn attr_tokens(&mut self, tokens: TokenStream) {
@@ -230,4 +246,28 @@ fn trim_interior_trailing_spaces(doc: &mut String) {
         }
     }
     *doc = trimmed;
+}
+
+fn can_be_block_comment(value: &str) -> bool {
+    let mut depth = 0usize;
+    let bytes = value.as_bytes();
+    let mut i = 0usize;
+    let upper = bytes.len() - 1;
+
+    while i < upper {
+        if bytes[i] == b'/' && bytes[i + 1] == b'*' {
+            depth += 1;
+            i += 2;
+        } else if bytes[i] == b'*' && bytes[i + 1] == b'/' {
+            if depth == 0 {
+                return false;
+            }
+            depth -= 1;
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+
+    depth == 0
 }
