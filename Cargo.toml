@@ -1,6 +1,6 @@
 [package]
 name = "prettyplease"
-version = "0.1.21"
+version = "0.1.22"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 autoexamples = false
 categories = ["development-tools"]
