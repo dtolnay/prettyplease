@@ -24,5 +24,8 @@ syn = { version = "1.0.90", default-features = false, features = ["full"] }
 [dev-dependencies]
 syn = { version = "1.0.90", default-features = false, features = ["parsing"] }
 
+[lib]
+doc-scrape-examples = false
+
 [workspace]
 members = ["cargo-expand/update", "examples/update"]
