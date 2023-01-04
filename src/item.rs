@@ -307,13 +307,12 @@ impl Printer {
         self.word("type ");
         self.ident(&item.ident);
         self.generics(&item.generics);
-        self.word("= ");
+        self.word(" = ");
         self.neverbreak();
         self.ibox(-INDENT);
         self.ty(&item.ty);
         self.end();
-        self.where_clause_oneline(&item.generics.where_clause);
-        self.word(";");
+        self.where_clause_oneline_semi(&item.generics.where_clause);
         self.end();
         self.hardbreak();
     }
@@ -631,10 +630,10 @@ impl Printer {
             self.type_param_bound(&bound);
         }
         if let Some((_eq_token, default)) = &trait_item.default {
-            self.where_clause_oneline(&trait_item.generics.where_clause);
-            self.word("= ");
+            self.word(" = ");
             self.neverbreak();
             self.ty(default);
+            self.where_clause_oneline_semi(&trait_item.generics.where_clause);
         } else {
             self.where_clause_oneline_semi(&trait_item.generics.where_clause);
         }
@@ -728,13 +727,12 @@ impl Printer {
         self.word("type ");
         self.ident(&impl_item.ident);
         self.generics(&impl_item.generics);
-        self.word("= ");
+        self.word(" = ");
         self.neverbreak();
         self.ibox(-INDENT);
         self.ty(&impl_item.ty);
         self.end();
-        self.where_clause_oneline(&impl_item.generics.where_clause);
-        self.word(";");
+        self.where_clause_oneline_semi(&impl_item.generics.where_clause);
         self.end();
         self.hardbreak();
     }
