@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
         with:
-          components: rustc-dev, rustfmt
+          components: llvm-tools, rustc-dev, rustfmt
       - run: cargo run --manifest-path examples/update/Cargo.toml
       - run: git diff --exit-code
       - run: cargo run --manifest-path cargo-expand/update/Cargo.toml
