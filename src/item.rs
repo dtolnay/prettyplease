@@ -307,12 +307,12 @@ impl Printer {
         self.word("type ");
         self.ident(&item.ident);
         self.generics(&item.generics);
-        self.where_clause_oneline(&item.generics.where_clause);
         self.word("= ");
         self.neverbreak();
         self.ibox(-INDENT);
         self.ty(&item.ty);
         self.end();
+        self.where_clause_oneline(&item.generics.where_clause);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -728,12 +728,12 @@ impl Printer {
         self.word("type ");
         self.ident(&impl_item.ident);
         self.generics(&impl_item.generics);
-        self.where_clause_oneline(&impl_item.generics.where_clause);
         self.word("= ");
         self.neverbreak();
         self.ibox(-INDENT);
         self.ty(&impl_item.ty);
         self.end();
+        self.where_clause_oneline(&impl_item.generics.where_clause);
         self.word(";");
         self.end();
         self.hardbreak();
