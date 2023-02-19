@@ -31,6 +31,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
+      - name: Enable type layout randomization
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+        if: matrix.rust == 'nightly'
       - run: cargo check
       - run: cargo check --features verbatim
       - run: cargo test
@@ -48,6 +51,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: llvm-tools, rustc-dev, rustfmt
+      - name: Enable type layout randomization
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
       - run: cargo run --manifest-path examples/update/Cargo.toml
       - run: git diff --exit-code
       - run: cargo run --manifest-path cargo-expand/update/Cargo.toml
