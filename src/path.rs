@@ -3,7 +3,7 @@ use crate::iter::IterDelimited;
 use crate::INDENT;
 use std::ptr;
 use syn::{
-    AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
+    AngleBracketedGenericArguments, AssocConst, AssocType, Constraint, Expr, GenericArgument,
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
 };
 
@@ -49,8 +49,6 @@ impl Printer {
         match arg {
             GenericArgument::Lifetime(lifetime) => self.lifetime(lifetime),
             GenericArgument::Type(ty) => self.ty(ty),
-            GenericArgument::Binding(binding) => self.binding(binding),
-            GenericArgument::Constraint(constraint) => self.constraint(constraint),
             GenericArgument::Const(expr) => {
                 match expr {
                     Expr::Lit(expr) => self.expr_lit(expr),
@@ -64,10 +62,15 @@ impl Printer {
                     }
                 }
             }
+            GenericArgument::AssocType(assoc) => self.assoc_type(assoc),
+            GenericArgument::AssocConst(assoc) => self.assoc_const(assoc),
+            GenericArgument::Constraint(constraint) => self.constraint(constraint),
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown GenericArgument"),
         }
     }
 
-    fn angle_bracketed_generic_arguments(
+    pub fn angle_bracketed_generic_arguments(
         &mut self,
         generic: &AngleBracketedGenericArguments,
         path_kind: PathKind,
@@ -83,26 +86,27 @@ impl Printer {
         self.cbox(INDENT);
         self.zerobreak();
 
-        // Print lifetimes before types and consts, all before bindings,
-        // regardless of their order in self.args.
-        //
-        // TODO: ordering rules for const arguments vs type arguments have
-        // not been settled yet. https://github.com/rust-lang/rust/issues/44580
+        // Print lifetimes before types/consts/bindings, regardless of their
+        // order in self.args.
         #[derive(Ord, PartialOrd, Eq, PartialEq)]
         enum Group {
             First,
             Second,
-            Third,
         }
         fn group(arg: &GenericArgument) -> Group {
             match arg {
                 GenericArgument::Lifetime(_) => Group::First,
-                GenericArgument::Type(_) | GenericArgument::Const(_) => Group::Second,
-                GenericArgument::Binding(_) | GenericArgument::Constraint(_) => Group::Third,
+                GenericArgument::Type(_)
+                | GenericArgument::Const(_)
+                | GenericArgument::AssocType(_)
+                | GenericArgument::AssocConst(_)
+                | GenericArgument::Constraint(_) => Group::Second,
+                #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                _ => Group::Second,
             }
         }
         let last = generic.args.iter().max_by_key(|param| group(param));
-        for current_group in [Group::First, Group::Second, Group::Third] {
+        for current_group in [Group::First, Group::Second] {
             for arg in &generic.args {
                 if group(arg) == current_group {
                     self.generic_argument(arg);
@@ -116,14 +120,29 @@ impl Printer {
         self.word(">");
     }
 
-    fn binding(&mut self, binding: &Binding) {
-        self.ident(&binding.ident);
+    fn assoc_type(&mut self, assoc: &AssocType) {
+        self.ident(&assoc.ident);
+        if let Some(generics) = &assoc.generics {
+            self.angle_bracketed_generic_arguments(generics, PathKind::Type);
+        }
         self.word(" = ");
-        self.ty(&binding.ty);
+        self.ty(&assoc.ty);
+    }
+
+    fn assoc_const(&mut self, assoc: &AssocConst) {
+        self.ident(&assoc.ident);
+        if let Some(generics) = &assoc.generics {
+            self.angle_bracketed_generic_arguments(generics, PathKind::Type);
+        }
+        self.word(" = ");
+        self.expr(&assoc.value);
     }
 
     fn constraint(&mut self, constraint: &Constraint) {
         self.ident(&constraint.ident);
+        if let Some(generics) = &constraint.generics {
+            self.angle_bracketed_generic_arguments(generics, PathKind::Type);
+        }
         self.ibox(INDENT);
         for bound in constraint.bounds.iter().delimited() {
             if bound.is_first {

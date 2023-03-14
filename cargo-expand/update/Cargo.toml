@@ -13,4 +13,4 @@ path = "update.rs"
 anyhow = "1.0"
 prettyplease = { path = "../../", features = ["verbatim"] }
 proc-macro2 = { version = "1.0", features = ["span-locations"] }
-syn = { version = "1.0", default-features = false, features = ["parsing", "printing"] }
+syn = { version = "2.0", default-features = false, features = ["parsing", "printing"] }

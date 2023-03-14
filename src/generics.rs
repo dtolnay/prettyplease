@@ -2,11 +2,12 @@ use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::path::PathKind;
 use crate::INDENT;
+use proc_macro2::TokenStream;
 use std::ptr;
 use syn::{
-    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
-    PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
-    WhereClause, WherePredicate,
+    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeParam, PredicateLifetime,
+    PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound, WhereClause,
+    WherePredicate,
 };
 
 impl Printer {
@@ -21,9 +22,6 @@ impl Printer {
 
         // Print lifetimes before types and consts, regardless of their
         // order in self.params.
-        //
-        // TODO: ordering rules for const parameters vs type parameters have
-        // not been settled yet. https://github.com/rust-lang/rust/issues/44580
         #[derive(Ord, PartialOrd, Eq, PartialEq)]
         enum Group {
             First,
@@ -53,26 +51,26 @@ impl Printer {
     fn generic_param(&mut self, generic_param: &GenericParam) {
         match generic_param {
             GenericParam::Type(type_param) => self.type_param(type_param),
-            GenericParam::Lifetime(lifetime_def) => self.lifetime_def(lifetime_def),
+            GenericParam::Lifetime(lifetime_param) => self.lifetime_param(lifetime_param),
             GenericParam::Const(const_param) => self.const_param(const_param),
         }
     }
 
     pub fn bound_lifetimes(&mut self, bound_lifetimes: &BoundLifetimes) {
         self.word("for<");
-        for lifetime_def in bound_lifetimes.lifetimes.iter().delimited() {
-            self.lifetime_def(&lifetime_def);
-            if !lifetime_def.is_last {
+        for param in bound_lifetimes.lifetimes.iter().delimited() {
+            self.generic_param(&param);
+            if !param.is_last {
                 self.word(", ");
             }
         }
         self.word("> ");
     }
 
-    fn lifetime_def(&mut self, lifetime_def: &LifetimeDef) {
-        self.outer_attrs(&lifetime_def.attrs);
-        self.lifetime(&lifetime_def.lifetime);
-        for lifetime in lifetime_def.bounds.iter().delimited() {
+    fn lifetime_param(&mut self, lifetime_param: &LifetimeParam) {
+        self.outer_attrs(&lifetime_param.attrs);
+        self.lifetime(&lifetime_param.lifetime);
+        for lifetime in lifetime_param.bounds.iter().delimited() {
             if lifetime.is_first {
                 self.word(": ");
             } else {
@@ -105,27 +103,29 @@ impl Printer {
 
     pub fn type_param_bound(&mut self, type_param_bound: &TypeParamBound) {
         match type_param_bound {
-            TypeParamBound::Trait(trait_bound) => self.trait_bound(trait_bound),
+            TypeParamBound::Trait(trait_bound) => {
+                let tilde_const = false;
+                self.trait_bound(trait_bound, tilde_const);
+            }
             TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
+            TypeParamBound::Verbatim(bound) => self.type_param_bound_verbatim(bound),
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown TypeParamBound"),
         }
     }
 
-    fn trait_bound(&mut self, trait_bound: &TraitBound) {
+    fn trait_bound(&mut self, trait_bound: &TraitBound, tilde_const: bool) {
         if trait_bound.paren_token.is_some() {
             self.word("(");
         }
-        let skip = match trait_bound.path.segments.first() {
-            Some(segment) if segment.ident == "const" => {
-                self.word("~const ");
-                1
-            }
-            _ => 0,
-        };
+        if tilde_const {
+            self.word("~const ");
+        }
         self.trait_bound_modifier(&trait_bound.modifier);
         if let Some(bound_lifetimes) = &trait_bound.lifetimes {
             self.bound_lifetimes(bound_lifetimes);
         }
-        for segment in trait_bound.path.segments.iter().skip(skip).delimited() {
+        for segment in trait_bound.path.segments.iter().delimited() {
             if !segment.is_first || trait_bound.path.leading_colon.is_some() {
                 self.word("::");
             }
@@ -140,6 +140,49 @@ impl Printer {
         match trait_bound_modifier {
             TraitBoundModifier::None => {}
             TraitBoundModifier::Maybe(_question_mark) => self.word("?"),
+        }
+    }
+
+    #[cfg(not(feature = "verbatim"))]
+    fn type_param_bound_verbatim(&mut self, bound: &TokenStream) {
+        unimplemented!("TypeParamBound::Verbatim `{}`", bound);
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn type_param_bound_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+        use syn::{parenthesized, token, Token};
+
+        enum TypeParamBoundVerbatim {
+            TildeConst(TraitBound),
+        }
+
+        impl Parse for TypeParamBoundVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                let content;
+                let (paren_token, content) = if input.peek(token::Paren) {
+                    (Some(parenthesized!(content in input)), &content)
+                } else {
+                    (None, input)
+                };
+                content.parse::<Token![~]>()?;
+                content.parse::<Token![const]>()?;
+                let mut bound: TraitBound = content.parse()?;
+                bound.paren_token = paren_token;
+                Ok(TypeParamBoundVerbatim::TildeConst(bound))
+            }
+        }
+
+        let bound: TypeParamBoundVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(bound) => bound,
+            Err(_) => unimplemented!("TypeParamBound::Verbatim `{}`", tokens),
+        };
+
+        match bound {
+            TypeParamBoundVerbatim::TildeConst(trait_bound) => {
+                let tilde_const = true;
+                self.trait_bound(&trait_bound, tilde_const);
+            }
         }
     }
 
@@ -236,7 +279,8 @@ impl Printer {
         match predicate {
             WherePredicate::Type(predicate) => self.predicate_type(predicate),
             WherePredicate::Lifetime(predicate) => self.predicate_lifetime(predicate),
-            WherePredicate::Eq(predicate) => self.predicate_eq(predicate),
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown WherePredicate"),
         }
     }
 
@@ -277,11 +321,5 @@ impl Printer {
             self.lifetime(&lifetime);
         }
         self.end();
-    }
-
-    fn predicate_eq(&mut self, predicate: &PredicateEq) {
-        self.ty(&predicate.lhs_ty);
-        self.word(" = ");
-        self.ty(&predicate.rhs_ty);
     }
 }

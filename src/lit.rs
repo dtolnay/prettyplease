@@ -13,6 +13,8 @@ impl Printer {
             Lit::Float(lit) => self.lit_float(lit),
             Lit::Bool(lit) => self.lit_bool(lit),
             Lit::Verbatim(lit) => self.lit_verbatim(lit),
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown Lit"),
         }
     }
 
