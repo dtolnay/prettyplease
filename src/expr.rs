@@ -13,7 +13,7 @@ use syn::{
     ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
     ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary,
     ExprUnsafe, ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member,
-    MethodTurbofish, PathArguments, QSelf, RangeLimits, ReturnType, Stmt, Token, UnOp,
+    MethodTurbofish, QSelf, RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -1181,7 +1181,7 @@ fn is_short_ident(expr: &Expr) -> bool {
             && expr.path.segments.len() == 1
             && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
         {
-            if let PathArguments::None = expr.path.segments[0].arguments {
+            if expr.path.segments[0].arguments.is_none() {
                 return true;
             }
         }

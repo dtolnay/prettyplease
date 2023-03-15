@@ -3,13 +3,13 @@ use crate::path::PathKind;
 use crate::token::Token;
 use crate::INDENT;
 use proc_macro2::{Delimiter, Spacing, TokenStream};
-use syn::{Ident, Macro, MacroDelimiter, PathArguments};
+use syn::{Ident, Macro, MacroDelimiter};
 
 impl Printer {
     pub fn mac(&mut self, mac: &Macro, ident: Option<&Ident>) {
         let is_macro_rules = mac.path.leading_colon.is_none()
             && mac.path.segments.len() == 1
-            && matches!(mac.path.segments[0].arguments, PathArguments::None)
+            && mac.path.segments[0].arguments.is_none()
             && mac.path.segments[0].ident == "macro_rules";
         if is_macro_rules {
             if let Some(ident) = ident {

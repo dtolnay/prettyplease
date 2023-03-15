@@ -2,7 +2,7 @@ use crate::algorithm::Printer;
 use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
-use syn::{AttrStyle, Attribute, Lit, PathArguments};
+use syn::{AttrStyle, Attribute, Lit};
 
 impl Printer {
     pub fn outer_attrs(&mut self, attrs: &[Attribute]) {
@@ -187,7 +187,7 @@ impl Printer {
 fn value_of_attribute(requested: &str, attr: &Attribute) -> Option<String> {
     let is_doc = attr.path.leading_colon.is_none()
         && attr.path.segments.len() == 1
-        && matches!(attr.path.segments[0].arguments, PathArguments::None)
+        && attr.path.segments[0].arguments.is_none()
         && attr.path.segments[0].ident == requested;
     if !is_doc {
         return None;
