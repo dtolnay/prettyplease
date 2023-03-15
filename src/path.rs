@@ -73,38 +73,31 @@ impl Printer {
         //
         // TODO: ordering rules for const arguments vs type arguments have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        for arg in generic.args.iter().delimited() {
-            match *arg {
-                GenericArgument::Lifetime(_) => {
-                    self.generic_argument(&arg);
-                    self.trailing_comma(arg.is_last);
-                }
-                GenericArgument::Type(_)
-                | GenericArgument::Binding(_)
-                | GenericArgument::Constraint(_)
-                | GenericArgument::Const(_) => {}
+        #[derive(Ord, PartialOrd, Eq, PartialEq)]
+        enum Group {
+            First,
+            Second,
+            Third,
+        }
+        fn group(arg: &GenericArgument) -> Group {
+            match arg {
+                GenericArgument::Lifetime(_) => Group::First,
+                GenericArgument::Type(_) | GenericArgument::Const(_) => Group::Second,
+                GenericArgument::Binding(_) | GenericArgument::Constraint(_) => Group::Third,
             }
         }
-        for arg in generic.args.iter().delimited() {
-            match *arg {
-                GenericArgument::Type(_) | GenericArgument::Const(_) => {
-                    self.generic_argument(&arg);
-                    self.trailing_comma(arg.is_last);
+        let last = generic
+            .args
+            .iter()
+            .enumerate()
+            .max_by_key(|(_i, arg)| group(arg))
+            .map_or(0, |(i, _arg)| i);
+        for current_group in [Group::First, Group::Second, Group::Third] {
+            for (i, arg) in generic.args.iter().enumerate() {
+                if group(arg) == current_group {
+                    self.generic_argument(arg);
+                    self.trailing_comma(i == last);
                 }
-                GenericArgument::Lifetime(_)
-                | GenericArgument::Binding(_)
-                | GenericArgument::Constraint(_) => {}
-            }
-        }
-        for arg in generic.args.iter().delimited() {
-            match *arg {
-                GenericArgument::Binding(_) | GenericArgument::Constraint(_) => {
-                    self.generic_argument(&arg);
-                    self.trailing_comma(arg.is_last);
-                }
-                GenericArgument::Lifetime(_)
-                | GenericArgument::Type(_)
-                | GenericArgument::Const(_) => {}
             }
         }
 

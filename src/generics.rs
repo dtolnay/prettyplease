@@ -22,19 +22,29 @@ impl Printer {
         //
         // TODO: ordering rules for const parameters vs type parameters have
         // not been settled yet. https://github.com/rust-lang/rust/issues/44580
-        for param in generics.params.iter().delimited() {
-            if let GenericParam::Lifetime(_) = *param {
-                self.generic_param(&param);
-                self.trailing_comma(param.is_last);
+        #[derive(Ord, PartialOrd, Eq, PartialEq)]
+        enum Group {
+            First,
+            Second,
+        }
+        fn group(param: &GenericParam) -> Group {
+            match param {
+                GenericParam::Lifetime(_) => Group::First,
+                GenericParam::Type(_) | GenericParam::Const(_) => Group::Second,
             }
         }
-        for param in generics.params.iter().delimited() {
-            match *param {
-                GenericParam::Type(_) | GenericParam::Const(_) => {
-                    self.generic_param(&param);
-                    self.trailing_comma(param.is_last);
+        let last = generics
+            .params
+            .iter()
+            .enumerate()
+            .max_by_key(|(_i, param)| group(param))
+            .map_or(0, |(i, _param)| i);
+        for current_group in [Group::First, Group::Second] {
+            for (i, param) in generics.params.iter().enumerate() {
+                if group(param) == current_group {
+                    self.generic_param(param);
+                    self.trailing_comma(i == last);
                 }
-                GenericParam::Lifetime(_) => {}
             }
         }
 
