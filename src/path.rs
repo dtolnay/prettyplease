@@ -1,6 +1,7 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::INDENT;
+use std::ptr;
 use syn::{
     AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
@@ -86,17 +87,12 @@ impl Printer {
                 GenericArgument::Binding(_) | GenericArgument::Constraint(_) => Group::Third,
             }
         }
-        let last = generic
-            .args
-            .iter()
-            .enumerate()
-            .max_by_key(|(_i, arg)| group(arg))
-            .map_or(0, |(i, _arg)| i);
+        let last = generic.args.iter().max_by_key(|param| group(param));
         for current_group in [Group::First, Group::Second, Group::Third] {
-            for (i, arg) in generic.args.iter().enumerate() {
+            for arg in &generic.args {
                 if group(arg) == current_group {
                     self.generic_argument(arg);
-                    self.trailing_comma(i == last);
+                    self.trailing_comma(ptr::eq(arg, last.unwrap()));
                 }
             }
         }

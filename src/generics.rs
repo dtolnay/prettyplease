@@ -1,6 +1,7 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::INDENT;
+use std::ptr;
 use syn::{
     BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
     PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
@@ -33,17 +34,12 @@ impl Printer {
                 GenericParam::Type(_) | GenericParam::Const(_) => Group::Second,
             }
         }
-        let last = generics
-            .params
-            .iter()
-            .enumerate()
-            .max_by_key(|(_i, param)| group(param))
-            .map_or(0, |(i, _param)| i);
+        let last = generics.params.iter().max_by_key(|param| group(param));
         for current_group in [Group::First, Group::Second] {
-            for (i, param) in generics.params.iter().enumerate() {
+            for param in &generics.params {
                 if group(param) == current_group {
                     self.generic_param(param);
-                    self.trailing_comma(i == last);
+                    self.trailing_comma(ptr::eq(param, last.unwrap()));
                 }
             }
         }
