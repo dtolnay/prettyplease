@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use syn::{AttrStyle, Attribute, Lit, PathArguments};
@@ -74,7 +75,7 @@ impl Printer {
             AttrStyle::Inner(_) => "#!",
         });
         self.word("[");
-        self.path(&attr.path);
+        self.path(&attr.path, PathKind::Simple);
         self.attr_tokens(attr.tokens.clone());
         self.word("]");
         self.space();

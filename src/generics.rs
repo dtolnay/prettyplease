@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::INDENT;
 use std::ptr;
 use syn::{
@@ -128,7 +129,7 @@ impl Printer {
             if !segment.is_first || trait_bound.path.leading_colon.is_some() {
                 self.word("::");
             }
-            self.path_segment(&segment);
+            self.path_segment(&segment, PathKind::Type);
         }
         if trait_bound.paren_token.is_some() {
             self.word(")");

@@ -7,27 +7,37 @@ use syn::{
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
 };
 
+#[derive(Copy, Clone, PartialEq)]
+pub enum PathKind {
+    // a::B
+    Simple,
+    // a::B<T>
+    Type,
+    // a::B::<T>
+    Expr,
+}
+
 impl Printer {
-    pub fn path(&mut self, path: &Path) {
+    pub fn path(&mut self, path: &Path, kind: PathKind) {
         assert!(!path.segments.is_empty());
         for segment in path.segments.iter().delimited() {
             if !segment.is_first || path.leading_colon.is_some() {
                 self.word("::");
             }
-            self.path_segment(&segment);
+            self.path_segment(&segment, kind);
         }
     }
 
-    pub fn path_segment(&mut self, segment: &PathSegment) {
+    pub fn path_segment(&mut self, segment: &PathSegment, kind: PathKind) {
         self.ident(&segment.ident);
-        self.path_arguments(&segment.arguments);
+        self.path_arguments(&segment.arguments, kind);
     }
 
-    fn path_arguments(&mut self, arguments: &PathArguments) {
+    fn path_arguments(&mut self, arguments: &PathArguments, kind: PathKind) {
         match arguments {
             PathArguments::None => {}
             PathArguments::AngleBracketed(arguments) => {
-                self.angle_bracketed_generic_arguments(arguments);
+                self.angle_bracketed_generic_arguments(arguments, kind);
             }
             PathArguments::Parenthesized(arguments) => {
                 self.parenthesized_generic_arguments(arguments);
@@ -57,12 +67,16 @@ impl Printer {
         }
     }
 
-    fn angle_bracketed_generic_arguments(&mut self, generic: &AngleBracketedGenericArguments) {
-        if generic.args.is_empty() {
+    fn angle_bracketed_generic_arguments(
+        &mut self,
+        generic: &AngleBracketedGenericArguments,
+        path_kind: PathKind,
+    ) {
+        if generic.args.is_empty() || path_kind == PathKind::Simple {
             return;
         }
 
-        if generic.colon2_token.is_some() {
+        if path_kind == PathKind::Expr {
             self.word("::");
         }
         self.word("<");
@@ -137,11 +151,11 @@ impl Printer {
         self.end();
     }
 
-    pub fn qpath(&mut self, qself: &Option<QSelf>, path: &Path) {
+    pub fn qpath(&mut self, qself: &Option<QSelf>, path: &Path, kind: PathKind) {
         let qself = match qself {
             Some(qself) => qself,
             None => {
-                self.path(path);
+                self.path(path, kind);
                 return;
             }
         };
@@ -158,7 +172,7 @@ impl Printer {
                 if !segment.is_first || path.leading_colon.is_some() {
                     self.word("::");
                 }
-                self.path_segment(&segment);
+                self.path_segment(&segment, kind);
                 if segment.is_last {
                     self.word(">");
                 }
@@ -168,7 +182,7 @@ impl Printer {
         }
         for segment in segments {
             self.word("::");
-            self.path_segment(segment);
+            self.path_segment(segment, kind);
         }
     }
 }

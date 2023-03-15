@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
@@ -91,7 +92,7 @@ impl Printer {
 
     fn pat_path(&mut self, pat: &PatPath) {
         self.outer_attrs(&pat.attrs);
-        self.qpath(&pat.qself, &pat.path);
+        self.qpath(&pat.qself, &pat.path, PathKind::Expr);
     }
 
     fn pat_range(&mut self, pat: &PatRange) {
@@ -131,7 +132,7 @@ impl Printer {
     fn pat_struct(&mut self, pat: &PatStruct) {
         self.outer_attrs(&pat.attrs);
         self.cbox(INDENT);
-        self.path(&pat.path);
+        self.path(&pat.path, PathKind::Expr);
         self.word(" {");
         self.space_if_nonempty();
         for field in pat.fields.iter().delimited() {
@@ -170,7 +171,7 @@ impl Printer {
 
     fn pat_tuple_struct(&mut self, pat: &PatTupleStruct) {
         self.outer_attrs(&pat.attrs);
-        self.path(&pat.path);
+        self.path(&pat.path, PathKind::Expr);
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();

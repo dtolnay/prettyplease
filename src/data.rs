@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::INDENT;
 use syn::{
     Field, Fields, FieldsUnnamed, PathArguments, Variant, VisCrate, VisPublic, VisRestricted,
@@ -89,7 +90,7 @@ impl Printer {
         if !omit_in {
             self.word("in ");
         }
-        self.path(&vis.path);
+        self.path(&vis.path, PathKind::Simple);
         self.word(") ");
     }
 }
