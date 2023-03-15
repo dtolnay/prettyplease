@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
@@ -101,7 +102,7 @@ impl Printer {
     }
 
     fn type_path(&mut self, ty: &TypePath) {
-        self.qpath(&ty.qself, &ty.path);
+        self.qpath(&ty.qself, &ty.path, PathKind::Type);
     }
 
     fn type_ptr(&mut self, ty: &TypePtr) {

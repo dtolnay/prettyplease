@@ -1,6 +1,7 @@
 use crate::algorithm::{BreakToken, Printer};
 use crate::attr;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::stmt;
 use crate::INDENT;
 use proc_macro2::TokenStream;
@@ -537,7 +538,7 @@ impl Printer {
 
     fn expr_path(&mut self, expr: &ExprPath) {
         self.outer_attrs(&expr.attrs);
-        self.qpath(&expr.qself, &expr.path);
+        self.qpath(&expr.qself, &expr.path, PathKind::Expr);
     }
 
     fn expr_range(&mut self, expr: &ExprRange) {
@@ -589,7 +590,7 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
         self.ibox(-INDENT);
-        self.qpath(qself, &expr.path);
+        self.qpath(qself, &expr.path, PathKind::Expr);
         self.end();
         self.word(" {");
         self.space_if_nonempty();

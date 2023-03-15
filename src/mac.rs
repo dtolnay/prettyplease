@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::path::PathKind;
 use crate::token::Token;
 use crate::INDENT;
 use proc_macro2::{Delimiter, Spacing, TokenStream};
@@ -16,7 +17,7 @@ impl Printer {
                 return;
             }
         }
-        self.path(&mac.path);
+        self.path(&mac.path, PathKind::Simple);
         self.word("!");
         if let Some(ident) = ident {
             self.nbsp();

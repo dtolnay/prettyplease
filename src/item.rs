@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
+use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
@@ -139,7 +140,7 @@ impl Printer {
             if negative_polarity.is_some() {
                 self.word("!");
             }
-            self.path(path);
+            self.path(path, PathKind::Type);
             self.space();
             self.word("for ");
         }
