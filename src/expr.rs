@@ -90,8 +90,6 @@ impl Printer {
         }
     }
 
-    // If the given expression is a bare `ExprStruct`, wraps it in parenthesis
-    // before appending it to `TokenStream`.
     fn wrap_exterior_struct(&mut self, expr: &Expr) {
         let needs_paren = contains_exterior_struct_lit(expr);
         if needs_paren {
