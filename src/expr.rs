@@ -1180,10 +1180,9 @@ fn is_short_ident(expr: &Expr) -> bool {
             && expr.path.leading_colon.is_none()
             && expr.path.segments.len() == 1
             && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
+            && expr.path.segments[0].arguments.is_none()
         {
-            if expr.path.segments[0].arguments.is_none() {
-                return true;
-            }
+            return true;
         }
     }
     false
