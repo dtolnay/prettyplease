@@ -7,13 +7,13 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::punctuated::Punctuated;
 use syn::{
-    token, Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync,
-    ExprAwait, ExprBinary, ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure,
-    ExprContinue, ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprLet, ExprLit, ExprLoop,
+    token, Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAsync, ExprAwait,
+    ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprConst, ExprContinue,
+    ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprInfer, ExprLet, ExprLit, ExprLoop,
     ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
-    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType, ExprUnary,
-    ExprUnsafe, ExprWhile, ExprYield, FieldValue, GenericMethodArgument, Index, Label, Member,
-    MethodTurbofish, QSelf, RangeLimits, ReturnType, Stmt, Token, UnOp,
+    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnary, ExprUnsafe,
+    ExprWhile, ExprYield, FieldValue, Index, Label, Member, QSelf, RangeLimits, ReturnType, Stmt,
+    Token, UnOp,
 };
 
 impl Printer {
@@ -21,12 +21,10 @@ impl Printer {
         match expr {
             Expr::Array(expr) => self.expr_array(expr),
             Expr::Assign(expr) => self.expr_assign(expr),
-            Expr::AssignOp(expr) => self.expr_assign_op(expr),
             Expr::Async(expr) => self.expr_async(expr),
             Expr::Await(expr) => self.expr_await(expr, false),
             Expr::Binary(expr) => self.expr_binary(expr),
             Expr::Block(expr) => self.expr_block(expr),
-            Expr::Box(expr) => self.expr_box(expr),
             Expr::Break(expr) => self.expr_break(expr),
             Expr::Call(expr) => self.expr_call(expr, false),
             Expr::Cast(expr) => self.expr_cast(expr),
@@ -53,12 +51,13 @@ impl Printer {
             Expr::Try(expr) => self.expr_try(expr, false),
             Expr::TryBlock(expr) => self.expr_try_block(expr),
             Expr::Tuple(expr) => self.expr_tuple(expr),
-            Expr::Type(expr) => self.expr_type(expr),
             Expr::Unary(expr) => self.expr_unary(expr),
             Expr::Unsafe(expr) => self.expr_unsafe(expr),
             Expr::Verbatim(expr) => self.expr_verbatim(expr),
             Expr::While(expr) => self.expr_while(expr),
             Expr::Yield(expr) => self.expr_yield(expr),
+            Expr::Const(expr) => self.expr_const(expr),
+            Expr::Infer(expr) => self.expr_infer(expr),
             #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Expr"),
         }
@@ -132,19 +131,6 @@ impl Printer {
         self.end();
     }
 
-    fn expr_assign_op(&mut self, expr: &ExprAssignOp) {
-        self.outer_attrs(&expr.attrs);
-        self.ibox(INDENT);
-        self.ibox(-INDENT);
-        self.expr(&expr.left);
-        self.end();
-        self.space();
-        self.binary_operator(&expr.op);
-        self.nbsp();
-        self.expr(&expr.right);
-        self.end();
-    }
-
     fn expr_async(&mut self, expr: &ExprAsync) {
         self.outer_attrs(&expr.attrs);
         self.word("async ");
@@ -190,12 +176,6 @@ impl Printer {
         self.cbox(INDENT);
         self.small_block(&expr.block, &expr.attrs);
         self.end();
-    }
-
-    fn expr_box(&mut self, expr: &ExprBox) {
-        self.outer_attrs(&expr.attrs);
-        self.word("box ");
-        self.expr(&expr.expr);
     }
 
     fn expr_break(&mut self, expr: &ExprBreak) {
@@ -520,7 +500,7 @@ impl Printer {
         self.word(".");
         self.ident(&expr.method);
         if let Some(turbofish) = &expr.turbofish {
-            self.method_turbofish(turbofish);
+            self.angle_bracketed_generic_arguments(turbofish, PathKind::Expr);
         }
         self.cbox(if unindent_call_args { -INDENT } else { 0 });
         self.word("(");
@@ -543,14 +523,14 @@ impl Printer {
 
     fn expr_range(&mut self, expr: &ExprRange) {
         self.outer_attrs(&expr.attrs);
-        if let Some(from) = &expr.from {
+        if let Some(from) = &expr.start {
             self.expr(from);
         }
         self.word(match expr.limits {
             RangeLimits::HalfOpen(_) => "..",
             RangeLimits::Closed(_) => "..=",
         });
-        if let Some(to) = &expr.to {
+        if let Some(to) = &expr.end {
             self.expr(to);
         }
     }
@@ -646,18 +626,6 @@ impl Printer {
         self.word(")");
     }
 
-    fn expr_type(&mut self, expr: &ExprType) {
-        self.outer_attrs(&expr.attrs);
-        self.ibox(INDENT);
-        self.ibox(-INDENT);
-        self.expr(&expr.expr);
-        self.end();
-        self.space();
-        self.word(": ");
-        self.ty(&expr.ty);
-        self.end();
-    }
-
     fn expr_unary(&mut self, expr: &ExprUnary) {
         self.outer_attrs(&expr.attrs);
         self.unary_operator(&expr.op);
@@ -672,7 +640,7 @@ impl Printer {
         self.inner_attrs(&expr.attrs);
         for stmt in expr.block.stmts.iter().delimited() {
             if stmt.is_first && stmt.is_last {
-                if let Stmt::Expr(expr) = &*stmt {
+                if let Stmt::Expr(expr, None) = &*stmt {
                     self.expr(expr);
                     self.space();
                     continue;
@@ -776,6 +744,7 @@ impl Printer {
                             fields: Punctuated::new(),
                             dot2_token: None,
                             rest: None,
+                            qself: None,
                         },
                     };
                     while !content.is_empty() {
@@ -891,7 +860,7 @@ impl Printer {
         while let Expr::Block(expr) = body {
             if expr.attrs.is_empty() && expr.label.is_none() {
                 let mut stmts = expr.block.stmts.iter();
-                if let (Some(Stmt::Expr(inner)), None) = (stmts.next(), stmts.next()) {
+                if let (Some(Stmt::Expr(inner, _)), None) = (stmts.next(), stmts.next()) {
                     body = inner;
                     continue;
                 }
@@ -949,26 +918,6 @@ impl Printer {
         }
     }
 
-    fn method_turbofish(&mut self, turbofish: &MethodTurbofish) {
-        self.word("::<");
-        self.cbox(INDENT);
-        self.zerobreak();
-        for arg in turbofish.args.iter().delimited() {
-            self.generic_method_argument(&arg);
-            self.trailing_comma(arg.is_last);
-        }
-        self.offset(-INDENT);
-        self.end();
-        self.word(">");
-    }
-
-    fn generic_method_argument(&mut self, generic: &GenericMethodArgument) {
-        match generic {
-            GenericMethodArgument::Type(arg) => self.ty(arg),
-            GenericMethodArgument::Const(arg) => self.expr(arg),
-        }
-    }
-
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
         let mut iter = args.iter();
         match (iter.next(), iter.next()) {
@@ -994,7 +943,7 @@ impl Printer {
             self.space();
             self.inner_attrs(attrs);
             match (block.stmts.get(0), block.stmts.get(1)) {
-                (Some(Stmt::Expr(expr)), None) if stmt::break_after(expr) => {
+                (Some(Stmt::Expr(expr, _)), None) if stmt::break_after(expr) => {
                     self.ibox(0);
                     self.expr_beginning_of_line(expr, true);
                     self.end();
@@ -1042,16 +991,17 @@ impl Printer {
             BinOp::Ne(_) => "!=",
             BinOp::Ge(_) => ">=",
             BinOp::Gt(_) => ">",
-            BinOp::AddEq(_) => "+=",
-            BinOp::SubEq(_) => "-=",
-            BinOp::MulEq(_) => "*=",
-            BinOp::DivEq(_) => "/=",
-            BinOp::RemEq(_) => "%=",
-            BinOp::BitXorEq(_) => "^=",
-            BinOp::BitAndEq(_) => "&=",
-            BinOp::BitOrEq(_) => "|=",
-            BinOp::ShlEq(_) => "<<=",
-            BinOp::ShrEq(_) => ">>=",
+            BinOp::AddAssign(_) => "+=",
+            BinOp::SubAssign(_) => "-=",
+            BinOp::MulAssign(_) => "*=",
+            BinOp::DivAssign(_) => "/=",
+            BinOp::RemAssign(_) => "%=",
+            BinOp::BitXorAssign(_) => "^=",
+            BinOp::BitAndAssign(_) => "&=",
+            BinOp::BitOrAssign(_) => "|=",
+            BinOp::ShlAssign(_) => "<<=",
+            BinOp::ShrAssign(_) => ">>=",
+            _ => unimplemented!("unknown BinOp"),
         });
     }
 
@@ -1060,6 +1010,7 @@ impl Printer {
             UnOp::Deref(_) => "*",
             UnOp::Not(_) => "!",
             UnOp::Neg(_) => "-",
+            _ => unimplemented!("unknown UnOp"),
         });
     }
 
@@ -1068,6 +1019,24 @@ impl Printer {
             return;
         }
         self.zerobreak();
+    }
+
+    pub fn expr_const(&mut self, expr_const: &ExprConst) {
+        self.outer_attrs(&expr_const.attrs);
+        self.word("const {");
+        self.hardbreak_if_nonempty();
+        self.inner_attrs(&expr_const.attrs);
+        for stmt in &expr_const.block.stmts {
+            self.stmt(stmt);
+        }
+        self.end();
+        self.word("}");
+        self.hardbreak();
+    }
+
+    fn expr_infer(&mut self, expr_infer: &ExprInfer) {
+        self.outer_attrs(&expr_infer.attrs);
+        self.word("_");
     }
 }
 
@@ -1096,20 +1065,17 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
         Expr::Struct(_) => true,
 
         Expr::Assign(ExprAssign { left, right, .. })
-        | Expr::AssignOp(ExprAssignOp { left, right, .. })
         | Expr::Binary(ExprBinary { left, right, .. }) => {
             // X { y: 1 } + X { y: 2 }
             contains_exterior_struct_lit(left) || contains_exterior_struct_lit(right)
         }
 
         Expr::Await(ExprAwait { base: e, .. })
-        | Expr::Box(ExprBox { expr: e, .. })
         | Expr::Cast(ExprCast { expr: e, .. })
         | Expr::Field(ExprField { base: e, .. })
         | Expr::Index(ExprIndex { expr: e, .. })
         | Expr::MethodCall(ExprMethodCall { receiver: e, .. })
         | Expr::Reference(ExprReference { expr: e, .. })
-        | Expr::Type(ExprType { expr: e, .. })
         | Expr::Unary(ExprUnary { expr: e, .. }) => {
             // &X { y: 1 }, X { y: 1 }.y
             contains_exterior_struct_lit(e)
@@ -1134,7 +1100,7 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         | Expr::Macro(_)
         | Expr::Match(_)
         | Expr::Path(_)
-        | Expr::Range(ExprRange { to: None, .. })
+        | Expr::Range(ExprRange { end: None, .. })
         | Expr::Repeat(_)
         | Expr::Return(ExprReturn { expr: None, .. })
         | Expr::Struct(_)
@@ -1146,22 +1112,21 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         | Expr::Yield(ExprYield { expr: None, .. }) => false,
 
         Expr::Assign(_)
-        | Expr::AssignOp(_)
         | Expr::Await(_)
         | Expr::Binary(_)
         | Expr::Cast(_)
+        | Expr::Const(_)
         | Expr::Field(_)
         | Expr::Index(_)
-        | Expr::MethodCall(_)
-        | Expr::Type(_) => true,
+        | Expr::Infer(_)
+        | Expr::MethodCall(_) => true,
 
-        Expr::Box(ExprBox { expr: e, .. })
-        | Expr::Break(ExprBreak { expr: Some(e), .. })
+        Expr::Break(ExprBreak { expr: Some(e), .. })
         | Expr::Call(ExprCall { func: e, .. })
         | Expr::Group(ExprGroup { expr: e, .. })
         | Expr::Let(ExprLet { expr: e, .. })
         | Expr::Paren(ExprParen { expr: e, .. })
-        | Expr::Range(ExprRange { to: Some(e), .. })
+        | Expr::Range(ExprRange { start: Some(e), .. })
         | Expr::Reference(ExprReference { expr: e, .. })
         | Expr::Return(ExprReturn { expr: Some(e), .. })
         | Expr::Try(ExprTry { expr: e, .. })

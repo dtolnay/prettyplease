@@ -2,7 +2,8 @@ use crate::algorithm::Printer;
 use crate::iter::IterDelimited;
 use crate::path::PathKind;
 use crate::INDENT;
-use syn::{Field, Fields, FieldsUnnamed, Variant, VisCrate, VisPublic, VisRestricted, Visibility};
+use syn::token::Pub;
+use syn::{Field, Fields, FieldsUnnamed, Variant, VisRestricted, Visibility};
 
 impl Printer {
     pub fn variant(&mut self, variant: &Variant) {
@@ -59,20 +60,14 @@ impl Printer {
     pub fn visibility(&mut self, vis: &Visibility) {
         match vis {
             Visibility::Public(vis) => self.vis_public(vis),
-            Visibility::Crate(vis) => self.vis_crate(vis),
             Visibility::Restricted(vis) => self.vis_restricted(vis),
             Visibility::Inherited => {}
         }
     }
 
-    fn vis_public(&mut self, vis: &VisPublic) {
+    fn vis_public(&mut self, vis: &Pub) {
         let _ = vis;
         self.word("pub ");
-    }
-
-    fn vis_crate(&mut self, vis: &VisCrate) {
-        let _ = vis;
-        self.word("crate ");
     }
 
     fn vis_restricted(&mut self, vis: &VisRestricted) {

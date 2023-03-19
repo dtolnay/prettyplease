@@ -4,9 +4,9 @@ use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
-    Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait, TypeInfer,
-    TypeMacro, TypeNever, TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTraitObject,
-    TypeTuple, Variadic,
+    Abi, BareFnArg, BareVariadic, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup,
+    TypeImplTrait, TypeInfer, TypeMacro, TypeNever, TypeParen, TypePath, TypePtr, TypeReference,
+    TypeSlice, TypeTraitObject, TypeTuple,
 };
 
 impl Printer {
@@ -227,7 +227,7 @@ impl Printer {
         self.ty(&bare_fn_arg.ty);
     }
 
-    fn variadic(&mut self, variadic: &Variadic) {
+    fn variadic(&mut self, variadic: &BareVariadic) {
         self.outer_attrs(&variadic.attrs);
         self.word("...");
     }

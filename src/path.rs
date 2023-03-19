@@ -3,7 +3,7 @@ use crate::iter::IterDelimited;
 use crate::INDENT;
 use std::ptr;
 use syn::{
-    AngleBracketedGenericArguments, Binding, Constraint, Expr, GenericArgument,
+    AngleBracketedGenericArguments, AssocConst, AssocType, Constraint, Expr, GenericArgument,
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
 };
 
@@ -45,11 +45,12 @@ impl Printer {
         }
     }
 
-    fn generic_argument(&mut self, arg: &GenericArgument) {
+    pub fn generic_argument(&mut self, arg: &GenericArgument) {
         match arg {
             GenericArgument::Lifetime(lifetime) => self.lifetime(lifetime),
             GenericArgument::Type(ty) => self.ty(ty),
-            GenericArgument::Binding(binding) => self.binding(binding),
+            GenericArgument::AssocConst(assoc_const) => self.assoc_const(assoc_const),
+            GenericArgument::AssocType(assoc_type) => self.assoc_type(assoc_type),
             GenericArgument::Constraint(constraint) => self.constraint(constraint),
             GenericArgument::Const(expr) => {
                 match expr {
@@ -64,10 +65,11 @@ impl Printer {
                     }
                 }
             }
+            _ => unreachable!("unknown GenericArgument"),
         }
     }
 
-    fn angle_bracketed_generic_arguments(
+    pub fn angle_bracketed_generic_arguments(
         &mut self,
         generic: &AngleBracketedGenericArguments,
         path_kind: PathKind,
@@ -98,7 +100,10 @@ impl Printer {
             match arg {
                 GenericArgument::Lifetime(_) => Group::First,
                 GenericArgument::Type(_) | GenericArgument::Const(_) => Group::Second,
-                GenericArgument::Binding(_) | GenericArgument::Constraint(_) => Group::Third,
+                GenericArgument::AssocConst(_)
+                | GenericArgument::AssocType(_)
+                | GenericArgument::Constraint(_) => Group::Third,
+                _ => unimplemented!("unknown GenericArgument"),
             }
         }
         let last = generic.args.iter().max_by_key(|param| group(param));
@@ -116,10 +121,20 @@ impl Printer {
         self.word(">");
     }
 
-    fn binding(&mut self, binding: &Binding) {
+    fn assoc_type(&mut self, binding: &AssocType) {
         self.ident(&binding.ident);
         self.word(" = ");
         self.ty(&binding.ty);
+    }
+
+    fn assoc_const(&mut self, binding: &AssocConst) {
+        self.ident(&binding.ident);
+        self.word(" : ");
+        if let Some(g) = &binding.generics {
+            self.angle_bracketed_generic_arguments(g, PathKind::Type);
+        }
+        self.word(" = ");
+        self.expr(&binding.value);
     }
 
     fn constraint(&mut self, constraint: &Constraint) {

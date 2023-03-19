@@ -9,17 +9,17 @@ impl Printer {
                 self.ibox(0);
                 self.word("let ");
                 self.pat(&local.pat);
-                if let Some((_eq, init)) = &local.init {
+                if let Some(init) = &local.init {
                     self.word(" = ");
                     self.neverbreak();
-                    self.expr(init);
+                    self.expr(&init.expr);
                 }
                 self.word(";");
                 self.end();
                 self.hardbreak();
             }
             Stmt::Item(item) => self.item(item),
-            Stmt::Expr(expr) => {
+            Stmt::Expr(expr, None) => {
                 if break_after(expr) {
                     self.ibox(0);
                     self.expr_beginning_of_line(expr, true);
@@ -32,7 +32,7 @@ impl Printer {
                     self.expr_beginning_of_line(expr, true);
                 }
             }
-            Stmt::Semi(expr, _semi) => {
+            Stmt::Expr(expr, Some(_semi)) => {
                 if let Expr::Verbatim(tokens) = expr {
                     if tokens.is_empty() {
                         return;
@@ -46,18 +46,20 @@ impl Printer {
                 self.end();
                 self.hardbreak();
             }
+            Stmt::Macro(stmt) => {
+                self.outer_attrs(&stmt.attrs);
+                self.mac(&stmt.mac, None);
+                self.mac_semi_if_needed(&stmt.mac.delimiter)
+            }
         }
     }
 }
 
 pub fn add_semi(expr: &Expr) -> bool {
     match expr {
-        Expr::Assign(_)
-        | Expr::AssignOp(_)
-        | Expr::Break(_)
-        | Expr::Continue(_)
-        | Expr::Return(_)
-        | Expr::Yield(_) => true,
+        Expr::Assign(_) | Expr::Break(_) | Expr::Continue(_) | Expr::Return(_) | Expr::Yield(_) => {
+            true
+        }
         Expr::Group(group) => add_semi(&group.expr),
         _ => false,
     }

@@ -4,9 +4,9 @@ use crate::path::PathKind;
 use crate::INDENT;
 use std::ptr;
 use syn::{
-    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
-    PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound,
-    WhereClause, WherePredicate,
+    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeParam, PredicateLifetime,
+    PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound, WhereClause,
+    WherePredicate,
 };
 
 impl Printer {
@@ -61,7 +61,9 @@ impl Printer {
     pub fn bound_lifetimes(&mut self, bound_lifetimes: &BoundLifetimes) {
         self.word("for<");
         for lifetime_def in bound_lifetimes.lifetimes.iter().delimited() {
-            self.lifetime_def(&lifetime_def);
+            if let GenericParam::Lifetime(lifetime_def) = *lifetime_def {
+                self.lifetime_def(&lifetime_def);
+            }
             if !lifetime_def.is_last {
                 self.word(", ");
             }
@@ -69,7 +71,7 @@ impl Printer {
         self.word("> ");
     }
 
-    fn lifetime_def(&mut self, lifetime_def: &LifetimeDef) {
+    fn lifetime_def(&mut self, lifetime_def: &LifetimeParam) {
         self.outer_attrs(&lifetime_def.attrs);
         self.lifetime(&lifetime_def.lifetime);
         for lifetime in lifetime_def.bounds.iter().delimited() {
@@ -107,6 +109,7 @@ impl Printer {
         match type_param_bound {
             TypeParamBound::Trait(trait_bound) => self.trait_bound(trait_bound),
             TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
+            _ => unimplemented!("unknown TypeParamBound"),
         }
     }
 
@@ -236,7 +239,7 @@ impl Printer {
         match predicate {
             WherePredicate::Type(predicate) => self.predicate_type(predicate),
             WherePredicate::Lifetime(predicate) => self.predicate_lifetime(predicate),
-            WherePredicate::Eq(predicate) => self.predicate_eq(predicate),
+            _ => unimplemented!("unknown WherePredicate"),
         }
     }
 
@@ -277,11 +280,5 @@ impl Printer {
             self.lifetime(&lifetime);
         }
         self.end();
-    }
-
-    fn predicate_eq(&mut self, predicate: &PredicateEq) {
-        self.ty(&predicate.lhs_ty);
-        self.word(" = ");
-        self.ty(&predicate.rhs_ty);
     }
 }

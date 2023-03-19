@@ -4,14 +4,13 @@ use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
-    FieldPat, Pat, PatBox, PatIdent, PatLit, PatMacro, PatOr, PatPath, PatRange, PatReference,
+    FieldPat, Pat, PatIdent, PatLit, PatMacro, PatOr, PatParen, PatPath, PatRange, PatReference,
     PatRest, PatSlice, PatStruct, PatTuple, PatTupleStruct, PatType, PatWild, RangeLimits,
 };
 
 impl Printer {
     pub fn pat(&mut self, pat: &Pat) {
         match pat {
-            Pat::Box(pat) => self.pat_box(pat),
             Pat::Ident(pat) => self.pat_ident(pat),
             Pat::Lit(pat) => self.pat_lit(pat),
             Pat::Macro(pat) => self.pat_macro(pat),
@@ -27,15 +26,11 @@ impl Printer {
             Pat::Type(pat) => self.pat_type(pat),
             Pat::Verbatim(pat) => self.pat_verbatim(pat),
             Pat::Wild(pat) => self.pat_wild(pat),
+            Pat::Const(pat) => self.expr_const(pat),
+            Pat::Paren(pat) => self.pat_paren(pat),
             #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Pat"),
         }
-    }
-
-    fn pat_box(&mut self, pat: &PatBox) {
-        self.outer_attrs(&pat.attrs);
-        self.word("box ");
-        self.pat(&pat.pat);
     }
 
     fn pat_ident(&mut self, pat: &PatIdent) {
@@ -55,7 +50,7 @@ impl Printer {
 
     fn pat_lit(&mut self, pat: &PatLit) {
         self.outer_attrs(&pat.attrs);
-        self.expr(&pat.expr);
+        self.lit(&pat.lit);
     }
 
     fn pat_macro(&mut self, pat: &PatMacro) {
@@ -97,12 +92,16 @@ impl Printer {
 
     fn pat_range(&mut self, pat: &PatRange) {
         self.outer_attrs(&pat.attrs);
-        self.expr(&pat.lo);
+        if let Some(start) = &pat.start {
+            self.expr(&start);
+        }
         match &pat.limits {
             RangeLimits::HalfOpen(_) => self.word(".."),
             RangeLimits::Closed(_) => self.word("..="),
         }
-        self.expr(&pat.hi);
+        if let Some(end) = &pat.end {
+            self.expr(&end);
+        }
     }
 
     fn pat_reference(&mut self, pat: &PatReference) {
@@ -137,9 +136,9 @@ impl Printer {
         self.space_if_nonempty();
         for field in pat.fields.iter().delimited() {
             self.field_pat(&field);
-            self.trailing_comma_or_space(field.is_last && pat.dot2_token.is_none());
+            self.trailing_comma_or_space(field.is_last && pat.rest.is_none());
         }
-        if pat.dot2_token.is_some() {
+        if pat.rest.is_some() {
             self.word("..");
             self.space();
         }
@@ -175,7 +174,7 @@ impl Printer {
         self.word("(");
         self.cbox(INDENT);
         self.zerobreak();
-        for elem in pat.pat.elems.iter().delimited() {
+        for elem in pat.elems.iter().delimited() {
             self.pat(&elem);
             self.trailing_comma(elem.is_last);
         }
@@ -207,5 +206,12 @@ impl Printer {
             self.word(": ");
         }
         self.pat(&field_pat.pat);
+    }
+
+    fn pat_paren(&mut self, pat_paren: &PatParen) {
+        self.outer_attrs(&pat_paren.attrs);
+        self.word("(");
+        self.pat(&pat_paren.pat);
+        self.word(")");
     }
 }

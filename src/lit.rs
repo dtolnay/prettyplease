@@ -13,6 +13,7 @@ impl Printer {
             Lit::Float(lit) => self.lit_float(lit),
             Lit::Bool(lit) => self.lit_bool(lit),
             Lit::Verbatim(lit) => self.lit_verbatim(lit),
+            _ => unimplemented!("unknown Lit"),
         }
     }
 

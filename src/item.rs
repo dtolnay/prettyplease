@@ -5,10 +5,10 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
-    ForeignItemType, ImplItem, ImplItemConst, ImplItemMacro, ImplItemMethod, ImplItemType, Item,
-    ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMacro2,
-    ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Pat,
-    Receiver, Signature, Stmt, TraitItem, TraitItemConst, TraitItemMacro, TraitItemMethod,
+    ForeignItemType, ImplItem, ImplItemConst, ImplItemFn, ImplItemMacro, ImplItemType, Item,
+    ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMod,
+    ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Pat, Receiver,
+    Signature, StaticMutability, Stmt, TraitItem, TraitItemConst, TraitItemFn, TraitItemMacro,
     TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree,
 };
 
@@ -22,7 +22,6 @@ impl Printer {
             Item::ForeignMod(item) => self.item_foreign_mod(item),
             Item::Impl(item) => self.item_impl(item),
             Item::Macro(item) => self.item_macro(item),
-            Item::Macro2(item) => self.item_macro2(item),
             Item::Mod(item) => self.item_mod(item),
             Item::Static(item) => self.item_static(item),
             Item::Struct(item) => self.item_struct(item),
@@ -166,10 +165,6 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn item_macro2(&mut self, item: &ItemMacro2) {
-        unimplemented!("Item::Macro2 `macro {} {}`", item.ident, item.rules);
-    }
-
     fn item_mod(&mut self, item: &ItemMod) {
         self.outer_attrs(&item.attrs);
         self.cbox(INDENT);
@@ -198,7 +193,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&item.vis);
         self.word("static ");
-        if item.mutability.is_some() {
+        if matches!(item.mutability, StaticMutability::Mut(_)) {
             self.word("mut ");
         }
         self.ident(&item.ident);
@@ -504,7 +499,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&foreign_item.vis);
         self.word("static ");
-        if foreign_item.mutability.is_some() {
+        if matches!(foreign_item.mutability, StaticMutability::Mut(_)) {
             self.word("mut ");
         }
         self.ident(&foreign_item.ident);
@@ -568,7 +563,7 @@ impl Printer {
     fn trait_item(&mut self, trait_item: &TraitItem) {
         match trait_item {
             TraitItem::Const(item) => self.trait_item_const(item),
-            TraitItem::Method(item) => self.trait_item_method(item),
+            TraitItem::Fn(item) => self.trait_item_method(item),
             TraitItem::Type(item) => self.trait_item_type(item),
             TraitItem::Macro(item) => self.trait_item_macro(item),
             TraitItem::Verbatim(item) => self.trait_item_verbatim(item),
@@ -594,7 +589,7 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn trait_item_method(&mut self, trait_item: &TraitItemMethod) {
+    fn trait_item_method(&mut self, trait_item: &TraitItemFn) {
         self.outer_attrs(&trait_item.attrs);
         self.cbox(INDENT);
         self.signature(&trait_item.sig);
@@ -658,10 +653,10 @@ impl Printer {
     fn impl_item(&mut self, impl_item: &ImplItem) {
         match impl_item {
             ImplItem::Const(item) => self.impl_item_const(item),
-            ImplItem::Method(item) => self.impl_item_method(item),
             ImplItem::Type(item) => self.impl_item_type(item),
             ImplItem::Macro(item) => self.impl_item_macro(item),
             ImplItem::Verbatim(item) => self.impl_item_verbatim(item),
+            ImplItem::Fn(item) => self.impl_item_fn(item),
             #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown ImplItem"),
         }
@@ -686,7 +681,7 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn impl_item_method(&mut self, impl_item: &ImplItemMethod) {
+    fn impl_item_fn(&mut self, impl_item: &ImplItemFn) {
         self.outer_attrs(&impl_item.attrs);
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
