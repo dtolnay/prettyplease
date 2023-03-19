@@ -1,23 +1,8 @@
-#![feature(prelude_import)]
-#![doc(html_root_url = "https://docs.rs/anyhow/1.0.58")]
-#![feature(backtrace)]
-#![deny(dead_code, unused_imports, unused_mut)]
-#![allow(
-    clippy::doc_markdown,
-    clippy::enum_glob_use,
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::needless_doctest_main,
-    clippy::new_ret_no_self,
-    clippy::redundant_else,
-    clippy::return_self_not_must_use,
-    clippy::unused_self,
-    clippy::used_underscore_binding,
-    clippy::wildcard_imports,
-    clippy::wrong_self_convention
-)]
+#![feature]
+#![doc]
+#![feature]
+#![deny]
+#![allow]
 #[prelude_import]
 use std::prelude::rust_2018::*;
 #[macro_use]
@@ -25,7 +10,7 @@ extern crate std;
 extern crate alloc;
 #[macro_use]
 mod backtrace {
-    #[cfg(backtrace)]
+    #[cfg]
     pub(crate) use std::backtrace::{Backtrace, BacktraceStatus};
     fn _assert_send_sync() {
         fn _assert<T: Send + Sync>() {}
@@ -35,17 +20,17 @@ mod backtrace {
 mod chain {
     use self::ChainState::*;
     use crate::StdError;
-    #[cfg(feature = "std")]
+    #[cfg]
     use std::vec;
-    #[cfg(feature = "std")]
+    #[cfg]
     pub(crate) use crate::Chain;
     pub(crate) enum ChainState<'a> {
         Linked { next: Option<&'a (dyn StdError + 'static)> },
-        #[cfg(feature = "std")]
+        #[cfg]
         Buffered { rest: vec::IntoIter<&'a (dyn StdError + 'static)> },
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl<'a> ::core::clone::Clone for ChainState<'a> {
         #[inline]
         fn clone(&self) -> ChainState<'a> {
@@ -82,7 +67,7 @@ mod chain {
                     *next = error.source();
                     Some(error)
                 }
-                #[cfg(feature = "std")]
+                #[cfg]
                 Buffered { rest } => rest.next(),
             }
         }
@@ -91,7 +76,7 @@ mod chain {
             (len, Some(len))
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl DoubleEndedIterator for Chain<'_> {
         fn next_back(&mut self) -> Option<Self::Item> {
             match &mut self.state {
@@ -121,12 +106,12 @@ mod chain {
                     }
                     len
                 }
-                #[cfg(feature = "std")]
+                #[cfg]
                 Buffered { rest } => rest.len(),
             }
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl Default for Chain<'_> {
         fn default() -> Self {
             Chain {
@@ -142,7 +127,7 @@ mod context {
     use crate::{Context, Error, StdError};
     use core::convert::Infallible;
     use core::fmt::{self, Debug, Display, Write};
-    #[cfg(backtrace)]
+    #[cfg]
     use std::backtrace::Backtrace;
     mod ext {
         use super::*;
@@ -151,7 +136,7 @@ mod context {
             where
                 C: Display + Send + Sync + 'static;
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<E> StdError for E
         where
             E: std::error::Error + Send + Sync + 'static,
@@ -240,7 +225,7 @@ mod context {
         C: Display,
         E: StdError + 'static,
     {
-        #[cfg(backtrace)]
+        #[cfg]
         fn backtrace(&self) -> Option<&Backtrace> {
             self.error.backtrace()
         }
@@ -252,7 +237,7 @@ mod context {
     where
         C: Display,
     {
-        #[cfg(backtrace)]
+        #[cfg]
         fn backtrace(&self) -> Option<&Backtrace> {
             Some(self.error.backtrace())
         }
@@ -301,7 +286,7 @@ mod ensure {
     use core::ptr;
     use core::slice;
     use core::str;
-    #[doc(hidden)]
+    #[doc]
     pub trait BothDebug {
         fn __dispatch_ensure(self, msg: &'static str) -> Error;
     }
@@ -314,7 +299,7 @@ mod ensure {
             render(msg, &self.0, &self.1)
         }
     }
-    #[doc(hidden)]
+    #[doc]
     pub trait NotBothDebug {
         fn __dispatch_ensure(self, msg: &'static str) -> Error;
     }
@@ -402,7 +387,7 @@ mod ensure {
 mod error {
     use crate::backtrace::Backtrace;
     use crate::chain::Chain;
-    #[cfg(any(feature = "std", anyhow_no_ptr_addr_of))]
+    #[cfg]
     use crate::ptr::Mut;
     use crate::ptr::{Own, Ref};
     use crate::{Error, StdError};
@@ -410,13 +395,13 @@ mod error {
     use core::any::TypeId;
     use core::fmt::{self, Debug, Display};
     use core::mem::ManuallyDrop;
-    #[cfg(not(anyhow_no_ptr_addr_of))]
+    #[cfg]
     use core::ptr;
     use core::ptr::NonNull;
-    #[cfg(feature = "std")]
+    #[cfg]
     use core::ops::{Deref, DerefMut};
     impl Error {
-        #[cfg(feature = "std")]
+        #[cfg]
         #[cold]
         #[must_use]
         pub fn new<E>(error: E) -> Self
@@ -437,7 +422,7 @@ mod error {
         {
             Error::from_adhoc(message, Some(crate::backtrace::Backtrace::capture()))
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         #[cold]
         pub(crate) fn from_std<E>(error: E, backtrace: Option<Backtrace>) -> Self
         where
@@ -484,7 +469,7 @@ mod error {
             };
             unsafe { Error::construct(error, vtable, backtrace) }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         #[cold]
         pub(crate) fn from_context<C, E>(
             context: C,
@@ -505,7 +490,7 @@ mod error {
             };
             unsafe { Error::construct(error, vtable, backtrace) }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         #[cold]
         pub(crate) fn from_boxed(
             error: Box<dyn StdError + Send + Sync>,
@@ -559,16 +544,16 @@ mod error {
             let backtrace = None;
             unsafe { Error::construct(error, vtable, backtrace) }
         }
-        #[cfg(any(backtrace, feature = "backtrace"))]
+        #[cfg]
         pub fn backtrace(&self) -> &std::backtrace::Backtrace {
             unsafe { ErrorImpl::backtrace(self.inner.by_ref()) }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         #[cold]
         pub fn chain(&self) -> Chain {
             unsafe { ErrorImpl::chain(self.inner.by_ref()) }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         pub fn root_cause(&self) -> &(dyn StdError + 'static) {
             self.chain().last().unwrap()
         }
@@ -585,7 +570,7 @@ mod error {
             let target = TypeId::of::<E>();
             let inner = self.inner.by_mut();
             unsafe {
-                #[cfg(not(anyhow_no_ptr_addr_of))]
+                #[cfg]
                 let addr = match (vtable(inner.ptr)
                     .object_downcast)(inner.by_ref(), target)
                 {
@@ -615,7 +600,7 @@ mod error {
         {
             let target = TypeId::of::<E>();
             unsafe {
-                #[cfg(not(anyhow_no_ptr_addr_of))]
+                #[cfg]
                 let addr = (vtable(self.inner.ptr)
                     .object_downcast)(self.inner.by_ref(), target)?
                     .by_mut();
@@ -623,7 +608,7 @@ mod error {
             }
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl<E> From<E> for Error
     where
         E: StdError + Send + Sync + 'static,
@@ -637,14 +622,14 @@ mod error {
             Error::from_std(error, backtrace)
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl Deref for Error {
         type Target = dyn StdError + Send + Sync + 'static;
         fn deref(&self) -> &Self::Target {
             unsafe { ErrorImpl::error(self.inner.by_ref()) }
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl DerefMut for Error {
         fn deref_mut(&mut self) -> &mut Self::Target {
             unsafe { ErrorImpl::error_mut(self.inner.by_mut()) }
@@ -694,7 +679,7 @@ mod error {
         E: StdError + Send + Sync + 'static,
     {
         let unerased = e.cast::<ErrorImpl<E>>();
-        #[cfg(not(anyhow_no_ptr_addr_of))]
+        #[cfg]
         return Ref::from_raw(
             NonNull::new_unchecked(&raw const (*unerased.as_ptr())._object as *mut E),
         );
@@ -713,7 +698,7 @@ mod error {
     {
         if TypeId::of::<E>() == target {
             let unerased = e.cast::<ErrorImpl<E>>();
-            #[cfg(not(anyhow_no_ptr_addr_of))]
+            #[cfg]
             return Some(
                 Ref::from_raw(
                         NonNull::new_unchecked(
@@ -726,7 +711,7 @@ mod error {
             None
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     unsafe fn context_downcast<C, E>(
         e: Ref<ErrorImpl>,
         target: TypeId,
@@ -745,7 +730,7 @@ mod error {
             None
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     unsafe fn context_drop_rest<C, E>(e: Own<ErrorImpl>, target: TypeId)
     where
         C: 'static,
@@ -797,7 +782,7 @@ mod error {
             (vtable.object_drop_rest)(inner, target);
         }
     }
-    #[repr(C)]
+    #[repr]
     pub(crate) struct ErrorImpl<E = ()> {
         vtable: &'static ErrorVTable,
         backtrace: Option<Backtrace>,
@@ -806,7 +791,7 @@ mod error {
     unsafe fn vtable(p: NonNull<ErrorImpl>) -> &'static ErrorVTable {
         *(p.as_ptr() as *const &'static ErrorVTable)
     }
-    #[repr(C)]
+    #[repr]
     pub(crate) struct ContextError<C, E> {
         pub context: C,
         pub error: E,
@@ -822,21 +807,19 @@ mod error {
         ) -> &(dyn StdError + Send + Sync + 'static) {
             (vtable(this.ptr).object_ref)(this).deref()
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         pub(crate) unsafe fn error_mut(
             this: Mut<Self>,
         ) -> &mut (dyn StdError + Send + Sync + 'static) {
-            #[cfg(not(anyhow_no_ptr_addr_of))]
+            #[cfg]
             return (vtable(this.ptr).object_ref)(this.by_ref()).by_mut().deref_mut();
         }
-        #[cfg(any(backtrace, feature = "backtrace"))]
+        #[cfg]
         pub(crate) unsafe fn backtrace(this: Ref<Self>) -> &Backtrace {
             this.deref()
                 .backtrace
                 .as_ref()
-                .or_else(|| {
-                    #[cfg(backtrace)] return Self::error(this).backtrace();
-                })
+                .or_else(|| { #[cfg] return Self::error(this).backtrace() })
                 .expect("backtrace capture failed")
         }
         #[cold]
@@ -848,7 +831,7 @@ mod error {
     where
         E: StdError,
     {
-        #[cfg(backtrace)]
+        #[cfg]
         fn backtrace(&self) -> Option<&Backtrace> {
             Some(unsafe { ErrorImpl::backtrace(self.erase()) })
         }
@@ -889,13 +872,13 @@ mod error {
             Box::<dyn StdError + Send + Sync>::from(error)
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl AsRef<dyn StdError + Send + Sync> for Error {
         fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
             &**self
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl AsRef<dyn StdError> for Error {
         fn as_ref(&self) -> &(dyn StdError + 'static) {
             &**self
@@ -988,7 +971,7 @@ mod fmt {
                     }?;
                 }
             }
-            #[cfg(any(backtrace, feature = "backtrace"))]
+            #[cfg]
             {
                 use crate::backtrace::BacktraceStatus;
                 let backtrace = Self::backtrace(this);
@@ -1000,7 +983,7 @@ mod fmt {
                         result
                     }?;
                     if backtrace.starts_with("stack backtrace:") {
-                        backtrace.replace_range(0..1, "S");
+                        backtrace.replace_range(0..1, "S")
                     } else {
                         {
                             let result = f
@@ -1008,7 +991,7 @@ mod fmt {
                                     ::core::fmt::Arguments::new_v1(&["Stack backtrace:\n"], &[]),
                                 );
                             result
-                        }?;
+                        }?
                     }
                     backtrace.truncate(backtrace.trim_end().len());
                     {
@@ -1071,9 +1054,9 @@ mod fmt {
                 } else if i > 0 {
                     self.inner.write_char('\n')?;
                     if self.number.is_some() {
-                        self.inner.write_str("       ")?;
+                        self.inner.write_str("       ")?
                     } else {
-                        self.inner.write_str("    ")?;
+                        self.inner.write_str("    ")?
                     }
                 }
                 self.inner.write_str(line)?;
@@ -1085,7 +1068,7 @@ mod fmt {
 mod kind {
     use crate::Error;
     use core::fmt::{Debug, Display};
-    #[cfg(feature = "std")]
+    #[cfg]
     use crate::StdError;
     pub struct Adhoc;
     pub trait AdhocKind: Sized {
@@ -1127,18 +1110,18 @@ mod kind {
             error.into()
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     pub struct Boxed;
-    #[cfg(feature = "std")]
+    #[cfg]
     pub trait BoxedKind: Sized {
         #[inline]
         fn anyhow_kind(&self) -> Boxed {
             Boxed
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl BoxedKind for Box<dyn StdError + Send + Sync> {}
-    #[cfg(feature = "std")]
+    #[cfg]
     impl Boxed {
         #[cold]
         pub fn new(self, error: Box<dyn StdError + Send + Sync>) -> Error {
@@ -1155,7 +1138,7 @@ mod ptr {
     use alloc::boxed::Box;
     use core::marker::PhantomData;
     use core::ptr::NonNull;
-    #[repr(transparent)]
+    #[repr]
     pub struct Own<T>
     where
         T: ?Sized,
@@ -1210,7 +1193,7 @@ mod ptr {
             }
         }
     }
-    #[repr(transparent)]
+    #[repr]
     pub struct Ref<'a, T>
     where
         T: ?Sized,
@@ -1240,7 +1223,7 @@ mod ptr {
                 lifetime: PhantomData,
             }
         }
-        #[cfg(not(anyhow_no_ptr_addr_of))]
+        #[cfg]
         pub fn from_raw(ptr: NonNull<T>) -> Self {
             Ref { ptr, lifetime: PhantomData }
         }
@@ -1250,14 +1233,14 @@ mod ptr {
                 lifetime: PhantomData,
             }
         }
-        #[cfg(not(anyhow_no_ptr_addr_of))]
+        #[cfg]
         pub fn by_mut(self) -> Mut<'a, T> {
             Mut {
                 ptr: self.ptr,
                 lifetime: PhantomData,
             }
         }
-        #[cfg(not(anyhow_no_ptr_addr_of))]
+        #[cfg]
         pub fn as_ptr(self) -> *const T {
             self.ptr.as_ptr() as *const T
         }
@@ -1265,7 +1248,7 @@ mod ptr {
             &*self.ptr.as_ptr()
         }
     }
-    #[repr(transparent)]
+    #[repr]
     pub struct Mut<'a, T>
     where
         T: ?Sized,
@@ -1295,7 +1278,7 @@ mod ptr {
                 lifetime: PhantomData,
             }
         }
-        #[cfg(not(anyhow_no_ptr_addr_of))]
+        #[cfg]
         pub fn by_ref(self) -> Ref<'a, T> {
             Ref {
                 ptr: self.ptr,
@@ -1327,7 +1310,7 @@ mod ptr {
 mod wrapper {
     use crate::StdError;
     use core::fmt::{self, Debug, Display};
-    #[repr(transparent)]
+    #[repr]
     pub struct MessageError<M>(pub M);
     impl<M> Debug for MessageError<M>
     where
@@ -1349,7 +1332,7 @@ mod wrapper {
     where
         M: Display + Debug + 'static,
     {}
-    #[repr(transparent)]
+    #[repr]
     pub struct DisplayError<M>(pub M);
     impl<M> Debug for DisplayError<M>
     where
@@ -1371,24 +1354,24 @@ mod wrapper {
     where
         M: Display + 'static,
     {}
-    #[cfg(feature = "std")]
-    #[repr(transparent)]
+    #[cfg]
+    #[repr]
     pub struct BoxedError(pub Box<dyn StdError + Send + Sync>);
-    #[cfg(feature = "std")]
+    #[cfg]
     impl Debug for BoxedError {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             Debug::fmt(&self.0, f)
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl Display for BoxedError {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             Display::fmt(&self.0, f)
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl StdError for BoxedError {
-        #[cfg(backtrace)]
+        #[cfg]
         fn backtrace(&self) -> Option<&crate::backtrace::Backtrace> {
             self.0.backtrace()
         }
@@ -1400,19 +1383,19 @@ mod wrapper {
 use crate::error::ErrorImpl;
 use crate::ptr::Own;
 use core::fmt::Display;
-#[cfg(feature = "std")]
+#[cfg]
 use std::error::Error as StdError;
 pub use anyhow as format_err;
-#[repr(transparent)]
+#[repr]
 pub struct Error {
     inner: Own<ErrorImpl>,
 }
-#[cfg(feature = "std")]
+#[cfg]
 pub struct Chain<'a> {
     state: crate::chain::ChainState<'a>,
 }
 #[automatically_derived]
-#[allow(unused_qualifications)]
+#[allow]
 impl<'a> ::core::clone::Clone for Chain<'a> {
     #[inline]
     fn clone(&self) -> Chain<'a> {
@@ -1435,11 +1418,11 @@ pub trait Context<T, E>: context::private::Sealed {
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C;
 }
-#[allow(non_snake_case)]
+#[allow]
 pub fn Ok<T>(t: T) -> Result<T> {
     Result::Ok(t)
 }
-#[doc(hidden)]
+#[doc]
 pub mod private {
     use crate::Error;
     use alloc::fmt;
@@ -1448,17 +1431,17 @@ pub mod private {
     pub use alloc::format;
     pub use core::result::Result::Err;
     pub use core::{concat, format_args, stringify};
-    #[doc(hidden)]
+    #[doc]
     pub mod kind {
         pub use crate::kind::{AdhocKind, TraitKind};
-        #[cfg(feature = "std")]
+        #[cfg]
         pub use crate::kind::BoxedKind;
     }
-    #[doc(hidden)]
+    #[doc]
     #[inline]
     #[cold]
     pub fn format_err(args: Arguments) -> Error {
-        #[cfg(not(anyhow_no_fmt_arguments_as_str))]
+        #[cfg]
         let fmt_arguments_as_str = args.as_str();
         if let Some(message) = fmt_arguments_as_str {
             Error::msg(message)
@@ -1466,7 +1449,7 @@ pub mod private {
             Error::msg(fmt::format(args))
         }
     }
-    #[doc(hidden)]
+    #[doc]
     #[inline]
     #[cold]
     #[must_use]

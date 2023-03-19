@@ -1,45 +1,9 @@
-#![feature(prelude_import)]
+#![feature]
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/serde_derive/1.0.137")]
-#![allow(unknown_lints, bare_trait_objects)]
-#![allow(
-    clippy::branches_sharing_code,
-    clippy::cognitive_complexity,
-    clippy::collapsible_match,
-    clippy::enum_variant_names,
-    clippy::manual_map,
-    clippy::match_like_matches_macro,
-    clippy::needless_pass_by_value,
-    clippy::too_many_arguments,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::used_underscore_binding,
-    clippy::wildcard_in_or_patterns,
-    clippy::unnested_or_patterns,
-)]
-#![allow(
-    clippy::cast_possible_truncation,
-    clippy::checked_conversions,
-    clippy::doc_markdown,
-    clippy::enum_glob_use,
-    clippy::indexing_slicing,
-    clippy::items_after_statements,
-    clippy::let_underscore_drop,
-    clippy::manual_assert,
-    clippy::map_err_ignore,
-    clippy::match_same_arms,
-    clippy::match_wildcard_for_single_variants,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::option_if_let_else,
-    clippy::similar_names,
-    clippy::single_match_else,
-    clippy::struct_excessive_bools,
-    clippy::too_many_lines,
-    clippy::unseparated_literal_suffix,
-    clippy::unused_self,
-    clippy::use_self,
-    clippy::wildcard_imports
-)]
+#![doc]
+#![allow]
+#![allow]
+#![allow]
 #[prelude_import]
 use ::std::prelude::rust_2015::*;
 #[macro_use]
@@ -88,10 +52,10 @@ mod internals {
             Unit,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for Style {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Style {
             #[inline]
             fn clone(&self) -> Style {
@@ -298,7 +262,7 @@ mod internals {
                                 );
                                 res
                             },
-                        );
+                        )
                 } else {
                     self.tokens = tokens;
                     self.value = Some(value);
@@ -389,7 +353,7 @@ mod internals {
             deserialize_renamed: bool,
             deserialize_aliases: Vec<String>,
         }
-        #[allow(deprecated)]
+        #[allow]
         fn unraw(ident: &Ident) -> String {
             ident.to_string().trim_left_matches("r#").to_owned()
         }
@@ -472,10 +436,10 @@ mod internals {
             Variant,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for Identifier {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Identifier {
             #[inline]
             fn clone(&self) -> Identifier {
@@ -556,18 +520,16 @@ mod internals {
                             }
                         }
                         Meta(Path(word)) if word == TRANSPARENT => {
-                            transparent.set_true(word);
+                            transparent.set_true(word)
                         }
                         Meta(Path(word)) if word == DENY_UNKNOWN_FIELDS => {
-                            deny_unknown_fields.set_true(word);
+                            deny_unknown_fields.set_true(word)
                         }
                         Meta(Path(word)) if word == DEFAULT => {
                             match &item.data {
                                 syn::Data::Struct(syn::DataStruct { fields, .. }) => {
                                     match fields {
-                                        syn::Fields::Named(_) => {
-                                            default.set(word, Default::Default);
-                                        }
+                                        syn::Fields::Named(_) => default.set(word, Default::Default),
                                         syn::Fields::Unnamed(_) | syn::Fields::Unit => {
                                             cx
                                                 .error_spanned_by(
@@ -600,7 +562,7 @@ mod internals {
                                     syn::Data::Struct(syn::DataStruct { fields, .. }) => {
                                         match fields {
                                             syn::Fields::Named(_) => {
-                                                default.set(&m.path, Default::Path(path));
+                                                default.set(&m.path, Default::Path(path))
                                             }
                                             syn::Fields::Unnamed(_) | syn::Fields::Unit => {
                                                 cx
@@ -643,47 +605,47 @@ mod internals {
                         }
                         Meta(Path(word)) if word == UNTAGGED => {
                             match item.data {
-                                syn::Data::Enum(_) => {
-                                    untagged.set_true(word);
-                                }
+                                syn::Data::Enum(_) => untagged.set_true(word),
                                 syn::Data::Struct(syn::DataStruct { struct_token, .. }) => {
-                                    cx.error_spanned_by(
-                                        struct_token,
-                                        "#[serde(untagged)] can only be used on enums",
-                                    );
+                                    cx
+                                        .error_spanned_by(
+                                            struct_token,
+                                            "#[serde(untagged)] can only be used on enums",
+                                        )
                                 }
                                 syn::Data::Union(syn::DataUnion { union_token, .. }) => {
-                                    cx.error_spanned_by(
-                                        union_token,
-                                        "#[serde(untagged)] can only be used on enums",
-                                    );
+                                    cx
+                                        .error_spanned_by(
+                                            union_token,
+                                            "#[serde(untagged)] can only be used on enums",
+                                        )
                                 }
                             }
                         }
                         Meta(NameValue(m)) if m.path == TAG => {
                             if let Ok(s) = get_lit_str(cx, TAG, &m.lit) {
                                 match &item.data {
-                                    syn::Data::Enum(_) => {
-                                        internal_tag.set(&m.path, s.value());
-                                    }
+                                    syn::Data::Enum(_) => internal_tag.set(&m.path, s.value()),
                                     syn::Data::Struct(syn::DataStruct { fields, .. }) => {
                                         match fields {
                                             syn::Fields::Named(_) => {
-                                                internal_tag.set(&m.path, s.value());
+                                                internal_tag.set(&m.path, s.value())
                                             }
                                             syn::Fields::Unnamed(_) | syn::Fields::Unit => {
-                                                cx.error_spanned_by(
-                                                    fields,
-                                                    "#[serde(tag = \"...\")] can only be used on enums and structs with named fields",
-                                                );
+                                                cx
+                                                    .error_spanned_by(
+                                                        fields,
+                                                        "#[serde(tag = \"...\")] can only be used on enums and structs with named fields",
+                                                    )
                                             }
                                         }
                                     }
                                     syn::Data::Union(syn::DataUnion { union_token, .. }) => {
-                                        cx.error_spanned_by(
-                                            union_token,
-                                            "#[serde(tag = \"...\")] can only be used on enums and structs with named fields",
-                                        );
+                                        cx
+                                            .error_spanned_by(
+                                                union_token,
+                                                "#[serde(tag = \"...\")] can only be used on enums and structs with named fields",
+                                            )
                                     }
                                 }
                             }
@@ -691,20 +653,20 @@ mod internals {
                         Meta(NameValue(m)) if m.path == CONTENT => {
                             if let Ok(s) = get_lit_str(cx, CONTENT, &m.lit) {
                                 match &item.data {
-                                    syn::Data::Enum(_) => {
-                                        content.set(&m.path, s.value());
-                                    }
+                                    syn::Data::Enum(_) => content.set(&m.path, s.value()),
                                     syn::Data::Struct(syn::DataStruct { struct_token, .. }) => {
-                                        cx.error_spanned_by(
-                                            struct_token,
-                                            "#[serde(content = \"...\")] can only be used on enums",
-                                        );
+                                        cx
+                                            .error_spanned_by(
+                                                struct_token,
+                                                "#[serde(content = \"...\")] can only be used on enums",
+                                            )
                                     }
                                     syn::Data::Union(syn::DataUnion { union_token, .. }) => {
-                                        cx.error_spanned_by(
-                                            union_token,
-                                            "#[serde(content = \"...\")] can only be used on enums",
-                                        );
+                                        cx
+                                            .error_spanned_by(
+                                                union_token,
+                                                "#[serde(content = \"...\")] can only be used on enums",
+                                            )
                                     }
                                 }
                             }
@@ -728,17 +690,17 @@ mod internals {
                         Meta(NameValue(m)) if m.path == REMOTE => {
                             if let Ok(path) = parse_lit_into_path(cx, REMOTE, &m.lit) {
                                 if is_primitive_path(&path, "Self") {
-                                    remote.set(&m.path, item.ident.clone().into());
+                                    remote.set(&m.path, item.ident.clone().into())
                                 } else {
-                                    remote.set(&m.path, path);
+                                    remote.set(&m.path, path)
                                 }
                             }
                         }
                         Meta(Path(word)) if word == FIELD_IDENTIFIER => {
-                            field_identifier.set_true(word);
+                            field_identifier.set_true(word)
                         }
                         Meta(Path(word)) if word == VARIANT_IDENTIFIER => {
-                            variant_identifier.set_true(word);
+                            variant_identifier.set_true(word)
                         }
                         Meta(NameValue(m)) if m.path == CRATE => {
                             if let Ok(path) = parse_lit_into_path(cx, CRATE, &m.lit) {
@@ -770,10 +732,11 @@ mod internals {
                             );
                         }
                         Lit(lit) => {
-                            cx.error_spanned_by(
-                                lit,
-                                "unexpected literal in serde container attribute",
-                            );
+                            cx
+                                .error_spanned_by(
+                                    lit,
+                                    "unexpected literal in serde container attribute",
+                                )
                         }
                     }
                 }
@@ -1139,14 +1102,12 @@ mod internals {
                             skip_deserializing.set_true(word);
                         }
                         Meta(Path(word)) if word == SKIP_DESERIALIZING => {
-                            skip_deserializing.set_true(word);
+                            skip_deserializing.set_true(word)
                         }
                         Meta(Path(word)) if word == SKIP_SERIALIZING => {
-                            skip_serializing.set_true(word);
+                            skip_serializing.set_true(word)
                         }
-                        Meta(Path(word)) if word == OTHER => {
-                            other.set_true(word);
-                        }
+                        Meta(Path(word)) if word == OTHER => other.set_true(word),
                         Meta(NameValue(m)) if m.path == BOUND => {
                             if let Ok(where_predicates)
                                 = parse_lit_into_where(cx, BOUND, BOUND, &m.lit) {
@@ -1194,13 +1155,14 @@ mod internals {
                                 syn::Fields::Unnamed(
                                     fields,
                                 ) if fields.unnamed.len() == 1 => {
-                                    borrow.set(m.path(), m.clone());
+                                    borrow.set(m.path(), m.clone())
                                 }
                                 _ => {
-                                    cx.error_spanned_by(
-                                        variant,
-                                        "#[serde(borrow)] may only be used on newtype variants",
-                                    );
+                                    cx
+                                        .error_spanned_by(
+                                            variant,
+                                            "#[serde(borrow)] may only be used on newtype variants",
+                                        )
                                 }
                             }
                         }
@@ -1224,10 +1186,11 @@ mod internals {
                             );
                         }
                         Lit(lit) => {
-                            cx.error_spanned_by(
-                                lit,
-                                "unexpected literal in serde variant attribute",
-                            );
+                            cx
+                                .error_spanned_by(
+                                    lit,
+                                    "unexpected literal in serde variant attribute",
+                                )
                         }
                     }
                 }
@@ -1386,7 +1349,7 @@ mod internals {
                             }
                         }
                         Meta(Path(word)) if word == DEFAULT => {
-                            default.set(word, Default::Default);
+                            default.set(word, Default::Default)
                         }
                         Meta(NameValue(m)) if m.path == DEFAULT => {
                             if let Ok(path)
@@ -1395,10 +1358,10 @@ mod internals {
                             }
                         }
                         Meta(Path(word)) if word == SKIP_SERIALIZING => {
-                            skip_serializing.set_true(word);
+                            skip_serializing.set_true(word)
                         }
                         Meta(Path(word)) if word == SKIP_DESERIALIZING => {
-                            skip_deserializing.set_true(word);
+                            skip_deserializing.set_true(word)
                         }
                         Meta(Path(word)) if word == SKIP => {
                             skip_serializing.set_true(word);
@@ -1496,9 +1459,7 @@ mod internals {
                                 getter.set(&m.path, path);
                             }
                         }
-                        Meta(Path(word)) if word == FLATTEN => {
-                            flatten.set_true(word);
-                        }
+                        Meta(Path(word)) if word == FLATTEN => flatten.set_true(word),
                         Meta(meta_item) => {
                             let path = meta_item
                                 .path()
@@ -1519,10 +1480,11 @@ mod internals {
                             );
                         }
                         Lit(lit) => {
-                            cx.error_spanned_by(
-                                lit,
-                                "unexpected literal in serde field attribute",
-                            );
+                            cx
+                                .error_spanned_by(
+                                    lit,
+                                    "unexpected literal in serde field attribute",
+                                )
                         }
                     }
                 }
@@ -1569,7 +1531,7 @@ mod internals {
                         deserialize_with.set_if_none(expr);
                     }
                 } else if is_implicitly_borrowed(&field.ty) {
-                    collect_lifetimes(&field.ty, &mut borrowed_lifetimes);
+                    collect_lifetimes(&field.ty, &mut borrowed_lifetimes)
                 }
                 Field {
                     name: Name::from_attrs(ident, ser_name, de_name, Some(de_aliases)),
@@ -1817,7 +1779,7 @@ mod internals {
                             );
                             res
                         },
-                    );
+                    )
                 })
         }
         fn parse_lit_into_expr_path(
@@ -1839,7 +1801,7 @@ mod internals {
                             );
                             res
                         },
-                    );
+                    )
                 })
         }
         fn parse_lit_into_where(
@@ -1890,7 +1852,7 @@ mod internals {
                             );
                             res
                         },
-                    );
+                    )
                 })
         }
         fn parse_lit_into_lifetimes(
@@ -1953,21 +1915,15 @@ mod internals {
         fn is_cow(ty: &syn::Type, elem: fn(&syn::Type) -> bool) -> bool {
             let path = match ungroup(ty) {
                 syn::Type::Path(ty) => &ty.path,
-                _ => {
-                    return false;
-                }
+                _ => return false,
             };
             let seg = match path.segments.last() {
                 Some(seg) => seg,
-                None => {
-                    return false;
-                }
+                None => return false,
             };
             let args = match &seg.arguments {
                 syn::PathArguments::AngleBracketed(bracketed) => &bracketed.args,
-                _ => {
-                    return false;
-                }
+                _ => return false,
             };
             seg.ident == "Cow" && args.len() == 2
                 && match (&args[0], &args[1]) {
@@ -1981,21 +1937,15 @@ mod internals {
         fn is_option(ty: &syn::Type, elem: fn(&syn::Type) -> bool) -> bool {
             let path = match ungroup(ty) {
                 syn::Type::Path(ty) => &ty.path,
-                _ => {
-                    return false;
-                }
+                _ => return false,
             };
             let seg = match path.segments.last() {
                 Some(seg) => seg,
-                None => {
-                    return false;
-                }
+                None => return false,
             };
             let args = match &seg.arguments {
                 syn::PathArguments::AngleBracketed(bracketed) => &bracketed.args,
-                _ => {
-                    return false;
-                }
+                _ => return false,
             };
             seg.ident == "Option" && args.len() == 1
                 && match &args[0] {
@@ -2058,15 +2008,9 @@ mod internals {
         }
         fn collect_lifetimes(ty: &syn::Type, out: &mut BTreeSet<syn::Lifetime>) {
             match ty {
-                syn::Type::Slice(ty) => {
-                    collect_lifetimes(&ty.elem, out);
-                }
-                syn::Type::Array(ty) => {
-                    collect_lifetimes(&ty.elem, out);
-                }
-                syn::Type::Ptr(ty) => {
-                    collect_lifetimes(&ty.elem, out);
-                }
+                syn::Type::Slice(ty) => collect_lifetimes(&ty.elem, out),
+                syn::Type::Array(ty) => collect_lifetimes(&ty.elem, out),
+                syn::Type::Ptr(ty) => collect_lifetimes(&ty.elem, out),
                 syn::Type::Reference(ty) => {
                     out.extend(ty.lifetime.iter().cloned());
                     collect_lifetimes(&ty.elem, out);
@@ -2087,13 +2031,11 @@ mod internals {
                             for arg in &bracketed.args {
                                 match arg {
                                     syn::GenericArgument::Lifetime(lifetime) => {
-                                        out.insert(lifetime.clone());
+                                        out.insert(lifetime.clone())
                                     }
-                                    syn::GenericArgument::Type(ty) => {
-                                        collect_lifetimes(ty, out);
-                                    }
+                                    syn::GenericArgument::Type(ty) => collect_lifetimes(ty, out),
                                     syn::GenericArgument::Binding(binding) => {
-                                        collect_lifetimes(&binding.ty, out);
+                                        collect_lifetimes(&binding.ty, out)
                                     }
                                     syn::GenericArgument::Constraint(_)
                                     | syn::GenericArgument::Const(_) => {}
@@ -2102,14 +2044,10 @@ mod internals {
                         }
                     }
                 }
-                syn::Type::Paren(ty) => {
-                    collect_lifetimes(&ty.elem, out);
-                }
-                syn::Type::Group(ty) => {
-                    collect_lifetimes(&ty.elem, out);
-                }
+                syn::Type::Paren(ty) => collect_lifetimes(&ty.elem, out),
+                syn::Type::Group(ty) => collect_lifetimes(&ty.elem, out),
                 syn::Type::Macro(ty) => {
-                    collect_lifetimes_from_tokens(ty.mac.tokens.clone(), out);
+                    collect_lifetimes_from_tokens(ty.mac.tokens.clone(), out)
                 }
                 syn::Type::BareFn(_)
                 | syn::Type::Never(_)
@@ -2167,7 +2105,7 @@ mod internals {
             errors: RefCell<Option<Vec<syn::Error>>>,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::default::Default for Ctxt {
             #[inline]
             fn default() -> Ctxt {
@@ -2482,7 +2420,7 @@ mod internals {
     }
     pub use self::receiver::replace_receiver;
     mod case {
-        #[allow(deprecated, unused_imports)]
+        #[allow]
         use std::ascii::AsciiExt;
         use std::fmt::{self, Debug, Display};
         use self::RenameRule::*;
@@ -2498,10 +2436,10 @@ mod internals {
             ScreamingKebabCase,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for RenameRule {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for RenameRule {
             #[inline]
             fn clone(&self) -> RenameRule {
@@ -2510,7 +2448,7 @@ mod internals {
         }
         impl ::core::marker::StructuralPartialEq for RenameRule {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for RenameRule {
             #[inline]
             fn eq(&self, other: &RenameRule) -> bool {
@@ -2582,12 +2520,12 @@ mod internals {
                         let mut capitalize = true;
                         for ch in field.chars() {
                             if ch == '_' {
-                                capitalize = true;
+                                capitalize = true
                             } else if capitalize {
                                 pascal.push(ch.to_ascii_uppercase());
                                 capitalize = false;
                             } else {
-                                pascal.push(ch);
+                                pascal.push(ch)
                             }
                         }
                         pascal
@@ -2679,16 +2617,18 @@ mod internals {
             }
             match style {
                 Style::Tuple => {
-                    cx.error_spanned_by(
-                        field.original,
-                        "#[serde(flatten)] cannot be used on tuple structs",
-                    );
+                    cx
+                        .error_spanned_by(
+                            field.original,
+                            "#[serde(flatten)] cannot be used on tuple structs",
+                        )
                 }
                 Style::Newtype => {
-                    cx.error_spanned_by(
-                        field.original,
-                        "#[serde(flatten)] cannot be used on newtype structs",
-                    );
+                    cx
+                        .error_spanned_by(
+                            field.original,
+                            "#[serde(flatten)] cannot be used on newtype structs",
+                        )
                 }
                 _ => {}
             }
@@ -2696,9 +2636,7 @@ mod internals {
         fn check_identifier(cx: &Ctxt, cont: &Container) {
             let variants = match &cont.data {
                 Data::Enum(variants) => variants,
-                Data::Struct(_, _) => {
-                    return;
-                }
+                Data::Struct(_, _) => return,
             };
             for (i, variant) in variants.iter().enumerate() {
                 match (
@@ -2708,16 +2646,18 @@ mod internals {
                     cont.attrs.tag(),
                 ) {
                     (_, Identifier::Variant, true, _) => {
-                        cx.error_spanned_by(
-                            variant.original,
-                            "#[serde(other)] may not be used on a variant identifier",
-                        );
+                        cx
+                            .error_spanned_by(
+                                variant.original,
+                                "#[serde(other)] may not be used on a variant identifier",
+                            )
                     }
                     (_, Identifier::No, true, &TagType::None) => {
-                        cx.error_spanned_by(
-                            variant.original,
-                            "#[serde(other)] cannot appear on untagged enum",
-                        );
+                        cx
+                            .error_spanned_by(
+                                variant.original,
+                                "#[serde(other)] cannot appear on untagged enum",
+                            )
                     }
                     (Style::Unit, Identifier::Field, true, _)
                     | (Style::Unit, Identifier::No, true, _) => {
@@ -2729,10 +2669,11 @@ mod internals {
                         }
                     }
                     (_, Identifier::Field, true, _) | (_, Identifier::No, true, _) => {
-                        cx.error_spanned_by(
-                            variant.original,
-                            "#[serde(other)] must be on a unit variant",
-                        );
+                        cx
+                            .error_spanned_by(
+                                variant.original,
+                                "#[serde(other)] must be on a unit variant",
+                            )
                     }
                     (_, Identifier::No, false, _) => {}
                     (Style::Unit, _, false, _) => {}
@@ -2753,16 +2694,18 @@ mod internals {
                         }
                     }
                     (_, Identifier::Field, false, _) => {
-                        cx.error_spanned_by(
-                            variant.original,
-                            "#[serde(field_identifier)] may only contain unit variants",
-                        );
+                        cx
+                            .error_spanned_by(
+                                variant.original,
+                                "#[serde(field_identifier)] may only contain unit variants",
+                            )
                     }
                     (_, Identifier::Variant, false, _) => {
-                        cx.error_spanned_by(
-                            variant.original,
-                            "#[serde(variant_identifier)] may only contain unit variants",
-                        );
+                        cx
+                            .error_spanned_by(
+                                variant.original,
+                                "#[serde(variant_identifier)] may only contain unit variants",
+                            )
                     }
                 }
             }
@@ -2770,9 +2713,7 @@ mod internals {
         fn check_variant_skip_attrs(cx: &Ctxt, cont: &Container) {
             let variants = match &cont.data {
                 Data::Enum(variants) => variants,
-                Data::Struct(_, _) => {
-                    return;
-                }
+                Data::Struct(_, _) => return,
             };
             for variant in variants.iter() {
                 if variant.attrs.serialize_with().is_some() {
@@ -2905,7 +2846,7 @@ mod internals {
                         );
                         res
                     },
-                );
+                )
             };
             for variant in variants {
                 match variant.style {
@@ -3011,16 +2952,18 @@ mod internals {
                 None => {
                     match derive {
                         Derive::Serialize => {
-                            cx.error_spanned_by(
-                                cont.original,
-                                "#[serde(transparent)] requires at least one field that is not skipped",
-                            );
+                            cx
+                                .error_spanned_by(
+                                    cont.original,
+                                    "#[serde(transparent)] requires at least one field that is not skipped",
+                                )
                         }
                         Derive::Deserialize => {
-                            cx.error_spanned_by(
-                                cont.original,
-                                "#[serde(transparent)] requires at least one field that is neither skipped nor has a default",
-                            );
+                            cx
+                                .error_spanned_by(
+                                    cont.original,
+                                    "#[serde(transparent)] requires at least one field that is neither skipped nor has a default",
+                                )
                         }
                     }
                 }
@@ -3090,10 +3033,10 @@ mod internals {
         use syn::{Ident, Path};
         pub struct Symbol(&'static str);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for Symbol {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Symbol {
             #[inline]
             fn clone(&self) -> Symbol {
@@ -3167,10 +3110,10 @@ mod internals {
         Deserialize,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::marker::Copy for Derive {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for Derive {
         #[inline]
         fn clone(&self) -> Derive {
@@ -3242,9 +3185,7 @@ mod bound {
     ) -> syn::Generics {
         let variants = match &cont.data {
             Data::Enum(variants) => variants,
-            Data::Struct(_, _) => {
-                return generics.clone();
-            }
+            Data::Struct(_, _) => return generics.clone(),
         };
         let predicates = variants
             .iter()
@@ -3490,12 +3431,12 @@ mod bound {
                     .map(|mut param| {
                         match &mut param {
                             syn::GenericParam::Lifetime(param) => {
-                                param.bounds.push(bound.clone());
+                                param.bounds.push(bound.clone())
                             }
                             syn::GenericParam::Type(param) => {
                                 param
                                     .bounds
-                                    .push(syn::TypeParamBound::Lifetime(bound.clone()));
+                                    .push(syn::TypeParamBound::Lifetime(bound.clone()))
                             }
                             syn::GenericParam::Const(_) => {}
                         }
@@ -3538,11 +3479,9 @@ mod bound {
                                                 syn::GenericArgument::Lifetime(param.lifetime.clone())
                                             }
                                             syn::GenericParam::Const(_) => {
-                                                {
-                                                    ::std::rt::begin_panic(
-                                                        "Serde does not support const generics yet",
-                                                    )
-                                                };
+                                                ::std::rt::begin_panic(
+                                                    "Serde does not support const generics yet",
+                                                )
                                             }
                                         })
                                         .collect(),
@@ -3572,7 +3511,7 @@ mod fragment {
             match &self.0 {
                 Fragment::Expr(expr) => expr.to_tokens(out),
                 Fragment::Block(block) => {
-                    token::Brace::default().surround(out, |out| block.to_tokens(out));
+                    token::Brace::default().surround(out, |out| block.to_tokens(out))
                 }
             }
         }
@@ -3595,7 +3534,7 @@ mod fragment {
                     <::syn::token::Comma>::default().to_tokens(out);
                 }
                 Fragment::Block(block) => {
-                    token::Brace::default().surround(out, |out| block.to_tokens(out));
+                    token::Brace::default().surround(out, |out| block.to_tokens(out))
                 }
             }
         }
@@ -4037,7 +3976,7 @@ mod de {
             }
         }
     }
-    #[cfg(not(feature = "deserialize_in_place"))]
+    #[cfg]
     fn deserialize_in_place_body(
         _cont: &Container,
         _params: &Parameters,
@@ -4178,7 +4117,7 @@ mod de {
                                 use ::quote::__private::ext::*;
                                 let mut _i = 0usize;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut assign, i) = assign.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -5263,10 +5202,10 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut names, i) = names.quote_into_iter();
                             let has_iter = has_iter | i;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut vars, i) = vars.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -5306,7 +5245,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut vars, i) = vars.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -5410,7 +5349,7 @@ mod de {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut let_values, i) = let_values.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -6343,7 +6282,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut variant_names, i) = variant_names.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -6532,7 +6471,7 @@ mod de {
                         {
                             use ::quote::__private::ext::*;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut variant_arms, i) = variant_arms.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -6934,7 +6873,7 @@ mod de {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut variant_arms, i) = variant_arms.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -7213,7 +7152,7 @@ mod de {
                         {
                             use ::quote::__private::ext::*;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut missing_content_arms, i) = missing_content_arms
                                 .quote_into_iter();
                             let has_iter = has_iter | i;
@@ -7778,7 +7717,7 @@ mod de {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut variant_arms, i) = variant_arms.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -7935,7 +7874,7 @@ mod de {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut variant_arms, i) = variant_arms.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -9211,7 +9150,7 @@ mod de {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut attempts, i) = attempts.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -10268,7 +10207,7 @@ mod de {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut field_idents, i) = field_idents.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -10604,7 +10543,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut names, i) = names.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -10657,7 +10596,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut names, i) = names.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -12398,11 +12337,11 @@ mod de {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut variant_indices, i) = variant_indices
                                         .quote_into_iter();
                                     let has_iter = has_iter | i;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut main_constructors, i) = main_constructors
                                         .quote_into_iter();
                                     let has_iter = has_iter | i;
@@ -12511,10 +12450,10 @@ mod de {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut field_strs, i) = field_strs.quote_into_iter();
                                     let has_iter = has_iter | i;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut constructors, i) = constructors.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -12635,10 +12574,10 @@ mod de {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut field_bytes, i) = field_bytes.quote_into_iter();
                                     let has_iter = has_iter | i;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut constructors, i) = constructors.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -12815,10 +12754,10 @@ mod de {
                             {
                                 use ::quote::__private::ext::*;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut field_strs, i) = field_strs.quote_into_iter();
                                 let has_iter = has_iter | i;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut constructors, i) = constructors.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -12935,10 +12874,10 @@ mod de {
                             {
                                 use ::quote::__private::ext::*;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut field_bytes, i) = field_bytes.quote_into_iter();
                                 let has_iter = has_iter | i;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut constructors, i) = constructors.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -13048,7 +12987,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut field_names, i) = field_names.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -13760,7 +13699,7 @@ mod de {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut value_arms, i) = value_arms.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -14237,7 +14176,7 @@ mod de {
                         use ::quote::__private::ext::*;
                         let mut _i = 0usize;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut result, i) = result.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -14290,7 +14229,7 @@ mod de {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut let_values, i) = let_values.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -14308,7 +14247,7 @@ mod de {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut extract_values, i) = extract_values.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -14323,7 +14262,7 @@ mod de {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut extract_collected, i) = extract_collected.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -14599,7 +14538,7 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut field_tys, i) = field_tys.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -14663,7 +14602,7 @@ mod de {
                                 use ::quote::__private::ext::*;
                                 let mut _i = 0usize;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut field_tys, i) = field_tys.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -14742,13 +14681,13 @@ mod de {
                                 use ::quote::__private::ext::*;
                                 let mut _i = 0usize;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut members, i) = members.quote_into_iter();
                                 let has_iter = has_iter | i;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut wrapper, i) = wrapper.quote_into_iter();
                                 let has_iter = has_iter | i;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut field_access, i) = field_access.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -14799,10 +14738,10 @@ mod de {
                             use ::quote::__private::ext::*;
                             let mut _i = 0usize;
                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut wrapper, i) = wrapper.quote_into_iter();
                             let has_iter = has_iter | i;
-                            #[allow(unused_mut)]
+                            #[allow]
                             let (mut field_access, i) = field_access.quote_into_iter();
                             let has_iter = has_iter | i;
                             let _: ::quote::__private::HasIterator = has_iter;
@@ -15225,7 +15164,7 @@ mod dummy {
             _s
         }
     }
-    #[allow(deprecated)]
+    #[allow]
     fn unraw(ident: &Ident) -> String {
         ident.to_string().trim_left_matches("r#").to_owned()
     }
@@ -15317,10 +15256,10 @@ mod pretend {
                                         use ::quote::__private::ext::*;
                                         let mut _i = 0usize;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut members, i) = members.quote_into_iter();
                                         let has_iter = has_iter | i;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut placeholders, i) = placeholders.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -15374,7 +15313,7 @@ mod pretend {
         let type_ident = &cont.ident;
         let (_, ty_generics, _) = cont.generics.split_for_impl();
         let members = fields.iter().map(|field| &field.member).collect::<Vec<_>>();
-        #[cfg(ptr_addr_of)]
+        #[cfg]
         {
             {
                 let mut _s = ::quote::__private::TokenStream::new();
@@ -15417,7 +15356,7 @@ mod pretend {
                                             use ::quote::__private::ext::*;
                                             let mut _i = 0usize;
                                             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                            #[allow(unused_mut)]
+                                            #[allow]
                                             let (mut members, i) = members.quote_into_iter();
                                             let has_iter = has_iter | i;
                                             let _: ::quote::__private::HasIterator = has_iter;
@@ -15450,7 +15389,7 @@ mod pretend {
                                 {
                                     use ::quote::__private::ext::*;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut members, i) = members.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -15541,10 +15480,10 @@ mod pretend {
                                     use ::quote::__private::ext::*;
                                     let mut _i = 0usize;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut members, i) = members.quote_into_iter();
                                     let has_iter = has_iter | i;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut placeholders, i) = placeholders.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -15597,7 +15536,7 @@ mod pretend {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut patterns, i) = patterns.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -15644,9 +15583,7 @@ mod pretend {
     fn pretend_variants_used(cont: &Container) -> TokenStream {
         let variants = match &cont.data {
             Data::Enum(variants) => variants,
-            Data::Struct(_, _) => {
-                return ::quote::__private::TokenStream::new();
-            }
+            Data::Struct(_, _) => return ::quote::__private::TokenStream::new(),
         };
         let type_ident = &cont.ident;
         let (_, ty_generics, _) = cont.generics.split_for_impl();
@@ -15687,10 +15624,10 @@ mod pretend {
                                         use ::quote::__private::ext::*;
                                         let mut _i = 0usize;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut members, i) = members.quote_into_iter();
                                         let has_iter = has_iter | i;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut placeholders, i) = placeholders.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -15729,7 +15666,7 @@ mod pretend {
                                     use ::quote::__private::ext::*;
                                     let mut _i = 0usize;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut placeholders, i) = placeholders.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -15783,7 +15720,7 @@ mod pretend {
                                             {
                                                 use ::quote::__private::ext::*;
                                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                                #[allow(unused_mut)]
+                                                #[allow]
                                                 let (mut placeholders, i) = placeholders.quote_into_iter();
                                                 let has_iter = has_iter | i;
                                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -15838,7 +15775,7 @@ mod pretend {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut cases, i) = cases.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -16053,16 +15990,18 @@ mod ser {
         match cont.attrs.identifier() {
             attr::Identifier::No => {}
             attr::Identifier::Field => {
-                cx.error_spanned_by(
-                    cont.original,
-                    "field identifiers cannot be serialized",
-                );
+                cx
+                    .error_spanned_by(
+                        cont.original,
+                        "field identifiers cannot be serialized",
+                    )
             }
             attr::Identifier::Variant => {
-                cx.error_spanned_by(
-                    cont.original,
-                    "variant identifiers cannot be serialized",
-                );
+                cx
+                    .error_spanned_by(
+                        cont.original,
+                        "variant identifiers cannot be serialized",
+                    )
             }
         }
     }
@@ -16466,7 +16405,7 @@ mod ser {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut serialize_stmts, i) = serialize_stmts.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -16678,7 +16617,7 @@ mod ser {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut serialize_fields, i) = serialize_fields.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -16855,7 +16794,7 @@ mod ser {
             {
                 use ::quote::__private::ext::*;
                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                #[allow(unused_mut)]
+                #[allow]
                 let (mut serialize_fields, i) = serialize_fields.quote_into_iter();
                 let has_iter = has_iter | i;
                 let _: ::quote::__private::HasIterator = has_iter;
@@ -16917,7 +16856,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut arms, i) = arms.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -17083,7 +17022,7 @@ mod ser {
                                     use ::quote::__private::ext::*;
                                     let mut _i = 0usize;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut field_names, i) = field_names.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -17122,7 +17061,7 @@ mod ser {
                                     use ::quote::__private::ext::*;
                                     let mut _i = 0usize;
                                     let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                    #[allow(unused_mut)]
+                                    #[allow]
                                     let (mut members, i) = members.quote_into_iter();
                                     let has_iter = has_iter | i;
                                     let _: ::quote::__private::HasIterator = has_iter;
@@ -17900,7 +17839,7 @@ mod ser {
                             {
                                 use ::quote::__private::ext::*;
                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                #[allow(unused_mut)]
+                                #[allow]
                                 let (mut fields_ty, i) = fields_ty.quote_into_iter();
                                 let has_iter = has_iter | i;
                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -18022,7 +17961,7 @@ mod ser {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut fields_ident, i) = fields_ident.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -18161,7 +18100,7 @@ mod ser {
                                             {
                                                 use ::quote::__private::ext::*;
                                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                                #[allow(unused_mut)]
+                                                #[allow]
                                                 let (mut fields_ident, i) = fields_ident.quote_into_iter();
                                                 let has_iter = has_iter | i;
                                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -18468,7 +18407,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_stmts, i) = serialize_stmts.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -18536,7 +18475,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_stmts, i) = serialize_stmts.quote_into_iter();
                         let has_iter = has_iter | i;
                         let _: ::quote::__private::HasIterator = has_iter;
@@ -18707,7 +18646,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_fields, i) = serialize_fields
                             .quote_into_iter();
                         let has_iter = has_iter | i;
@@ -18815,7 +18754,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_fields, i) = serialize_fields
                             .quote_into_iter();
                         let has_iter = has_iter | i;
@@ -18887,7 +18826,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_fields, i) = serialize_fields
                             .quote_into_iter();
                         let has_iter = has_iter | i;
@@ -18972,7 +18911,7 @@ mod ser {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut fields_ty, i) = fields_ty.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -19075,7 +19014,7 @@ mod ser {
                                             {
                                                 use ::quote::__private::ext::*;
                                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                                #[allow(unused_mut)]
+                                                #[allow]
                                                 let (mut members, i) = members.quote_into_iter();
                                                 let has_iter = has_iter | i;
                                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -19134,7 +19073,7 @@ mod ser {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut serialize_fields, i) = serialize_fields
                                             .quote_into_iter();
                                         let has_iter = has_iter | i;
@@ -19204,7 +19143,7 @@ mod ser {
                                             {
                                                 use ::quote::__private::ext::*;
                                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                                #[allow(unused_mut)]
+                                                #[allow]
                                                 let (mut members, i) = members.quote_into_iter();
                                                 let has_iter = has_iter | i;
                                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -19318,7 +19257,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_fields, i) = serialize_fields
                             .quote_into_iter();
                         let has_iter = has_iter | i;
@@ -19391,7 +19330,7 @@ mod ser {
                     {
                         use ::quote::__private::ext::*;
                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                        #[allow(unused_mut)]
+                        #[allow]
                         let (mut serialize_fields, i) = serialize_fields
                             .quote_into_iter();
                         let has_iter = has_iter | i;
@@ -19875,7 +19814,7 @@ mod ser {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut field_tys, i) = field_tys.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -19978,7 +19917,7 @@ mod ser {
                                             {
                                                 use ::quote::__private::ext::*;
                                                 let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                                #[allow(unused_mut)]
+                                                #[allow]
                                                 let (mut field_access, i) = field_access.quote_into_iter();
                                                 let has_iter = has_iter | i;
                                                 let _: ::quote::__private::HasIterator = has_iter;
@@ -20022,7 +19961,7 @@ mod ser {
                                     {
                                         use ::quote::__private::ext::*;
                                         let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-                                        #[allow(unused_mut)]
+                                        #[allow]
                                         let (mut field_exprs, i) = field_exprs.quote_into_iter();
                                         let has_iter = has_iter | i;
                                         let _: ::quote::__private::HasIterator = has_iter;
@@ -20198,7 +20137,7 @@ mod ser {
             (false, Some(_)) => {
                 ::core::panicking::unreachable_display(
                     &"getter is only allowed for remote impls",
-                );
+                )
             }
         }
     }
@@ -20528,7 +20467,7 @@ mod try {
         }
     }
 }
-#[proc_macro_derive(Serialize, attributes(serde))]
+#[proc_macro_derive]
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let mut input = match ::syn::parse_macro_input::parse::<DeriveInput>(input) {
         ::syn::__private::Ok(data) => data,
@@ -20538,7 +20477,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     };
     ser::expand_derive_serialize(&mut input).unwrap_or_else(to_compile_errors).into()
 }
-#[proc_macro_derive(Deserialize, attributes(serde))]
+#[proc_macro_derive]
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let mut input = match ::syn::parse_macro_input::parse::<DeriveInput>(input) {
         ::syn::__private::Ok(data) => data,
@@ -20555,7 +20494,7 @@ fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
         {
             use ::quote::__private::ext::*;
             let has_iter = ::quote::__private::ThereIsNoIteratorInRepetition;
-            #[allow(unused_mut)]
+            #[allow]
             let (mut compile_errors, i) = compile_errors.quote_into_iter();
             let has_iter = has_iter | i;
             let _: ::quote::__private::HasIterator = has_iter;
@@ -20573,7 +20512,7 @@ fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
 const _: () = {
     extern crate proc_macro;
     #[rustc_proc_macro_decls]
-    #[allow(deprecated)]
+    #[allow]
     static _DECLS: &[proc_macro::bridge::client::ProcMacro] = &[
         proc_macro::bridge::client::ProcMacro::custom_derive(
             "Serialize",

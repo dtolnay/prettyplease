@@ -1,15 +1,15 @@
-#![feature(prelude_import)]
+#![feature]
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/serde/1.0.137")]
-#![allow(unknown_lints, bare_trait_objects, deprecated)]
-#![deny(missing_docs, unused_imports)]
+#![doc]
+#![allow]
+#![deny]
 #[prelude_import]
 use ::std::prelude::rust_2015::*;
 #[macro_use]
 extern crate std;
 mod lib {
     mod core {
-        #[cfg(feature = "std")]
+        #[cfg]
         pub use std::*;
     }
     pub use self::core::{cmp, iter, mem, num, ptr, slice, str};
@@ -26,50 +26,50 @@ mod lib {
     pub use self::core::ops::Range;
     pub use self::core::option::{self, Option};
     pub use self::core::result::{self, Result};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::borrow::{Cow, ToOwned};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::string::{String, ToString};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::vec::Vec;
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::boxed::Box;
-    #[cfg(all(feature = "rc", feature = "std"))]
+    #[cfg]
     pub use std::rc::{Rc, Weak as RcWeak};
-    #[cfg(all(feature = "rc", feature = "std"))]
+    #[cfg]
     pub use std::sync::{Arc, Weak as ArcWeak};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::collections::{BTreeMap, BTreeSet, BinaryHeap, LinkedList, VecDeque};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::{error, net};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::collections::{HashMap, HashSet};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::ffi::{CStr, CString, OsStr, OsString};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::hash::{BuildHasher, Hash};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::io::Write;
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::path::{Path, PathBuf};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::sync::{Mutex, RwLock};
-    #[cfg(feature = "std")]
+    #[cfg]
     pub use std::time::{SystemTime, UNIX_EPOCH};
-    #[cfg(not(no_core_reverse))]
+    #[cfg]
     pub use self::core::cmp::Reverse;
-    #[cfg(not(no_ops_bound))]
+    #[cfg]
     pub use self::core::ops::Bound;
-    #[cfg(not(no_range_inclusive))]
+    #[cfg]
     pub use self::core::ops::RangeInclusive;
-    #[cfg(all(feature = "std", not(no_std_atomic)))]
+    #[cfg]
     pub use std::sync::atomic::{
         AtomicBool, AtomicI16, AtomicI32, AtomicI8, AtomicIsize, AtomicU16, AtomicU32,
         AtomicU8, AtomicUsize, Ordering,
     };
-    #[cfg(all(feature = "std", not(no_std_atomic64)))]
+    #[cfg]
     pub use std::sync::atomic::{AtomicI64, AtomicU64};
-    #[cfg(any(feature = "std", not(no_core_duration)))]
+    #[cfg]
     pub use self::core::time::Duration;
 }
 #[macro_use]
@@ -88,7 +88,7 @@ pub mod de {
             err: ErrorImpl,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Error {
             #[inline]
             fn clone(&self) -> Error {
@@ -103,7 +103,7 @@ pub mod de {
         }
         impl ::core::marker::StructuralPartialEq for Error {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for Error {
             #[inline]
             fn eq(&self, other: &Error) -> bool {
@@ -130,10 +130,10 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         type ErrorImpl = Box<str>;
         impl de::Error for Error {
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             #[cold]
             fn custom<T>(msg: T) -> Self
             where
@@ -154,7 +154,7 @@ pub mod de {
             }
         }
         impl Display for Error {
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str(&self.err)
             }
@@ -162,11 +162,11 @@ pub mod de {
         impl Debug for Error {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut debug = formatter.debug_tuple("Error");
-                #[cfg(any(feature = "std", feature = "alloc"))] debug.field(&self.err);
+                #[cfg] debug.field(&self.err);
                 debug.finish()
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl error::Error for Error {
             fn description(&self) -> &str {
                 &self.err
@@ -7044,12 +7044,12 @@ pub mod de {
                     .finish()
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct StringDeserializer<E> {
             value: String,
             marker: PhantomData<E>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<E> Clone for StringDeserializer<E> {
             fn clone(&self) -> Self {
                 StringDeserializer {
@@ -7058,7 +7058,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, E> IntoDeserializer<'de, E> for String
         where
             E: de::Error,
@@ -7071,7 +7071,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, E> de::Deserializer<'de> for StringDeserializer<E>
         where
             E: de::Error,
@@ -7401,7 +7401,7 @@ pub mod de {
                 self.deserialize_any(visitor)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, 'a, E> de::EnumAccess<'de> for StringDeserializer<E>
         where
             E: de::Error,
@@ -7418,7 +7418,7 @@ pub mod de {
                 seed.deserialize(self).map(private::unit_only)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<E> Debug for StringDeserializer<E> {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter
@@ -7427,12 +7427,12 @@ pub mod de {
                     .finish()
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct CowStrDeserializer<'a, E> {
             value: Cow<'a, str>,
             marker: PhantomData<E>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, E> Clone for CowStrDeserializer<'a, E> {
             fn clone(&self) -> Self {
                 CowStrDeserializer {
@@ -7441,7 +7441,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, 'a, E> IntoDeserializer<'de, E> for Cow<'a, str>
         where
             E: de::Error,
@@ -7454,7 +7454,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, 'a, E> de::Deserializer<'de> for CowStrDeserializer<'a, E>
         where
             E: de::Error,
@@ -7787,7 +7787,7 @@ pub mod de {
                 self.deserialize_any(visitor)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, 'a, E> de::EnumAccess<'de> for CowStrDeserializer<'a, E>
         where
             E: de::Error,
@@ -7804,7 +7804,7 @@ pub mod de {
                 seed.deserialize(self).map(private::unit_only)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, E> Debug for CowStrDeserializer<'a, E> {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter
@@ -8540,7 +8540,7 @@ pub mod de {
             marker: PhantomData<E>,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<I: ::core::clone::Clone, E: ::core::clone::Clone> ::core::clone::Clone
         for SeqDeserializer<I, E> {
             #[inline]
@@ -9005,7 +9005,7 @@ pub mod de {
                     .finish()
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, T, E> IntoDeserializer<'de, E> for Vec<T>
         where
             T: IntoDeserializer<'de, E>,
@@ -9016,7 +9016,7 @@ pub mod de {
                 SeqDeserializer::new(self.into_iter())
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, T, E> IntoDeserializer<'de, E> for BTreeSet<T>
         where
             T: IntoDeserializer<'de, E> + Eq + Ord,
@@ -9027,7 +9027,7 @@ pub mod de {
                 SeqDeserializer::new(self.into_iter())
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de, T, S, E> IntoDeserializer<'de, E> for HashSet<T, S>
         where
             T: IntoDeserializer<'de, E> + Eq + Hash,
@@ -9043,7 +9043,7 @@ pub mod de {
             seq: A,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<A: ::core::clone::Clone> ::core::clone::Clone for SeqAccessDeserializer<A> {
             #[inline]
             fn clone(&self) -> SeqAccessDeserializer<A> {
@@ -9057,7 +9057,7 @@ pub mod de {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<A: ::core::fmt::Debug> ::core::fmt::Debug for SeqAccessDeserializer<A> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -10367,7 +10367,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, K, V, E> IntoDeserializer<'de, E> for BTreeMap<K, V>
         where
             K: IntoDeserializer<'de, E> + Eq + Ord,
@@ -10383,7 +10383,7 @@ pub mod de {
                 MapDeserializer::new(self.into_iter())
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de, K, V, S, E> IntoDeserializer<'de, E> for HashMap<K, V, S>
         where
             K: IntoDeserializer<'de, E> + Eq + Hash,
@@ -10404,7 +10404,7 @@ pub mod de {
             map: A,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<A: ::core::clone::Clone> ::core::clone::Clone for MapAccessDeserializer<A> {
             #[inline]
             fn clone(&self) -> MapAccessDeserializer<A> {
@@ -10418,7 +10418,7 @@ pub mod de {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<A: ::core::fmt::Debug> ::core::fmt::Debug for MapAccessDeserializer<A> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -10951,7 +10951,7 @@ pub mod de {
             pub type Second<T> = <T as Pair>::Second;
         }
     }
-    #[cfg(not(no_integer128))]
+    #[cfg]
     mod format {
         use lib::fmt::{self, Write};
         use lib::str;
@@ -10989,10 +10989,10 @@ pub mod de {
         };
         pub struct IgnoredAny;
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for IgnoredAny {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for IgnoredAny {
             #[inline]
             fn clone(&self) -> IgnoredAny {
@@ -11000,7 +11000,7 @@ pub mod de {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for IgnoredAny {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -11009,7 +11009,7 @@ pub mod de {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::default::Default for IgnoredAny {
             #[inline]
             fn default() -> IgnoredAny {
@@ -11147,10 +11147,10 @@ pub mod de {
             Deserialize, Deserializer, EnumAccess, Error, SeqAccess, Unexpected,
             VariantAccess, Visitor,
         };
-        #[cfg(any(feature = "std", feature = "alloc", not(no_core_duration)))]
+        #[cfg]
         use de::MapAccess;
         use seed::InPlaceSeed;
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         use __private::size_hint;
         struct UnitVisitor;
         impl<'de> Visitor<'de> for UnitVisitor {
@@ -11314,7 +11314,7 @@ pub mod de {
                 deserializer.deserialize_i8(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroI8 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -11535,7 +11535,7 @@ pub mod de {
                 deserializer.deserialize_i16(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroI16 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -11745,7 +11745,7 @@ pub mod de {
                 deserializer.deserialize_i32(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroI32 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -11944,7 +11944,7 @@ pub mod de {
                 deserializer.deserialize_i64(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroI64 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -12156,7 +12156,7 @@ pub mod de {
                 deserializer.deserialize_i64(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroIsize {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -12376,7 +12376,7 @@ pub mod de {
                 deserializer.deserialize_u8(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroU8 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -12587,7 +12587,7 @@ pub mod de {
                 deserializer.deserialize_u16(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroU16 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -12791,7 +12791,7 @@ pub mod de {
                 deserializer.deserialize_u32(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroU32 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -12988,7 +12988,7 @@ pub mod de {
                 deserializer.deserialize_u64(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroU64 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -13196,7 +13196,7 @@ pub mod de {
                 deserializer.deserialize_u64(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroUsize {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -13561,7 +13561,7 @@ pub mod de {
                 deserializer.deserialize_i128(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero), not(no_num_nonzero_signed)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroI128 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -13798,7 +13798,7 @@ pub mod de {
                 deserializer.deserialize_u128(PrimitiveVisitor)
             }
         }
-        #[cfg(all(not(no_num_nonzero)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for num::NonZeroU128 {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -13958,11 +13958,11 @@ pub mod de {
                 deserializer.deserialize_char(CharVisitor)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         struct StringVisitor;
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         struct StringInPlaceVisitor<'a>(&'a mut String);
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de> Visitor<'de> for StringVisitor {
             type Value = String;
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -14006,7 +14006,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de> Visitor<'de> for StringInPlaceVisitor<'a> {
             type Value = ();
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -14060,7 +14060,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de> Deserialize<'de> for String {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -14133,9 +14133,9 @@ pub mod de {
                 deserializer.deserialize_bytes(BytesVisitor)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         struct CStringVisitor;
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Visitor<'de> for CStringVisitor {
             type Value = CString;
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -14185,7 +14185,7 @@ pub mod de {
                 CString::new(v).map_err(Error::custom)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Deserialize<'de> for CString {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -14242,7 +14242,7 @@ pub mod de {
             {
                 T::deserialize(deserializer).map(Some)
             }
-            #[doc(hidden)]
+            #[doc]
             fn __private_visit_untagged_option<D>(
                 self,
                 deserializer: D,
@@ -14294,7 +14294,7 @@ pub mod de {
                 deserializer.deserialize_unit_struct("PhantomData", visitor)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn nop_reserve<T>(_seq: T, _n: usize) {}
         impl<'de, T> Deserialize<'de> for BinaryHeap<T>
         where
@@ -14740,7 +14740,7 @@ pub mod de {
                 deserializer.deserialize_seq(SeqInPlaceVisitor(place))
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, T> Deserialize<'de> for Vec<T>
         where
             T: Deserialize<'de>,
@@ -23001,7 +23001,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 1")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23044,7 +23044,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 1")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23084,7 +23084,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 2")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23138,7 +23138,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 2")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23198,7 +23198,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 3")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23270,7 +23270,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 3")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23344,7 +23344,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 4")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23428,7 +23428,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 4")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23516,7 +23516,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 5")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23612,7 +23612,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 5")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23714,7 +23714,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 6")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23830,7 +23830,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 6")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -23946,7 +23946,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 7")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24075,7 +24075,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 7")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24205,7 +24205,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 8")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24348,7 +24348,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 8")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24492,7 +24492,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 9")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24648,7 +24648,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 9")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24806,7 +24806,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 10")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -24975,7 +24975,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 10")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -25148,7 +25148,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 11")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -25343,7 +25343,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 11")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -25532,7 +25532,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 12")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -25741,7 +25741,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 12")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -25958,7 +25958,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 13")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -26181,7 +26181,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 13")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -26444,7 +26444,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 14")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -26681,7 +26681,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 14")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -26961,7 +26961,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 15")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -27244,7 +27244,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 15")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -27558,7 +27558,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 16")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -27857,7 +27857,7 @@ pub mod de {
                         formatter.write_str("a tuple of size 16")
                     }
                     #[inline]
-                    #[allow(non_snake_case)]
+                    #[allow]
                     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
                     where
                         A: SeqAccess<'de>,
@@ -28155,7 +28155,7 @@ pub mod de {
                 deserializer.deserialize_map(visitor)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Deserialize<'de> for net::IpAddr {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28286,7 +28286,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Deserialize<'de> for net::SocketAddr {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28430,9 +28430,9 @@ pub mod de {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         struct PathVisitor;
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'a> Visitor<'a> for PathVisitor {
             type Value = &'a Path;
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -28453,7 +28453,7 @@ pub mod de {
                     .map_err(|_| Error::invalid_value(Unexpected::Bytes(v), &self))
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de: 'a, 'a> Deserialize<'de> for &'a Path {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28462,9 +28462,9 @@ pub mod de {
                 deserializer.deserialize_str(PathVisitor)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         struct PathBufVisitor;
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Visitor<'de> for PathBufVisitor {
             type Value = PathBuf;
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -28502,7 +28502,7 @@ pub mod de {
                     ))
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Deserialize<'de> for PathBuf {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28582,15 +28582,15 @@ pub mod de {
                 deserializer.deserialize_identifier(KindVisitor)
             }
         }
-        #[cfg(all(feature = "std", any(unix, windows)))]
+        #[cfg]
         struct OsStringVisitor;
-        #[cfg(all(feature = "std", any(unix, windows)))]
+        #[cfg]
         impl<'de> Visitor<'de> for OsStringVisitor {
             type Value = OsString;
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("os string")
             }
-            #[cfg(unix)]
+            #[cfg]
             fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
             where
                 A: EnumAccess<'de>,
@@ -28615,7 +28615,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(all(feature = "std", any(unix, windows)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for OsString {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28649,7 +28649,7 @@ pub mod de {
                 Deserialize::deserialize(deserializer).map(String::into_boxed_str)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'de, 'a, T: ?Sized> Deserialize<'de> for Cow<'a, T>
         where
             T: ToOwned,
@@ -28663,7 +28663,7 @@ pub mod de {
                 T::Owned::deserialize(deserializer).map(Cow::Owned)
             }
         }
-        #[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+        #[cfg]
         impl<'de, T: ?Sized> Deserialize<'de> for RcWeak<T>
         where
             T: Deserialize<'de>,
@@ -28683,7 +28683,7 @@ pub mod de {
                 Ok(RcWeak::new())
             }
         }
-        #[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+        #[cfg]
         impl<'de, T: ?Sized> Deserialize<'de> for ArcWeak<T>
         where
             T: Deserialize<'de>,
@@ -28760,7 +28760,7 @@ pub mod de {
                 Deserialize::deserialize(deserializer).map(RwLock::new)
             }
         }
-        #[cfg(any(feature = "std", not(no_core_duration)))]
+        #[cfg]
         impl<'de> Deserialize<'de> for Duration {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -28843,9 +28843,7 @@ pub mod de {
                             }
                         } {
                             Some(value) => value,
-                            None => {
-                                return Err(Error::invalid_length(0, &self));
-                            }
+                            None => return Err(Error::invalid_length(0, &self)),
                         };
                         let nanos: u32 = match match seq.next_element() {
                             ::core::result::Result::Ok(val) => val,
@@ -28856,9 +28854,7 @@ pub mod de {
                             }
                         } {
                             Some(value) => value,
-                            None => {
-                                return Err(Error::invalid_length(1, &self));
-                            }
+                            None => return Err(Error::invalid_length(1, &self)),
                         };
                         match check_overflow(secs, nanos) {
                             ::core::result::Result::Ok(val) => val,
@@ -28945,7 +28941,7 @@ pub mod de {
                 deserializer.deserialize_struct("Duration", FIELDS, DurationVisitor)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de> Deserialize<'de> for SystemTime {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -29033,9 +29029,7 @@ pub mod de {
                             }
                         } {
                             Some(value) => value,
-                            None => {
-                                return Err(Error::invalid_length(0, &self));
-                            }
+                            None => return Err(Error::invalid_length(0, &self)),
                         };
                         let nanos: u32 = match match seq.next_element() {
                             ::core::result::Result::Ok(val) => val,
@@ -29046,9 +29040,7 @@ pub mod de {
                             }
                         } {
                             Some(value) => value,
-                            None => {
-                                return Err(Error::invalid_length(1, &self));
-                            }
+                            None => return Err(Error::invalid_length(1, &self)),
                         };
                         match check_overflow(secs, nanos) {
                             ::core::result::Result::Ok(val) => val,
@@ -29153,7 +29145,7 @@ pub mod de {
                         );
                     }
                 };
-                #[cfg(not(no_systemtime_checked_add))]
+                #[cfg]
                 let ret = UNIX_EPOCH
                     .checked_add(duration)
                     .ok_or_else(|| D::Error::custom(
@@ -29182,7 +29174,7 @@ pub mod de {
                 Ok(start..end)
             }
         }
-        #[cfg(not(no_range_inclusive))]
+        #[cfg]
         impl<'de, Idx> Deserialize<'de> for RangeInclusive<Idx>
         where
             Idx: Deserialize<'de>,
@@ -29277,9 +29269,7 @@ pub mod de {
                         }
                     } {
                         Some(value) => value,
-                        None => {
-                            return Err(Error::invalid_length(0, &self));
-                        }
+                        None => return Err(Error::invalid_length(0, &self)),
                     };
                     let end: Idx = match match seq.next_element() {
                         ::core::result::Result::Ok(val) => val,
@@ -29290,9 +29280,7 @@ pub mod de {
                         }
                     } {
                         Some(value) => value,
-                        None => {
-                            return Err(Error::invalid_length(1, &self));
-                        }
+                        None => return Err(Error::invalid_length(1, &self)),
                     };
                     Ok((start, end))
                 }
@@ -29356,7 +29344,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(any(not(no_ops_bound), all(feature = "std", not(no_collections_bound))))]
+        #[cfg]
         impl<'de, T> Deserialize<'de> for Bound<T>
         where
             T: Deserialize<'de>,
@@ -29685,12 +29673,12 @@ pub mod de {
                 Deserialize::deserialize(deserializer).map(Self::new)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         struct FromStrVisitor<T> {
             expecting: &'static str,
             ty: PhantomData<T>,
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<T> FromStrVisitor<T> {
             fn new(expecting: &'static str) -> Self {
                 FromStrVisitor {
@@ -29699,7 +29687,7 @@ pub mod de {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<'de, T> Visitor<'de> for FromStrVisitor<T>
         where
             T: str::FromStr,
@@ -29762,8 +29750,8 @@ pub mod de {
         }
     }
     pub use self::ignored_any::IgnoredAny;
-    #[cfg(feature = "std")]
-    #[doc(no_inline)]
+    #[cfg]
+    #[doc]
     pub use std::error::Error as StdError;
     pub trait Error: Sized + StdError {
         fn custom<T>(msg: T) -> Self
@@ -29891,10 +29879,10 @@ pub mod de {
         Other(&'a str),
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl<'a> ::core::marker::Copy for Unexpected<'a> {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl<'a> ::core::clone::Clone for Unexpected<'a> {
         #[inline]
         fn clone(&self) -> Unexpected<'a> {
@@ -29913,7 +29901,7 @@ pub mod de {
     }
     impl<'a> ::core::marker::StructuralPartialEq for Unexpected<'a> {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl<'a> ::core::cmp::PartialEq for Unexpected<'a> {
         #[inline]
         fn eq(&self, other: &Unexpected<'a>) -> bool {
@@ -30009,7 +29997,7 @@ pub mod de {
         }
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl<'a> ::core::fmt::Debug for Unexpected<'a> {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match (&*self,) {
@@ -30284,7 +30272,7 @@ pub mod de {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: Deserializer<'de>;
-        #[doc(hidden)]
+        #[doc]
         fn deserialize_in_place<D>(
             deserializer: D,
             place: &mut Self,
@@ -30454,8 +30442,8 @@ pub mod de {
         fn is_human_readable(&self) -> bool {
             true
         }
-        #[cfg(all(not(no_serde_derive), any(feature = "std", feature = "alloc")))]
-        #[doc(hidden)]
+        #[cfg]
+        #[doc]
         fn __deserialize_content<V>(
             self,
             _: ::actually_private::T,
@@ -30589,7 +30577,7 @@ pub mod de {
             self.visit_str(v)
         }
         #[inline]
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
         where
             E: Error,
@@ -30610,7 +30598,7 @@ pub mod de {
         {
             self.visit_bytes(v)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
         where
             E: Error,
@@ -30667,7 +30655,7 @@ pub mod de {
             let _ = data;
             Err(Error::invalid_type(Unexpected::Enum, &self))
         }
-        #[doc(hidden)]
+        #[doc]
         fn __private_visit_untagged_option<D>(self, _: D) -> Result<Self::Value, ()>
         where
             D: Deserializer<'de>,
@@ -31305,7 +31293,7 @@ pub mod ser {
                 serializer.serialize_str(self)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl Serialize for String {
             #[inline]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -31323,7 +31311,7 @@ pub mod ser {
                 serializer.collect_str(self)
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for CStr {
             #[inline]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -31333,7 +31321,7 @@ pub mod ser {
                 serializer.serialize_bytes(self.to_bytes())
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for CString {
             #[inline]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -32465,7 +32453,7 @@ pub mod ser {
                 state.end()
             }
         }
-        #[cfg(not(no_range_inclusive))]
+        #[cfg]
         impl<Idx> Serialize for RangeInclusive<Idx>
         where
             Idx: Serialize,
@@ -32502,7 +32490,7 @@ pub mod ser {
                 state.end()
             }
         }
-        #[cfg(any(not(no_ops_bound), all(feature = "std", not(no_collections_bound))))]
+        #[cfg]
         impl<T> Serialize for Bound<T>
         where
             T: Serialize,
@@ -34188,7 +34176,7 @@ pub mod ser {
                 (**self).serialize(serializer)
             }
         }
-        #[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+        #[cfg]
         impl<T: ?Sized> Serialize for RcWeak<T>
         where
             T: Serialize,
@@ -34200,7 +34188,7 @@ pub mod ser {
                 self.upgrade().serialize(serializer)
             }
         }
-        #[cfg(all(feature = "rc", any(feature = "std", feature = "alloc")))]
+        #[cfg]
         impl<T: ?Sized> Serialize for ArcWeak<T>
         where
             T: Serialize,
@@ -34212,7 +34200,7 @@ pub mod ser {
                 self.upgrade().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroU8 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34221,7 +34209,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroU16 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34230,7 +34218,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroU32 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34239,7 +34227,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroU64 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34248,7 +34236,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroUsize {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34257,7 +34245,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroI8 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34266,7 +34254,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroI16 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34275,7 +34263,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroI32 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34284,7 +34272,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroI64 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34293,7 +34281,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroIsize {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34302,7 +34290,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroU128 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34311,7 +34299,7 @@ pub mod ser {
                 self.get().serialize(serializer)
             }
         }
-        #[cfg(not(no_num_nonzero))]
+        #[cfg]
         impl Serialize for num::NonZeroI128 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34345,7 +34333,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<T> Serialize for Mutex<T>
         where
             T: Serialize,
@@ -34362,7 +34350,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl<T> Serialize for RwLock<T>
         where
             T: Serialize,
@@ -34398,7 +34386,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(any(feature = "std", not(no_core_duration)))]
+        #[cfg]
         impl Serialize for Duration {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34432,7 +34420,7 @@ pub mod ser {
                 state.end()
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for SystemTime {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34478,7 +34466,7 @@ pub mod ser {
                 state.end()
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::IpAddr {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34501,14 +34489,14 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         const DEC_DIGITS_LUT: &'static [u8] = b"\
       0001020304050607080910111213141516171819\
       2021222324252627282930313233343536373839\
       4041424344454647484950515253545556575859\
       6061626364656667686970717273747576777879\
       8081828384858687888990919293949596979899";
-        #[cfg(feature = "std")]
+        #[cfg]
         #[inline]
         fn format_u8(mut n: u8, out: &mut [u8]) -> usize {
             if n >= 100 {
@@ -34528,7 +34516,7 @@ pub mod ser {
                 1
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::Ipv4Addr {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34565,7 +34553,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::Ipv6Addr {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34619,7 +34607,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::SocketAddr {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34644,7 +34632,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::SocketAddrV4 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34695,7 +34683,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for net::SocketAddrV6 {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34750,7 +34738,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for Path {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34762,7 +34750,7 @@ pub mod ser {
                 }
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl Serialize for PathBuf {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34771,9 +34759,9 @@ pub mod ser {
                 self.as_path().serialize(serializer)
             }
         }
-        #[cfg(all(feature = "std", any(unix, windows)))]
+        #[cfg]
         impl Serialize for OsStr {
-            #[cfg(unix)]
+            #[cfg]
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: Serializer,
@@ -34783,7 +34771,7 @@ pub mod ser {
                     .serialize_newtype_variant("OsString", 0, "Unix", self.as_bytes())
             }
         }
-        #[cfg(all(feature = "std", any(unix, windows)))]
+        #[cfg]
         impl Serialize for OsString {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -34804,7 +34792,7 @@ pub mod ser {
                 self.0.serialize(serializer)
             }
         }
-        #[cfg(not(no_core_reverse))]
+        #[cfg]
         impl<T> Serialize for Reverse<T>
         where
             T: Serialize,
@@ -35057,8 +35045,8 @@ pub mod ser {
         }
     }
     pub use self::impossible::Impossible;
-    #[cfg(feature = "std")]
-    #[doc(no_inline)]
+    #[cfg]
+    #[doc]
     pub use std::error::Error as StdError;
     pub trait Error: Sized + StdError {
         fn custom<T>(msg: T) -> Self
@@ -35190,7 +35178,7 @@ pub mod ser {
                     return ::core::result::Result::Err(::core::convert::From::from(err));
                 }
             };
-            #[cfg(not(no_iterator_try_fold))]
+            #[cfg]
             {
                 let mut iter = iter;
                 match iter.try_for_each(|item| serializer.serialize_element(&item)) {
@@ -35217,7 +35205,7 @@ pub mod ser {
                     return ::core::result::Result::Err(::core::convert::From::from(err));
                 }
             };
-            #[cfg(not(no_iterator_try_fold))]
+            #[cfg]
             {
                 let mut iter = iter;
                 match iter
@@ -35235,7 +35223,7 @@ pub mod ser {
             }
             serializer.end()
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn collect_str<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
         where
             T: Display,
@@ -35351,21 +35339,21 @@ pub mod ser {
         }
     }
 }
-#[doc(inline)]
+#[doc]
 pub use de::{Deserialize, Deserializer};
-#[doc(inline)]
+#[doc]
 pub use ser::{Serialize, Serializer};
-#[doc(hidden)]
-#[path = "private/mod.rs"]
+#[doc]
+#[path]
 pub mod __private {
-    #[cfg(not(no_serde_derive))]
+    #[cfg]
     pub mod de {
         use lib::*;
         use de::value::{BorrowedBytesDeserializer, BytesDeserializer};
         use de::{Deserialize, Deserializer, Error, IntoDeserializer, Visitor};
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         use de::{DeserializeSeed, MapAccess, Unexpected};
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub use self::content::{
             Content, ContentDeserializer, ContentRefDeserializer, EnumDeserializer,
             InternallyTaggedUnitVisitor, TagContentOtherField,
@@ -35708,7 +35696,7 @@ pub mod __private {
             let deserializer = MissingFieldDeserializer(field, PhantomData);
             Deserialize::deserialize(deserializer)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub fn borrow_cow_str<'de: 'a, 'a, D, R>(deserializer: D) -> Result<R, D::Error>
         where
             D: Deserializer<'de>,
@@ -35775,7 +35763,7 @@ pub mod __private {
             }
             deserializer.deserialize_str(CowStrVisitor).map(From::from)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub fn borrow_cow_bytes<'de: 'a, 'a, D, R>(
             deserializer: D,
         ) -> Result<R, D::Error>
@@ -35828,7 +35816,7 @@ pub mod __private {
             }
             deserializer.deserialize_bytes(CowBytesVisitor).map(From::from)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         mod content {
             use lib::*;
             use __private::size_hint;
@@ -35862,7 +35850,7 @@ pub mod __private {
                 Map(Vec<(Content<'de>, Content<'de>)>),
             }
             #[automatically_derived]
-            #[allow(unused_qualifications)]
+            #[allow]
             impl<'de> ::core::fmt::Debug for Content<'de> {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                     match (&*self,) {
@@ -36092,7 +36080,7 @@ pub mod __private {
                 }
             }
             #[automatically_derived]
-            #[allow(unused_qualifications)]
+            #[allow]
             impl<'de> ::core::clone::Clone for Content<'de> {
                 #[inline]
                 fn clone(&self) -> Content<'de> {
@@ -36701,9 +36689,7 @@ pub mod __private {
                         }
                     } {
                         Some(tag) => tag,
-                        None => {
-                            return Err(de::Error::missing_field(self.tag_name));
-                        }
+                        None => return Err(de::Error::missing_field(self.tag_name)),
                     };
                     let rest = de::value::SeqAccessDeserializer::new(seq);
                     Ok(TaggedContent {
@@ -40511,12 +40497,12 @@ pub mod __private {
                 BorrowedBytesDeserializer::new(self.0)
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapDeserializer<'a, 'de: 'a, E>(
             pub &'a mut Vec<Option<(Content<'de>, Content<'de>)>>,
             pub PhantomData<E>,
         );
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> FlatMapDeserializer<'a, 'de, E>
         where
             E: Error,
@@ -40525,7 +40511,7 @@ pub mod __private {
                 Err(Error::custom("can only flatten structs and maps"))
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> Deserializer<'de> for FlatMapDeserializer<'a, 'de, E>
         where
             E: Error,
@@ -40770,13 +40756,13 @@ pub mod __private {
                 Self::deserialize_other()
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapAccess<'a, 'de: 'a, E> {
             iter: slice::Iter<'a, Option<(Content<'de>, Content<'de>)>>,
             pending_content: Option<&'a Content<'de>>,
             _marker: PhantomData<E>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> FlatMapAccess<'a, 'de, E> {
             fn new(
                 iter: slice::Iter<'a, Option<(Content<'de>, Content<'de>)>>,
@@ -40788,7 +40774,7 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> MapAccess<'de> for FlatMapAccess<'a, 'de, E>
         where
             E: Error,
@@ -40821,14 +40807,14 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatStructAccess<'a, 'de: 'a, E> {
             iter: slice::IterMut<'a, Option<(Content<'de>, Content<'de>)>>,
             pending_content: Option<Content<'de>>,
             fields: &'static [&'static str],
             _marker: PhantomData<E>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> FlatStructAccess<'a, 'de, E> {
             fn new(
                 iter: slice::IterMut<'a, Option<(Content<'de>, Content<'de>)>>,
@@ -40842,7 +40828,7 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> MapAccess<'de> for FlatStructAccess<'a, 'de, E>
         where
             E: Error,
@@ -40880,13 +40866,13 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatInternallyTaggedAccess<'a, 'de: 'a, E> {
             iter: slice::IterMut<'a, Option<(Content<'de>, Content<'de>)>>,
             pending: Option<&'a Content<'de>>,
             _marker: PhantomData<E>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, 'de, E> MapAccess<'de> for FlatInternallyTaggedAccess<'a, 'de, E>
         where
             E: Error,
@@ -40920,13 +40906,13 @@ pub mod __private {
             }
         }
     }
-    #[cfg(not(no_serde_derive))]
+    #[cfg]
     pub mod ser {
         use lib::*;
         use ser::{
             self, Impossible, Serialize, SerializeMap, SerializeStruct, Serializer,
         };
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         use self::content::{
             Content, ContentSerializer, SerializeStructVariantAsMapValue,
             SerializeTupleVariantAsMapValue,
@@ -40971,7 +40957,7 @@ pub mod __private {
             ByteArray,
             Optional,
             Unit,
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             UnitStruct,
             Sequence,
             Tuple,
@@ -40989,7 +40975,7 @@ pub mod __private {
                     Unsupported::ByteArray => formatter.write_str("a byte array"),
                     Unsupported::Optional => formatter.write_str("an optional"),
                     Unsupported::Unit => formatter.write_str("unit"),
-                    #[cfg(any(feature = "std", feature = "alloc"))]
+                    #[cfg]
                     Unsupported::UnitStruct => formatter.write_str("unit struct"),
                     Unsupported::Sequence => formatter.write_str("a sequence"),
                     Unsupported::Tuple => formatter.write_str("a tuple"),
@@ -41030,11 +41016,11 @@ pub mod __private {
             type SerializeTupleStruct = Impossible<S::Ok, S::Error>;
             type SerializeMap = S::SerializeMap;
             type SerializeStruct = S::SerializeStruct;
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             type SerializeTupleVariant = SerializeTupleVariantAsMapValue<
                 S::SerializeMap,
             >;
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             type SerializeStructVariant = SerializeStructVariantAsMapValue<
                 S::SerializeMap,
             >;
@@ -41211,7 +41197,7 @@ pub mod __private {
             ) -> Result<Self::SerializeTupleStruct, Self::Error> {
                 Err(self.bad_type(Unsupported::TupleStruct))
             }
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             fn serialize_tuple_variant(
                 self,
                 _: &'static str,
@@ -41290,7 +41276,7 @@ pub mod __private {
                 };
                 Ok(state)
             }
-            #[cfg(any(feature = "std", feature = "alloc"))]
+            #[cfg]
             fn serialize_struct_variant(
                 self,
                 _: &'static str,
@@ -41325,7 +41311,7 @@ pub mod __private {
                 Ok(SerializeStructVariantAsMapValue::new(map, inner_variant, len))
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         mod content {
             use lib::*;
             use ser::{self, Serialize, Serializer};
@@ -42172,9 +42158,9 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapSerializer<'a, M: 'a>(pub &'a mut M);
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> FlatMapSerializer<'a, M>
         where
             M: SerializeMap + 'a,
@@ -42188,7 +42174,7 @@ pub mod __private {
                 )
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> Serializer for FlatMapSerializer<'a, M>
         where
             M: SerializeMap + 'a,
@@ -42362,9 +42348,9 @@ pub mod __private {
                 Ok(FlatMapSerializeStructVariantAsMapValue::new(self.0, inner_variant))
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapSerializeMap<'a, M: 'a>(&'a mut M);
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> ser::SerializeMap for FlatMapSerializeMap<'a, M>
         where
             M: SerializeMap + 'a,
@@ -42401,9 +42387,9 @@ pub mod __private {
                 Ok(())
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapSerializeStruct<'a, M: 'a>(&'a mut M);
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> ser::SerializeStruct for FlatMapSerializeStruct<'a, M>
         where
             M: SerializeMap + 'a,
@@ -42424,13 +42410,13 @@ pub mod __private {
                 Ok(())
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub struct FlatMapSerializeStructVariantAsMapValue<'a, M: 'a> {
             map: &'a mut M,
             name: &'static str,
             fields: Vec<(&'static str, Content)>,
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> FlatMapSerializeStructVariantAsMapValue<'a, M>
         where
             M: SerializeMap + 'a,
@@ -42446,7 +42432,7 @@ pub mod __private {
                 }
             }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         impl<'a, M> ser::SerializeStructVariant
         for FlatMapSerializeStructVariantAsMapValue<'a, M>
         where
@@ -42495,7 +42481,7 @@ pub mod __private {
         {
             helper(iter.size_hint())
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         #[inline]
         pub fn cautious(hint: Option<usize>) -> usize {
             cmp::min(hint.unwrap_or(0), 4096)
@@ -42510,10 +42496,10 @@ pub mod __private {
     pub mod doc {
         use lib::*;
         use ser;
-        #[doc(hidden)]
+        #[doc]
         pub struct Error;
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for Error {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -42529,7 +42515,7 @@ pub mod __private {
                 ::core::panicking::panic("not implemented")
             }
         }
-        #[cfg(feature = "std")]
+        #[cfg]
         impl error::Error for Error {
             fn description(&self) -> &str {
                 ::core::panicking::panic("not implemented")
@@ -42550,23 +42536,23 @@ pub mod __private {
     pub use lib::ptr;
     pub use lib::result::Result::{self, Err, Ok};
     pub use self::string::from_utf8_lossy;
-    #[cfg(any(feature = "alloc", feature = "std"))]
+    #[cfg]
     pub use lib::{ToString, Vec};
-    #[cfg(not(no_core_try_from))]
+    #[cfg]
     pub use lib::convert::TryFrom;
     mod string {
         use lib::*;
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         pub fn from_utf8_lossy(bytes: &[u8]) -> Cow<str> {
             String::from_utf8_lossy(bytes)
         }
     }
 }
-#[allow(unused_imports)]
+#[allow]
 use self::__private as export;
-#[allow(unused_imports)]
+#[allow]
 use self::__private as private;
-#[path = "de/seed.rs"]
+#[path]
 mod seed {
     use de::{Deserialize, DeserializeSeed, Deserializer};
     pub struct InPlaceSeed<'a, T: 'a>(pub &'a mut T);
@@ -42583,14 +42569,14 @@ mod seed {
         }
     }
 }
-#[cfg(feature = "serde_derive")]
-#[allow(unused_imports)]
+#[cfg]
+#[allow]
 #[macro_use]
 extern crate serde_derive;
-#[cfg(feature = "serde_derive")]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 pub use serde_derive::*;
-#[cfg(all(not(no_serde_derive), any(feature = "std", feature = "alloc")))]
+#[cfg]
 mod actually_private {
     pub struct T;
 }

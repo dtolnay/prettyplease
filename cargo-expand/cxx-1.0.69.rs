@@ -1,48 +1,26 @@
-#![feature(prelude_import)]
+#![feature]
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/cxx/1.0.69")]
-#![deny(improper_ctypes, improper_ctypes_definitions, missing_docs)]
-#![deny(unsafe_op_in_unsafe_fn)]
-#![allow(non_camel_case_types)]
-#![allow(
-    clippy::cognitive_complexity,
-    clippy::declare_interior_mutable_const,
-    clippy::doc_markdown,
-    clippy::empty_enum,
-    clippy::inherent_to_string,
-    clippy::items_after_statements,
-    clippy::large_enum_variant,
-    clippy::len_without_is_empty,
-    clippy::missing_errors_doc,
-    clippy::missing_safety_doc,
-    clippy::module_inception,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::needless_doctest_main,
-    clippy::new_without_default,
-    clippy::or_fun_call,
-    clippy::ptr_arg,
-    clippy::toplevel_ref_arg,
-    clippy::transmute_undefined_repr,
-    clippy::useless_let_if_seq,
-    clippy::wrong_self_convention
-)]
+#![doc]
+#![deny]
+#![deny]
+#![allow]
+#![allow]
 #[prelude_import]
 use core::prelude::rust_2018::*;
 #[macro_use]
 extern crate core;
 #[macro_use]
 extern crate compiler_builtins;
-#[cfg(built_with_cargo)]
+#[cfg]
 extern crate link_cplusplus;
 extern crate self as cxx;
-#[doc(hidden)]
+#[doc]
 pub extern crate core;
-#[cfg(feature = "alloc")]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 pub extern crate alloc;
-#[cfg(feature = "std")]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 pub extern crate std;
 #[macro_use]
 mod macros {
@@ -52,9 +30,9 @@ mod macros {
     mod concat {}
 }
 mod c_char {
-    #![cfg(feature = "alloc")]
+    #![cfg]
     pub type c_char = c_char_definition::c_char;
-    #[allow(dead_code)]
+    #[allow]
     mod c_char_definition {
         pub use self::signed::*;
         mod unsigned {
@@ -76,7 +54,7 @@ mod cxx_vector {
     use core::mem::{self, ManuallyDrop, MaybeUninit};
     use core::pin::Pin;
     use core::slice;
-    #[repr(C, packed)]
+    #[repr]
     pub struct CxxVector<T> {
         _void: [c_void; 0],
         _elements: PhantomData<[T]>,
@@ -99,7 +77,7 @@ mod cxx_vector {
                 None
             }
         }
-        pub fn index_mut(self: Pin<&mut Self>, pos: usize) -> Option<Pin<&mut T>> {
+        pub fn index_mut(self, pos: usize) -> Option<Pin<&mut T>> {
             if pos < self.len() {
                 Some(unsafe { self.index_unchecked_mut(pos) })
             } else {
@@ -113,10 +91,7 @@ mod cxx_vector {
                 &*ptr
             }
         }
-        pub unsafe fn index_unchecked_mut(
-            self: Pin<&mut Self>,
-            pos: usize,
-        ) -> Pin<&mut T> {
+        pub unsafe fn index_unchecked_mut(self, pos: usize) -> Pin<&mut T> {
             unsafe {
                 let ptr = T::__get_unchecked(self.get_unchecked_mut(), pos);
                 Pin::new_unchecked(&mut *ptr)
@@ -135,7 +110,7 @@ mod cxx_vector {
                 unsafe { slice::from_raw_parts(ptr, len) }
             }
         }
-        pub fn as_mut_slice(self: Pin<&mut Self>) -> &mut [T]
+        pub fn as_mut_slice(self) -> &mut [T]
         where
             T: ExternType<Kind = Trivial>,
         {
@@ -150,10 +125,10 @@ mod cxx_vector {
         pub fn iter(&self) -> Iter<T> {
             Iter { v: self, index: 0 }
         }
-        pub fn iter_mut(self: Pin<&mut Self>) -> IterMut<T> {
+        pub fn iter_mut(self) -> IterMut<T> {
             IterMut { v: self, index: 0 }
         }
-        pub fn push(self: Pin<&mut Self>, value: T)
+        pub fn push(self, value: T)
         where
             T: ExternType<Kind = Trivial>,
         {
@@ -162,7 +137,7 @@ mod cxx_vector {
                 T::__push_back(self, &mut value);
             }
         }
-        pub fn pop(self: Pin<&mut Self>) -> Option<T>
+        pub fn pop(self) -> Option<T>
         where
             T: ExternType<Kind = Trivial>,
         {
@@ -271,13 +246,13 @@ mod cxx_vector {
         }
     }
     pub unsafe trait VectorElement: Sized {
-        #[doc(hidden)]
+        #[doc]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
-        #[doc(hidden)]
+        #[doc]
         fn __vector_size(v: &CxxVector<Self>) -> usize;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __get_unchecked(v: *mut CxxVector<Self>, pos: usize) -> *mut Self;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __push_back(
             v: Pin<&mut CxxVector<Self>>,
             value: &mut ManuallyDrop<Self>,
@@ -286,27 +261,27 @@ mod cxx_vector {
             let _ = value;
             ::core::panicking::panic("internal error: entered unreachable code")
         }
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __pop_back(v: Pin<&mut CxxVector<Self>>, out: &mut MaybeUninit<Self>) {
             let _ = v;
             let _ = out;
             ::core::panicking::panic("internal error: entered unreachable code")
         }
-        #[doc(hidden)]
+        #[doc]
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void>;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __unique_ptr_raw(
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void>;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __unique_ptr_get(
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self>;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __unique_ptr_release(
             repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self>;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __unique_ptr_drop(repr: MaybeUninit<*mut c_void>);
     }
     const _: [(); 0] = [(); mem::size_of::<CxxVector<u8>>()];
@@ -317,35 +292,35 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<u8>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u8$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<u8>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<u8>, pos: usize) -> *mut u8 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u8$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<u8>, _: usize) -> *mut u8;
             }
             unsafe { __get_unchecked(v, pos) }
         }
         unsafe fn __push_back(v: Pin<&mut CxxVector<u8>>, value: &mut ManuallyDrop<u8>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u8$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<u8>>, _: &mut ManuallyDrop<u8>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<u8>>, out: &mut MaybeUninit<u8>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u8$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<u8>>, _: &mut MaybeUninit<u8>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u8$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -356,7 +331,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u8$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<u8>,
@@ -370,7 +345,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u8$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<u8>;
@@ -381,7 +356,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u8$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<u8>;
@@ -390,7 +365,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u8$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -404,14 +379,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<u16>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u16$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<u16>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<u16>, pos: usize) -> *mut u16 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u16$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<u16>, _: usize) -> *mut u16;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -421,21 +396,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<u16>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u16$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<u16>>, _: &mut ManuallyDrop<u16>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<u16>>, out: &mut MaybeUninit<u16>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u16$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<u16>>, _: &mut MaybeUninit<u16>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u16$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -446,7 +421,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u16$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<u16>,
@@ -460,7 +435,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u16$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<u16>;
@@ -471,7 +446,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u16$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<u16>;
@@ -480,7 +455,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u16$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -494,14 +469,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<u32>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u32$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<u32>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<u32>, pos: usize) -> *mut u32 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u32$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<u32>, _: usize) -> *mut u32;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -511,21 +486,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<u32>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u32$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<u32>>, _: &mut ManuallyDrop<u32>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<u32>>, out: &mut MaybeUninit<u32>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u32$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<u32>>, _: &mut MaybeUninit<u32>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u32$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -536,7 +511,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u32$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<u32>,
@@ -550,7 +525,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u32$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<u32>;
@@ -561,7 +536,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u32$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<u32>;
@@ -570,7 +545,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u32$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -584,14 +559,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<u64>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u64$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<u64>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<u64>, pos: usize) -> *mut u64 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u64$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<u64>, _: usize) -> *mut u64;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -601,21 +576,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<u64>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u64$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<u64>>, _: &mut ManuallyDrop<u64>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<u64>>, out: &mut MaybeUninit<u64>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$u64$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<u64>>, _: &mut MaybeUninit<u64>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u64$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -626,7 +601,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u64$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<u64>,
@@ -640,7 +615,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u64$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<u64>;
@@ -651,7 +626,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u64$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<u64>;
@@ -660,7 +635,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$u64$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -674,14 +649,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<usize>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$usize$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<usize>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<usize>, pos: usize) -> *mut usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$usize$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<usize>, _: usize) -> *mut usize;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -691,7 +666,7 @@ mod cxx_vector {
             value: &mut ManuallyDrop<usize>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$usize$push_back"]
+                #[link_name]
                 fn __push_back(
                     _: Pin<&mut CxxVector<usize>>,
                     _: &mut ManuallyDrop<usize>,
@@ -704,14 +679,14 @@ mod cxx_vector {
             out: &mut MaybeUninit<usize>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$usize$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<usize>>, _: &mut MaybeUninit<usize>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$usize$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -722,7 +697,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$usize$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<usize>,
@@ -736,7 +711,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$usize$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<usize>;
@@ -747,7 +722,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$usize$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<usize>;
@@ -756,7 +731,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$usize$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -770,35 +745,35 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<i8>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i8$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<i8>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<i8>, pos: usize) -> *mut i8 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i8$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<i8>, _: usize) -> *mut i8;
             }
             unsafe { __get_unchecked(v, pos) }
         }
         unsafe fn __push_back(v: Pin<&mut CxxVector<i8>>, value: &mut ManuallyDrop<i8>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i8$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<i8>>, _: &mut ManuallyDrop<i8>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<i8>>, out: &mut MaybeUninit<i8>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i8$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<i8>>, _: &mut MaybeUninit<i8>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i8$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -809,7 +784,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i8$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<i8>,
@@ -823,7 +798,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i8$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<i8>;
@@ -834,7 +809,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i8$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<i8>;
@@ -843,7 +818,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i8$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -857,14 +832,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<i16>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i16$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<i16>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<i16>, pos: usize) -> *mut i16 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i16$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<i16>, _: usize) -> *mut i16;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -874,21 +849,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<i16>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i16$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<i16>>, _: &mut ManuallyDrop<i16>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<i16>>, out: &mut MaybeUninit<i16>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i16$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<i16>>, _: &mut MaybeUninit<i16>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i16$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -899,7 +874,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i16$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<i16>,
@@ -913,7 +888,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i16$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<i16>;
@@ -924,7 +899,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i16$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<i16>;
@@ -933,7 +908,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i16$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -947,14 +922,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<i32>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i32$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<i32>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<i32>, pos: usize) -> *mut i32 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i32$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<i32>, _: usize) -> *mut i32;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -964,21 +939,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<i32>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i32$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<i32>>, _: &mut ManuallyDrop<i32>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<i32>>, out: &mut MaybeUninit<i32>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i32$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<i32>>, _: &mut MaybeUninit<i32>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i32$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -989,7 +964,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i32$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<i32>,
@@ -1003,7 +978,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i32$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<i32>;
@@ -1014,7 +989,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i32$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<i32>;
@@ -1023,7 +998,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i32$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1037,14 +1012,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<i64>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i64$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<i64>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<i64>, pos: usize) -> *mut i64 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i64$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<i64>, _: usize) -> *mut i64;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -1054,21 +1029,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<i64>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i64$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<i64>>, _: &mut ManuallyDrop<i64>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<i64>>, out: &mut MaybeUninit<i64>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$i64$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<i64>>, _: &mut MaybeUninit<i64>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i64$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -1079,7 +1054,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i64$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<i64>,
@@ -1093,7 +1068,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i64$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<i64>;
@@ -1104,7 +1079,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i64$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<i64>;
@@ -1113,7 +1088,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$i64$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1127,14 +1102,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<isize>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$isize$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<isize>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<isize>, pos: usize) -> *mut isize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$isize$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<isize>, _: usize) -> *mut isize;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -1144,7 +1119,7 @@ mod cxx_vector {
             value: &mut ManuallyDrop<isize>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$isize$push_back"]
+                #[link_name]
                 fn __push_back(
                     _: Pin<&mut CxxVector<isize>>,
                     _: &mut ManuallyDrop<isize>,
@@ -1157,14 +1132,14 @@ mod cxx_vector {
             out: &mut MaybeUninit<isize>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$isize$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<isize>>, _: &mut MaybeUninit<isize>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$isize$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -1175,7 +1150,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$isize$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<isize>,
@@ -1189,7 +1164,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$isize$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<isize>;
@@ -1200,7 +1175,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$isize$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<isize>;
@@ -1209,7 +1184,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$isize$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1223,14 +1198,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<f32>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f32$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<f32>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<f32>, pos: usize) -> *mut f32 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f32$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<f32>, _: usize) -> *mut f32;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -1240,21 +1215,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<f32>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f32$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<f32>>, _: &mut ManuallyDrop<f32>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<f32>>, out: &mut MaybeUninit<f32>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f32$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<f32>>, _: &mut MaybeUninit<f32>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f32$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -1265,7 +1240,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f32$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<f32>,
@@ -1279,7 +1254,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f32$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<f32>;
@@ -1290,7 +1265,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f32$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<f32>;
@@ -1299,7 +1274,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f32$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1313,14 +1288,14 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<f64>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f64$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<f64>) -> usize;
             }
             unsafe { __vector_size(v) }
         }
         unsafe fn __get_unchecked(v: *mut CxxVector<f64>, pos: usize) -> *mut f64 {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f64$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(_: *mut CxxVector<f64>, _: usize) -> *mut f64;
             }
             unsafe { __get_unchecked(v, pos) }
@@ -1330,21 +1305,21 @@ mod cxx_vector {
             value: &mut ManuallyDrop<f64>,
         ) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f64$push_back"]
+                #[link_name]
                 fn __push_back(_: Pin<&mut CxxVector<f64>>, _: &mut ManuallyDrop<f64>);
             }
             unsafe { __push_back(v, value) }
         }
         unsafe fn __pop_back(v: Pin<&mut CxxVector<f64>>, out: &mut MaybeUninit<f64>) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$f64$pop_back"]
+                #[link_name]
                 fn __pop_back(_: Pin<&mut CxxVector<f64>>, _: &mut MaybeUninit<f64>);
             }
             unsafe { __pop_back(v, out) }
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f64$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -1355,7 +1330,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f64$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<f64>,
@@ -1369,7 +1344,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f64$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<f64>;
@@ -1380,7 +1355,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f64$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<f64>;
@@ -1389,7 +1364,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$f64$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1403,7 +1378,7 @@ mod cxx_vector {
         }
         fn __vector_size(v: &CxxVector<CxxString>) -> usize {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$string$size"]
+                #[link_name]
                 fn __vector_size(_: &CxxVector<CxxString>) -> usize;
             }
             unsafe { __vector_size(v) }
@@ -1413,7 +1388,7 @@ mod cxx_vector {
             pos: usize,
         ) -> *mut CxxString {
             extern "C" {
-                #[link_name = "cxxbridge1$std$vector$string$get_unchecked"]
+                #[link_name]
                 fn __get_unchecked(
                     _: *mut CxxVector<CxxString>,
                     _: usize,
@@ -1423,7 +1398,7 @@ mod cxx_vector {
         }
         fn __unique_ptr_null() -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$string$null"]
+                #[link_name]
                 fn __unique_ptr_null(this: *mut MaybeUninit<*mut c_void>);
             }
             let mut repr = MaybeUninit::uninit();
@@ -1434,7 +1409,7 @@ mod cxx_vector {
             raw: *mut CxxVector<Self>,
         ) -> MaybeUninit<*mut c_void> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$string$raw"]
+                #[link_name]
                 fn __unique_ptr_raw(
                     this: *mut MaybeUninit<*mut c_void>,
                     raw: *mut CxxVector<CxxString>,
@@ -1448,7 +1423,7 @@ mod cxx_vector {
             repr: MaybeUninit<*mut c_void>,
         ) -> *const CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$string$get"]
+                #[link_name]
                 fn __unique_ptr_get(
                     this: *const MaybeUninit<*mut c_void>,
                 ) -> *const CxxVector<CxxString>;
@@ -1459,7 +1434,7 @@ mod cxx_vector {
             mut repr: MaybeUninit<*mut c_void>,
         ) -> *mut CxxVector<Self> {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$string$release"]
+                #[link_name]
                 fn __unique_ptr_release(
                     this: *mut MaybeUninit<*mut c_void>,
                 ) -> *mut CxxVector<CxxString>;
@@ -1468,7 +1443,7 @@ mod cxx_vector {
         }
         unsafe fn __unique_ptr_drop(mut repr: MaybeUninit<*mut c_void>) {
             extern "C" {
-                #[link_name = "cxxbridge1$unique_ptr$std$vector$string$drop"]
+                #[link_name]
                 fn __unique_ptr_drop(this: *mut MaybeUninit<*mut c_void>);
             }
             unsafe { __unique_ptr_drop(&mut repr) }
@@ -1476,14 +1451,14 @@ mod cxx_vector {
     }
 }
 mod exception {
-    #![cfg(feature = "alloc")]
+    #![cfg]
     use alloc::boxed::Box;
     use core::fmt::{self, Display};
     pub struct Exception {
         pub(crate) what: Box<str>,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Exception {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -1507,10 +1482,10 @@ mod exception {
             f.write_str(&self.what)
         }
     }
-    #[cfg(feature = "std")]
+    #[cfg]
     impl std::error::Error for Exception {}
     impl Exception {
-        #[allow(missing_docs)]
+        #[allow]
         pub fn what(&self) -> &str {
             &self.what
         }
@@ -1519,7 +1494,7 @@ mod exception {
 mod extern_type {
     use self::kind::{Kind, Opaque, Trivial};
     use crate::CxxString;
-    #[cfg(feature = "alloc")]
+    #[cfg]
     use alloc::string::String;
     pub unsafe trait ExternType {
         type Id;
@@ -1529,7 +1504,7 @@ mod extern_type {
         use super::private;
         pub enum Opaque {}
         pub enum Trivial {}
-        #[allow(missing_docs)]
+        #[allow]
         pub trait Kind: private::Sealed {}
         impl Kind for Opaque {}
         impl Kind for Trivial {}
@@ -1539,19 +1514,19 @@ mod extern_type {
         impl Sealed for super::Opaque {}
         impl Sealed for super::Trivial {}
     }
-    #[doc(hidden)]
+    #[doc]
     pub fn verify_extern_type<T: ExternType<Id = Id>, Id>() {}
-    #[doc(hidden)]
+    #[doc]
     pub fn verify_extern_kind<T: ExternType<Kind = Kind>, Kind: self::Kind>() {}
     unsafe impl ExternType for bool {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (crate::b, crate::o, crate::o, crate::l);
         type Kind = Trivial;
     }
     unsafe impl ExternType for u8 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1568,8 +1543,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for u16 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1587,8 +1562,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for u32 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1606,8 +1581,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for u64 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1625,14 +1600,14 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for usize {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (crate::s, crate::i, crate::z, crate::e, crate::__, crate::t);
         type Kind = Trivial;
     }
     unsafe impl ExternType for i8 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1648,8 +1623,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for i16 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1666,8 +1641,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for i32 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1684,8 +1659,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for i64 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1702,8 +1677,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for isize {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::r,
             crate::u,
@@ -1719,21 +1694,21 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for f32 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (crate::f, crate::l, crate::o, crate::a, crate::t);
         type Kind = Trivial;
     }
     unsafe impl ExternType for f64 {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (crate::d, crate::o, crate::u, crate::b, crate::l, crate::e);
         type Kind = Trivial;
     }
-    #[cfg(feature = "alloc")]
+    #[cfg]
     unsafe impl ExternType for String {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::r,
             crate::u,
@@ -1750,8 +1725,8 @@ mod extern_type {
         type Kind = Trivial;
     }
     unsafe impl ExternType for CxxString {
-        #[allow(unused_attributes)]
-        #[doc(hidden)]
+        #[allow]
+        #[doc]
         type Id = (
             crate::s,
             crate::t,
@@ -1785,9 +1760,9 @@ mod fmt {
     }
 }
 mod function {
-    #![allow(missing_docs)]
+    #![allow]
     use core::ffi::c_void;
-    #[repr(C)]
+    #[repr]
     pub struct FatFunction {
         pub trampoline: *const c_void,
         pub ptr: *const c_void,
@@ -1795,9 +1770,9 @@ mod function {
 }
 mod hash {
     use core::hash::{Hash, Hasher};
-    #[doc(hidden)]
+    #[doc]
     pub fn hash<V: Hash>(value: &V) -> usize {
-        #[cfg(feature = "std")]
+        #[cfg]
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         Hash::hash(value, &mut hasher);
         Hasher::finish(&hasher) as usize
@@ -1819,9 +1794,9 @@ mod lossy {
                     f.write_str(valid)?;
                     f.write_char(char::REPLACEMENT_CHARACTER)?;
                     if let Some(error_len) = utf8_error.error_len() {
-                        bytes = &bytes[valid_up_to + error_len..];
+                        bytes = &bytes[valid_up_to + error_len..]
                     } else {
-                        return Ok(());
+                        return Ok(())
                     }
                 }
             }
@@ -1894,15 +1869,15 @@ pub mod memory {
     pub use crate::shared_ptr::SharedPtrTarget;
     pub use crate::unique_ptr::UniquePtrTarget;
     pub use crate::weak_ptr::WeakPtrTarget;
-    #[doc(no_inline)]
+    #[doc]
     pub use cxx::{SharedPtr, UniquePtr};
 }
 mod opaque {
-    #![allow(missing_docs)]
+    #![allow]
     use crate::void;
     use core::marker::{PhantomData, PhantomPinned};
     use core::mem;
-    #[repr(C, packed)]
+    #[repr]
     pub struct Opaque {
         _private: [*const void; 0],
         _pinned: PhantomData<PhantomPinned>,
@@ -1911,8 +1886,8 @@ mod opaque {
     const _: [(); 1] = [(); mem::align_of::<Opaque>()];
 }
 mod result {
-    #![cfg(feature = "alloc")]
-    #![allow(missing_docs)]
+    #![cfg]
+    #![allow]
     use crate::exception::Exception;
     use alloc::boxed::Box;
     use alloc::string::{String, ToString};
@@ -1921,16 +1896,16 @@ mod result {
     use core::result::Result as StdResult;
     use core::slice;
     use core::str;
-    #[repr(C)]
+    #[repr]
     struct PtrLen {
         ptr: NonNull<u8>,
         len: usize,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::marker::Copy for PtrLen {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for PtrLen {
         #[inline]
         fn clone(&self) -> PtrLen {
@@ -1941,7 +1916,7 @@ mod result {
             }
         }
     }
-    #[repr(C)]
+    #[repr]
     pub union Result {
         err: PtrLen,
         ok: *const u8,
@@ -1964,7 +1939,7 @@ mod result {
         let ptr = msg.as_ptr();
         let len = msg.len();
         extern "C" {
-            #[link_name = "cxxbridge1$error"]
+            #[link_name]
             fn error(ptr: *const u8, len: usize) -> NonNull<u8>;
         }
         let copy = unsafe { error(ptr, len) };
@@ -1989,11 +1964,11 @@ mod result {
     }
 }
 mod rust_slice {
-    #![allow(missing_docs)]
+    #![allow]
     use core::mem::{self, MaybeUninit};
     use core::ptr::{self, NonNull};
     use core::slice;
-    #[repr(C)]
+    #[repr]
     pub struct RustSlice {
         repr: [MaybeUninit<
             usize,
@@ -2041,11 +2016,11 @@ mod rust_slice {
     const _: [(); mem::align_of::<NonNull<[()]>>()] = [(); mem::align_of::<RustSlice>()];
 }
 mod rust_str {
-    #![allow(missing_docs)]
+    #![allow]
     use core::mem::{self, MaybeUninit};
     use core::ptr::NonNull;
     use core::str;
-    #[repr(C)]
+    #[repr]
     pub struct RustStr {
         repr: [MaybeUninit<
             usize,
@@ -2067,12 +2042,12 @@ mod rust_str {
     const _: [(); mem::align_of::<NonNull<str>>()] = [(); mem::align_of::<RustStr>()];
 }
 mod rust_string {
-    #![cfg(feature = "alloc")]
-    #![allow(missing_docs)]
+    #![cfg]
+    #![allow]
     use alloc::string::String;
     use core::mem::{self, MaybeUninit};
     use core::ptr;
-    #[repr(C)]
+    #[repr]
     pub struct RustString {
         repr: [MaybeUninit<usize>; mem::size_of::<String>() / mem::size_of::<usize>()],
     }
@@ -2106,14 +2081,14 @@ mod rust_string {
     const _: [(); mem::align_of::<String>()] = [(); mem::align_of::<RustString>()];
 }
 mod rust_type {
-    #![allow(missing_docs)]
+    #![allow]
     pub unsafe trait RustType {}
     pub unsafe trait ImplBox {}
     pub unsafe trait ImplVec {}
 }
 mod rust_vec {
-    #![cfg(feature = "alloc")]
-    #![allow(missing_docs)]
+    #![cfg]
+    #![allow]
     use crate::rust_string::RustString;
     use alloc::string::String;
     use alloc::vec::Vec;
@@ -2121,7 +2096,7 @@ mod rust_vec {
     use core::marker::PhantomData;
     use core::mem::{self, ManuallyDrop, MaybeUninit};
     use core::ptr;
-    #[repr(C)]
+    #[repr]
     pub struct RustVec<T> {
         repr: [MaybeUninit<
             usize,
@@ -2222,7 +2197,7 @@ mod shared_ptr {
     use core::marker::PhantomData;
     use core::mem::MaybeUninit;
     use core::ops::Deref;
-    #[repr(C)]
+    #[repr]
     pub struct SharedPtr<T>
     where
         T: SharedPtrTarget,
@@ -2262,7 +2237,7 @@ mod shared_ptr {
             let this = self as *const Self as *const c_void;
             unsafe { T::__get(this).as_ref() }
         }
-        pub fn downgrade(self: &SharedPtr<T>) -> WeakPtr<T>
+        pub fn downgrade(self) -> WeakPtr<T>
         where
             T: WeakPtrTarget,
         {
@@ -2352,11 +2327,11 @@ mod shared_ptr {
         }
     }
     pub unsafe trait SharedPtrTarget {
-        #[doc(hidden)]
+        #[doc]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __null(new: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __new(value: Self, new: *mut c_void)
         where
             Self: Sized,
@@ -2365,11 +2340,11 @@ mod shared_ptr {
             let _ = new;
             ::core::panicking::panic("internal error: entered unreachable code")
         }
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __clone(this: *const c_void, new: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __get(this: *const c_void) -> *const Self;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __drop(this: *mut c_void);
     }
     unsafe impl SharedPtrTarget for bool {
@@ -2378,35 +2353,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$bool$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$bool$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<bool>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$bool$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$bool$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$bool$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2418,35 +2393,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u8$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u8$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<u8>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u8$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u8$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u8$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2458,35 +2433,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u16$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u16$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<u16>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u16$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u16$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u16$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2498,35 +2473,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u32$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<u32>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u32$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2538,35 +2513,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u64$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<u64>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u64$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$u64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2578,35 +2553,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$usize$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$usize$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<usize>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$usize$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$usize$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$usize$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2618,35 +2593,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i8$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i8$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<i8>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i8$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i8$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i8$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2658,35 +2633,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i16$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i16$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<i16>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i16$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i16$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i16$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2698,35 +2673,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i32$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<i32>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i32$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2738,35 +2713,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i64$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<i64>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i64$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$i64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2778,35 +2753,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$isize$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$isize$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<isize>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$isize$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$isize$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$isize$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2818,35 +2793,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f32$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<f32>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f32$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2858,35 +2833,35 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f64$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<f64>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f64$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$f64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -2898,48 +2873,48 @@ mod shared_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$string$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __new(value: Self, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$string$uninit"]
+                #[link_name]
                 fn __uninit(new: *mut c_void) -> *mut c_void;
             }
             unsafe { __uninit(new).cast::<CxxString>().write(value) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$string$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __get(this: *const c_void) -> *const Self {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$string$get"]
+                #[link_name]
                 fn __get(this: *const c_void) -> *const c_void;
             }
             unsafe { __get(this) }.cast()
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$shared_ptr$string$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
         }
     }
 }
-#[path = "cxx_string.rs"]
+#[path]
 mod string {
     use crate::actually_private::Private;
     use crate::lossy;
-    #[cfg(feature = "alloc")]
+    #[cfg]
     use alloc::borrow::Cow;
-    #[cfg(feature = "alloc")]
+    #[cfg]
     use alloc::string::String;
     use core::cmp::Ordering;
     use core::fmt::{self, Debug, Display};
@@ -2950,22 +2925,22 @@ mod string {
     use core::slice;
     use core::str::{self, Utf8Error};
     extern "C" {
-        #[link_name = "cxxbridge1$cxx_string$init"]
+        #[link_name]
         fn string_init(this: &mut MaybeUninit<CxxString>, ptr: *const u8, len: usize);
-        #[link_name = "cxxbridge1$cxx_string$destroy"]
+        #[link_name]
         fn string_destroy(this: &mut MaybeUninit<CxxString>);
-        #[link_name = "cxxbridge1$cxx_string$data"]
+        #[link_name]
         fn string_data(this: &CxxString) -> *const u8;
-        #[link_name = "cxxbridge1$cxx_string$length"]
+        #[link_name]
         fn string_length(this: &CxxString) -> usize;
-        #[link_name = "cxxbridge1$cxx_string$clear"]
+        #[link_name]
         fn string_clear(this: Pin<&mut CxxString>);
-        #[link_name = "cxxbridge1$cxx_string$reserve_total"]
+        #[link_name]
         fn string_reserve_total(this: Pin<&mut CxxString>, new_cap: usize);
-        #[link_name = "cxxbridge1$cxx_string$push"]
+        #[link_name]
         fn string_push(this: Pin<&mut CxxString>, ptr: *const u8, len: usize);
     }
-    #[repr(C)]
+    #[repr]
     pub struct CxxString {
         _private: [u8; 0],
         _pinned: PhantomData<PhantomPinned>,
@@ -2991,24 +2966,24 @@ mod string {
         pub fn to_str(&self) -> Result<&str, Utf8Error> {
             str::from_utf8(self.as_bytes())
         }
-        #[cfg(feature = "alloc")]
+        #[cfg]
         pub fn to_string_lossy(&self) -> Cow<str> {
             String::from_utf8_lossy(self.as_bytes())
         }
-        pub fn clear(self: Pin<&mut Self>) {
+        pub fn clear(self) {
             unsafe { string_clear(self) }
         }
-        pub fn reserve(self: Pin<&mut Self>, additional: usize) {
+        pub fn reserve(self, additional: usize) {
             let new_cap = self
                 .len()
                 .checked_add(additional)
                 .expect("CxxString capacity overflow");
             unsafe { string_reserve_total(self, new_cap) }
         }
-        pub fn push_str(self: Pin<&mut Self>, s: &str) {
+        pub fn push_str(self, s: &str) {
             self.push_bytes(s.as_bytes());
         }
-        pub fn push_bytes(self: Pin<&mut Self>, bytes: &[u8]) {
+        pub fn push_bytes(self, bytes: &[u8]) {
             unsafe { string_push(self, bytes.as_ptr(), bytes.len()) }
         }
     }
@@ -3053,12 +3028,12 @@ mod string {
             self.as_bytes().hash(state);
         }
     }
-    #[doc(hidden)]
-    #[repr(C)]
+    #[doc]
+    #[repr]
     pub struct StackString {
         space: MaybeUninit<[usize; 8]>,
     }
-    #[allow(missing_docs)]
+    #[allow]
     impl StackString {
         pub fn new() -> Self {
             StackString {
@@ -3091,11 +3066,11 @@ mod string {
 }
 mod symbols {
     mod exception {
-        #![cfg(feature = "alloc")]
+        #![cfg]
         use alloc::boxed::Box;
         use alloc::string::String;
         use core::slice;
-        #[export_name = "cxxbridge1$exception"]
+        #[export_name]
         unsafe extern "C" fn exception(ptr: *const u8, len: usize) -> *const u8 {
             let slice = unsafe { slice::from_raw_parts(ptr, len) };
             let boxed = String::from_utf8_lossy(slice).into_owned().into_boxed_str();
@@ -3106,7 +3081,7 @@ mod symbols {
         use crate::rust_slice::RustSlice;
         use core::mem::MaybeUninit;
         use core::ptr::{self, NonNull};
-        #[export_name = "cxxbridge1$slice$new"]
+        #[export_name]
         unsafe extern "C" fn slice_new(
             this: &mut MaybeUninit<RustSlice>,
             ptr: NonNull<()>,
@@ -3116,29 +3091,29 @@ mod symbols {
             let rust_slice = RustSlice::from_raw_parts(ptr, len);
             unsafe { ptr::write(this, rust_slice) }
         }
-        #[export_name = "cxxbridge1$slice$ptr"]
+        #[export_name]
         unsafe extern "C" fn slice_ptr(this: &RustSlice) -> NonNull<()> {
             this.as_non_null_ptr()
         }
-        #[export_name = "cxxbridge1$slice$len"]
+        #[export_name]
         unsafe extern "C" fn slice_len(this: &RustSlice) -> usize {
             this.len()
         }
     }
     mod rust_str {
-        #[cfg(feature = "alloc")]
+        #[cfg]
         use alloc::string::String;
         use core::mem::MaybeUninit;
         use core::ptr;
         use core::slice;
         use core::str;
-        #[export_name = "cxxbridge1$str$new"]
+        #[export_name]
         unsafe extern "C" fn str_new(this: &mut MaybeUninit<&str>) {
             let this = this.as_mut_ptr();
             unsafe { ptr::write(this, "") }
         }
-        #[cfg(feature = "alloc")]
-        #[export_name = "cxxbridge1$str$ref"]
+        #[cfg]
+        #[export_name]
         unsafe extern "C" fn str_ref<'a>(
             this: &mut MaybeUninit<&'a str>,
             string: &'a String,
@@ -3147,7 +3122,7 @@ mod symbols {
             let s = string.as_str();
             unsafe { ptr::write(this, s) }
         }
-        #[export_name = "cxxbridge1$str$from"]
+        #[export_name]
         unsafe extern "C" fn str_from(
             this: &mut MaybeUninit<&str>,
             ptr: *const u8,
@@ -3163,30 +3138,30 @@ mod symbols {
                 Err(_) => false,
             }
         }
-        #[export_name = "cxxbridge1$str$ptr"]
+        #[export_name]
         unsafe extern "C" fn str_ptr(this: &&str) -> *const u8 {
             this.as_ptr()
         }
-        #[export_name = "cxxbridge1$str$len"]
+        #[export_name]
         unsafe extern "C" fn str_len(this: &&str) -> usize {
             this.len()
         }
     }
     mod rust_string {
-        #![cfg(feature = "alloc")]
+        #![cfg]
         use alloc::borrow::ToOwned;
         use alloc::string::String;
         use core::mem::{ManuallyDrop, MaybeUninit};
         use core::ptr;
         use core::slice;
         use core::str;
-        #[export_name = "cxxbridge1$string$new"]
+        #[export_name]
         unsafe extern "C" fn string_new(this: &mut MaybeUninit<String>) {
             let this = this.as_mut_ptr();
             let new = String::new();
             unsafe { ptr::write(this, new) }
         }
-        #[export_name = "cxxbridge1$string$clone"]
+        #[export_name]
         unsafe extern "C" fn string_clone(
             this: &mut MaybeUninit<String>,
             other: &String,
@@ -3195,7 +3170,7 @@ mod symbols {
             let clone = other.clone();
             unsafe { ptr::write(this, clone) }
         }
-        #[export_name = "cxxbridge1$string$from_utf8"]
+        #[export_name]
         unsafe extern "C" fn string_from_utf8(
             this: &mut MaybeUninit<String>,
             ptr: *const u8,
@@ -3212,7 +3187,7 @@ mod symbols {
                 Err(_) => false,
             }
         }
-        #[export_name = "cxxbridge1$string$from_utf8_lossy"]
+        #[export_name]
         unsafe extern "C" fn string_from_utf8_lossy(
             this: &mut MaybeUninit<String>,
             ptr: *const u8,
@@ -3223,7 +3198,7 @@ mod symbols {
             let this = this.as_mut_ptr();
             unsafe { ptr::write(this, owned) }
         }
-        #[export_name = "cxxbridge1$string$from_utf16"]
+        #[export_name]
         unsafe extern "C" fn string_from_utf16(
             this: &mut MaybeUninit<String>,
             ptr: *const u16,
@@ -3239,7 +3214,7 @@ mod symbols {
                 Err(_) => false,
             }
         }
-        #[export_name = "cxxbridge1$string$from_utf16_lossy"]
+        #[export_name]
         unsafe extern "C" fn string_from_utf16_lossy(
             this: &mut MaybeUninit<String>,
             ptr: *const u16,
@@ -3250,30 +3225,30 @@ mod symbols {
             let this = this.as_mut_ptr();
             unsafe { ptr::write(this, owned) }
         }
-        #[export_name = "cxxbridge1$string$drop"]
+        #[export_name]
         unsafe extern "C" fn string_drop(this: &mut ManuallyDrop<String>) {
             unsafe { ManuallyDrop::drop(this) }
         }
-        #[export_name = "cxxbridge1$string$ptr"]
+        #[export_name]
         unsafe extern "C" fn string_ptr(this: &String) -> *const u8 {
             this.as_ptr()
         }
-        #[export_name = "cxxbridge1$string$len"]
+        #[export_name]
         unsafe extern "C" fn string_len(this: &String) -> usize {
             this.len()
         }
-        #[export_name = "cxxbridge1$string$capacity"]
+        #[export_name]
         unsafe extern "C" fn string_capacity(this: &String) -> usize {
             this.capacity()
         }
-        #[export_name = "cxxbridge1$string$reserve_additional"]
+        #[export_name]
         unsafe extern "C" fn string_reserve_additional(
             this: &mut String,
             additional: usize,
         ) {
             this.reserve(additional);
         }
-        #[export_name = "cxxbridge1$string$reserve_total"]
+        #[export_name]
         unsafe extern "C" fn string_reserve_total(this: &mut String, new_cap: usize) {
             if new_cap > this.capacity() {
                 let additional = new_cap - this.len();
@@ -3282,7 +3257,7 @@ mod symbols {
         }
     }
     mod rust_vec {
-        #![cfg(feature = "alloc")]
+        #![cfg]
         use crate::c_char::c_char;
         use crate::rust_string::RustString;
         use crate::rust_vec::RustVec;
@@ -3299,38 +3274,38 @@ mod symbols {
             RustVec<bool>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$bool$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<bool>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<bool>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<bool>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<bool>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<bool>) -> *const bool {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<bool>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<bool>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$bool$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<bool>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3341,38 +3316,38 @@ mod symbols {
         const _: [(); mem::size_of::<Vec<u8>>()] = [(); mem::size_of::<RustVec<u8>>()];
         const _: [(); mem::align_of::<Vec<u8>>()] = [(); mem::align_of::<RustVec<u8>>()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$u8$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<u8>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<u8>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<u8>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<u8>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<u8>) -> *const u8 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<u8>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<u8>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u8$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<u8>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3385,38 +3360,38 @@ mod symbols {
             RustVec<u16>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$u16$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<u16>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<u16>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<u16>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<u16>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<u16>) -> *const u16 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<u16>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<u16>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u16$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<u16>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3429,38 +3404,38 @@ mod symbols {
             RustVec<u32>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$u32$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<u32>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<u32>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<u32>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<u32>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<u32>) -> *const u32 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<u32>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<u32>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u32$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<u32>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3473,38 +3448,38 @@ mod symbols {
             RustVec<u64>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$u64$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<u64>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<u64>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<u64>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<u64>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<u64>) -> *const u64 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<u64>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<u64>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$u64$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<u64>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3519,38 +3494,38 @@ mod symbols {
             RustVec<usize>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$usize$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<usize>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<usize>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<usize>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<usize>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<usize>) -> *const usize {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<usize>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<usize>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$usize$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<usize>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3561,38 +3536,38 @@ mod symbols {
         const _: [(); mem::size_of::<Vec<i8>>()] = [(); mem::size_of::<RustVec<i8>>()];
         const _: [(); mem::align_of::<Vec<i8>>()] = [(); mem::align_of::<RustVec<i8>>()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$i8$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<i8>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<i8>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<i8>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<i8>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<i8>) -> *const i8 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<i8>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<i8>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i8$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<i8>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3605,38 +3580,38 @@ mod symbols {
             RustVec<i16>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$i16$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<i16>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<i16>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<i16>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<i16>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<i16>) -> *const i16 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<i16>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<i16>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i16$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<i16>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3649,38 +3624,38 @@ mod symbols {
             RustVec<i32>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$i32$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<i32>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<i32>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<i32>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<i32>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<i32>) -> *const i32 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<i32>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<i32>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i32$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<i32>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3693,38 +3668,38 @@ mod symbols {
             RustVec<i64>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$i64$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<i64>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<i64>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<i64>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<i64>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<i64>) -> *const i64 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<i64>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<i64>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$i64$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<i64>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3739,38 +3714,38 @@ mod symbols {
             RustVec<isize>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$isize$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<isize>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<isize>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<isize>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<isize>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<isize>) -> *const isize {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<isize>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<isize>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$isize$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<isize>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3783,38 +3758,38 @@ mod symbols {
             RustVec<f32>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$f32$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<f32>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<f32>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<f32>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<f32>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<f32>) -> *const f32 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<f32>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<f32>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f32$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<f32>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3827,38 +3802,38 @@ mod symbols {
             RustVec<f64>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$f64$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<f64>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<f64>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<f64>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<f64>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<f64>) -> *const f64 {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<f64>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<f64>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$f64$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<f64>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3873,38 +3848,38 @@ mod symbols {
             RustVec<c_char>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$char$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<c_char>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$char$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<c_char>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$char$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<c_char>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$char$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<c_char>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$char$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<c_char>) -> *const c_char {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$char$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<c_char>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$char$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<c_char>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$char$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<c_char>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3919,40 +3894,40 @@ mod symbols {
             RustVec<RustString>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$string$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<RustString>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$string$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<RustString>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$string$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<RustString>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$string$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<RustString>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$string$data"]
+            #[export_name]
             unsafe extern "C" fn __data(
                 this: *const RustVec<RustString>,
             ) -> *const RustString {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$string$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<RustString>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$string$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<RustString>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$string$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<RustString>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -3967,38 +3942,38 @@ mod symbols {
             RustVec<&str>,
         >()];
         const _: () = {
-            #[export_name = "cxxbridge1$rust_vec$str$new"]
+            #[export_name]
             unsafe extern "C" fn __new(this: *mut RustVec<&str>) {
                 unsafe { ptr::write(this, RustVec::new()) }
             }
-            #[export_name = "cxxbridge1$rust_vec$str$drop"]
+            #[export_name]
             unsafe extern "C" fn __drop(this: *mut RustVec<&str>) {
                 unsafe { ptr::drop_in_place(this) }
             }
-            #[export_name = "cxxbridge1$rust_vec$str$len"]
+            #[export_name]
             unsafe extern "C" fn __len(this: *const RustVec<&str>) -> usize {
                 unsafe { &*this }.len()
             }
-            #[export_name = "cxxbridge1$rust_vec$str$capacity"]
+            #[export_name]
             unsafe extern "C" fn __capacity(this: *const RustVec<&str>) -> usize {
                 unsafe { &*this }.capacity()
             }
-            #[export_name = "cxxbridge1$rust_vec$str$data"]
+            #[export_name]
             unsafe extern "C" fn __data(this: *const RustVec<&str>) -> *const &str {
                 unsafe { &*this }.as_ptr()
             }
-            #[export_name = "cxxbridge1$rust_vec$str$reserve_total"]
+            #[export_name]
             unsafe extern "C" fn __reserve_total(
                 this: *mut RustVec<&str>,
                 new_cap: usize,
             ) {
                 unsafe { &mut *this }.reserve_total(new_cap);
             }
-            #[export_name = "cxxbridge1$rust_vec$str$set_len"]
+            #[export_name]
             unsafe extern "C" fn __set_len(this: *mut RustVec<&str>, len: usize) {
                 unsafe { (*this).set_len(len) }
             }
-            #[export_name = "cxxbridge1$rust_vec$str$truncate"]
+            #[export_name]
             unsafe extern "C" fn __truncate(this: *mut RustVec<&str>, len: usize) {
                 unsafe { (*this).truncate(len) }
             }
@@ -4018,7 +3993,7 @@ mod unique_ptr {
     use core::mem::{self, MaybeUninit};
     use core::ops::{Deref, DerefMut};
     use core::pin::Pin;
-    #[repr(C)]
+    #[repr]
     pub struct UniquePtr<T>
     where
         T: UniquePtrTarget,
@@ -4171,11 +4146,11 @@ mod unique_ptr {
         }
     }
     pub unsafe trait UniquePtrTarget {
-        #[doc(hidden)]
+        #[doc]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
-        #[doc(hidden)]
+        #[doc]
         fn __null() -> MaybeUninit<*mut c_void>;
-        #[doc(hidden)]
+        #[doc]
         fn __new(value: Self) -> MaybeUninit<*mut c_void>
         where
             Self: Sized,
@@ -4183,32 +4158,32 @@ mod unique_ptr {
             let _ = value;
             ::core::panicking::panic("internal error: entered unreachable code")
         }
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __raw(raw: *mut Self) -> MaybeUninit<*mut c_void>;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __get(repr: MaybeUninit<*mut c_void>) -> *const Self;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __release(repr: MaybeUninit<*mut c_void>) -> *mut Self;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __drop(repr: MaybeUninit<*mut c_void>);
     }
     extern "C" {
-        #[link_name = "cxxbridge1$unique_ptr$std$string$null"]
+        #[link_name]
         fn unique_ptr_std_string_null(this: *mut MaybeUninit<*mut c_void>);
-        #[link_name = "cxxbridge1$unique_ptr$std$string$raw"]
+        #[link_name]
         fn unique_ptr_std_string_raw(
             this: *mut MaybeUninit<*mut c_void>,
             raw: *mut CxxString,
         );
-        #[link_name = "cxxbridge1$unique_ptr$std$string$get"]
+        #[link_name]
         fn unique_ptr_std_string_get(
             this: *const MaybeUninit<*mut c_void>,
         ) -> *const CxxString;
-        #[link_name = "cxxbridge1$unique_ptr$std$string$release"]
+        #[link_name]
         fn unique_ptr_std_string_release(
             this: *mut MaybeUninit<*mut c_void>,
         ) -> *mut CxxString;
-        #[link_name = "cxxbridge1$unique_ptr$std$string$drop"]
+        #[link_name]
         fn unique_ptr_std_string_drop(this: *mut MaybeUninit<*mut c_void>);
     }
     unsafe impl UniquePtrTarget for CxxString {
@@ -4275,7 +4250,7 @@ mod unique_ptr {
     }
 }
 mod unwind {
-    #![allow(missing_docs)]
+    #![allow]
     use core::mem;
     pub fn prevent_unwind<F, R>(label: &'static str, foreign_call: F) -> R
     where
@@ -4303,9 +4278,9 @@ mod unwind {
 }
 pub mod vector {
     pub use crate::cxx_vector::{Iter, IterMut, VectorElement};
-    #[doc(inline)]
+    #[doc]
     pub use crate::Vector;
-    #[doc(no_inline)]
+    #[doc]
     pub use cxx::CxxVector;
 }
 mod weak_ptr {
@@ -4315,7 +4290,7 @@ mod weak_ptr {
     use core::fmt::{self, Debug};
     use core::marker::PhantomData;
     use core::mem::MaybeUninit;
-    #[repr(C)]
+    #[repr]
     pub struct WeakPtr<T>
     where
         T: WeakPtrTarget,
@@ -4388,17 +4363,17 @@ mod weak_ptr {
         }
     }
     pub unsafe trait WeakPtrTarget {
-        #[doc(hidden)]
+        #[doc]
         fn __typename(f: &mut fmt::Formatter) -> fmt::Result;
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __null(new: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __clone(this: *const c_void, new: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __downgrade(shared: *const c_void, new: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void);
-        #[doc(hidden)]
+        #[doc]
         unsafe fn __drop(this: *mut c_void);
     }
     unsafe impl WeakPtrTarget for bool {
@@ -4407,35 +4382,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$bool$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$bool$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$bool$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$bool$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$bool$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4447,35 +4422,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u8$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u8$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u8$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u8$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u8$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4487,35 +4462,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u16$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u16$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u16$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u16$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u16$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4527,35 +4502,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u32$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u32$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4567,35 +4542,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u64$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u64$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$u64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4607,35 +4582,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$usize$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$usize$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$usize$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$usize$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$usize$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4647,35 +4622,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i8$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i8$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i8$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i8$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i8$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4687,35 +4662,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i16$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i16$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i16$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i16$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i16$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4727,35 +4702,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i32$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i32$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4767,35 +4742,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i64$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i64$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$i64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4807,35 +4782,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$isize$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$isize$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$isize$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$isize$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$isize$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4847,35 +4822,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f32$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f32$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f32$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f32$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f32$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4887,35 +4862,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f64$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f64$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f64$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f64$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$f64$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4927,35 +4902,35 @@ mod weak_ptr {
         }
         unsafe fn __null(new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$string$null"]
+                #[link_name]
                 fn __null(new: *mut c_void);
             }
             unsafe { __null(new) }
         }
         unsafe fn __clone(this: *const c_void, new: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$string$clone"]
+                #[link_name]
                 fn __clone(this: *const c_void, new: *mut c_void);
             }
             unsafe { __clone(this, new) }
         }
         unsafe fn __downgrade(shared: *const c_void, weak: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$string$downgrade"]
+                #[link_name]
                 fn __downgrade(shared: *const c_void, weak: *mut c_void);
             }
             unsafe { __downgrade(shared, weak) }
         }
         unsafe fn __upgrade(weak: *const c_void, shared: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$string$upgrade"]
+                #[link_name]
                 fn __upgrade(weak: *const c_void, shared: *mut c_void);
             }
             unsafe { __upgrade(weak, shared) }
         }
         unsafe fn __drop(this: *mut c_void) {
             extern "C" {
-                #[link_name = "cxxbridge1$std$weak_ptr$string$drop"]
+                #[link_name]
                 fn __drop(this: *mut c_void);
             }
             unsafe { __drop(this) }
@@ -4963,7 +4938,7 @@ mod weak_ptr {
     }
 }
 pub use crate::cxx_vector::CxxVector;
-#[cfg(feature = "alloc")]
+#[cfg]
 pub use crate::exception::Exception;
 pub use crate::extern_type::{kind, ExternType};
 pub use crate::shared_ptr::SharedPtr;
@@ -4973,21 +4948,21 @@ pub use crate::weak_ptr::WeakPtr;
 pub use cxxbridge_macro::bridge;
 pub type String = CxxString;
 pub type Vector<T> = CxxVector<T>;
-#[doc(hidden)]
+#[doc]
 pub mod private {
     pub use crate::cxx_vector::VectorElement;
     pub use crate::extern_type::{verify_extern_kind, verify_extern_type};
     pub use crate::function::FatFunction;
     pub use crate::hash::hash;
     pub use crate::opaque::Opaque;
-    #[cfg(feature = "alloc")]
+    #[cfg]
     pub use crate::result::{r#try, Result};
     pub use crate::rust_slice::RustSlice;
     pub use crate::rust_str::RustStr;
-    #[cfg(feature = "alloc")]
+    #[cfg]
     pub use crate::rust_string::RustString;
     pub use crate::rust_type::{ImplBox, ImplVec, RustType};
-    #[cfg(feature = "alloc")]
+    #[cfg]
     pub use crate::rust_vec::RustVec;
     pub use crate::shared_ptr::SharedPtrTarget;
     pub use crate::string::StackString;
@@ -5000,131 +4975,131 @@ pub mod private {
 mod actually_private {
     pub trait Private {}
 }
-#[doc(hidden)]
+#[doc]
 pub enum _0 {}
-#[doc(hidden)]
+#[doc]
 pub enum _1 {}
-#[doc(hidden)]
+#[doc]
 pub enum _2 {}
-#[doc(hidden)]
+#[doc]
 pub enum _3 {}
-#[doc(hidden)]
+#[doc]
 pub enum _4 {}
-#[doc(hidden)]
+#[doc]
 pub enum _5 {}
-#[doc(hidden)]
+#[doc]
 pub enum _6 {}
-#[doc(hidden)]
+#[doc]
 pub enum _7 {}
-#[doc(hidden)]
+#[doc]
 pub enum _8 {}
-#[doc(hidden)]
+#[doc]
 pub enum _9 {}
-#[doc(hidden)]
+#[doc]
 pub enum A {}
-#[doc(hidden)]
+#[doc]
 pub enum B {}
-#[doc(hidden)]
+#[doc]
 pub enum C {}
-#[doc(hidden)]
+#[doc]
 pub enum D {}
-#[doc(hidden)]
+#[doc]
 pub enum E {}
-#[doc(hidden)]
+#[doc]
 pub enum F {}
-#[doc(hidden)]
+#[doc]
 pub enum G {}
-#[doc(hidden)]
+#[doc]
 pub enum H {}
-#[doc(hidden)]
+#[doc]
 pub enum I {}
-#[doc(hidden)]
+#[doc]
 pub enum J {}
-#[doc(hidden)]
+#[doc]
 pub enum K {}
-#[doc(hidden)]
+#[doc]
 pub enum L {}
-#[doc(hidden)]
+#[doc]
 pub enum M {}
-#[doc(hidden)]
+#[doc]
 pub enum N {}
-#[doc(hidden)]
+#[doc]
 pub enum O {}
-#[doc(hidden)]
+#[doc]
 pub enum P {}
-#[doc(hidden)]
+#[doc]
 pub enum Q {}
-#[doc(hidden)]
+#[doc]
 pub enum R {}
-#[doc(hidden)]
+#[doc]
 pub enum S {}
-#[doc(hidden)]
+#[doc]
 pub enum T {}
-#[doc(hidden)]
+#[doc]
 pub enum U {}
-#[doc(hidden)]
+#[doc]
 pub enum V {}
-#[doc(hidden)]
+#[doc]
 pub enum W {}
-#[doc(hidden)]
+#[doc]
 pub enum X {}
-#[doc(hidden)]
+#[doc]
 pub enum Y {}
-#[doc(hidden)]
+#[doc]
 pub enum Z {}
-#[doc(hidden)]
+#[doc]
 pub enum a {}
-#[doc(hidden)]
+#[doc]
 pub enum b {}
-#[doc(hidden)]
+#[doc]
 pub enum c {}
-#[doc(hidden)]
+#[doc]
 pub enum d {}
-#[doc(hidden)]
+#[doc]
 pub enum e {}
-#[doc(hidden)]
+#[doc]
 pub enum f {}
-#[doc(hidden)]
+#[doc]
 pub enum g {}
-#[doc(hidden)]
+#[doc]
 pub enum h {}
-#[doc(hidden)]
+#[doc]
 pub enum i {}
-#[doc(hidden)]
+#[doc]
 pub enum j {}
-#[doc(hidden)]
+#[doc]
 pub enum k {}
-#[doc(hidden)]
+#[doc]
 pub enum l {}
-#[doc(hidden)]
+#[doc]
 pub enum m {}
-#[doc(hidden)]
+#[doc]
 pub enum n {}
-#[doc(hidden)]
+#[doc]
 pub enum o {}
-#[doc(hidden)]
+#[doc]
 pub enum p {}
-#[doc(hidden)]
+#[doc]
 pub enum q {}
-#[doc(hidden)]
+#[doc]
 pub enum r {}
-#[doc(hidden)]
+#[doc]
 pub enum s {}
-#[doc(hidden)]
+#[doc]
 pub enum t {}
-#[doc(hidden)]
+#[doc]
 pub enum u {}
-#[doc(hidden)]
+#[doc]
 pub enum v {}
-#[doc(hidden)]
+#[doc]
 pub enum w {}
-#[doc(hidden)]
+#[doc]
 pub enum x {}
-#[doc(hidden)]
+#[doc]
 pub enum y {}
-#[doc(hidden)]
+#[doc]
 pub enum z {}
-#[doc(hidden)]
+#[doc]
 pub enum __ {}
-#[repr(transparent)]
+#[repr]
 struct void(core::ffi::c_void);

@@ -1,84 +1,48 @@
-#![feature(prelude_import)]
-#![doc(html_root_url = "https://docs.rs/syn/1.0.97")]
-#![allow(non_camel_case_types)]
-#![allow(
-    clippy::cast_lossless,
-    clippy::cast_possible_truncation,
-    clippy::default_trait_access,
-    clippy::doc_markdown,
-    clippy::expl_impl_clone_on_copy,
-    clippy::if_not_else,
-    clippy::inherent_to_string,
-    clippy::large_enum_variant,
-    clippy::let_underscore_drop,
-    clippy::manual_assert,
-    clippy::match_on_vec_items,
-    clippy::match_same_arms,
-    clippy::match_wildcard_for_single_variants,
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::needless_doctest_main,
-    clippy::needless_pass_by_value,
-    clippy::never_loop,
-    clippy::redundant_else,
-    clippy::return_self_not_must_use,
-    clippy::similar_names,
-    clippy::single_match_else,
-    clippy::too_many_arguments,
-    clippy::too_many_lines,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::unnecessary_unwrap,
-    clippy::used_underscore_binding,
-    clippy::wildcard_imports
-)]
+#![feature]
+#![doc]
+#![allow]
+#![allow]
 #[prelude_import]
 use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
-#[cfg(
-    all(
-        not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "wasi"))),
-        feature = "proc-macro"
-    )
-)]
+#[cfg]
 extern crate proc_macro;
 extern crate proc_macro2;
-#[cfg(feature = "printing")]
+#[cfg]
 extern crate quote;
 #[macro_use]
 mod macros {}
-#[cfg(feature = "parsing")]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 #[macro_use]
 pub mod group {
     use crate::error::Result;
     use crate::parse::ParseBuffer;
     use crate::token;
     use proc_macro2::{Delimiter, Span};
-    #[doc(hidden)]
+    #[doc]
     pub struct Parens<'a> {
         pub token: token::Paren,
         pub content: ParseBuffer<'a>,
     }
-    #[doc(hidden)]
+    #[doc]
     pub struct Braces<'a> {
         pub token: token::Brace,
         pub content: ParseBuffer<'a>,
     }
-    #[doc(hidden)]
+    #[doc]
     pub struct Brackets<'a> {
         pub token: token::Bracket,
         pub content: ParseBuffer<'a>,
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
-    #[doc(hidden)]
+    #[cfg]
+    #[doc]
     pub struct Group<'a> {
         pub token: token::Group,
         pub content: ParseBuffer<'a>,
     }
-    #[doc(hidden)]
+    #[doc]
     pub fn parse_parens<'a>(input: &ParseBuffer<'a>) -> Result<Parens<'a>> {
         parse_delimited(input, Delimiter::Parenthesis)
             .map(|(span, content)| Parens {
@@ -86,7 +50,7 @@ pub mod group {
                 content,
             })
     }
-    #[doc(hidden)]
+    #[doc]
     pub fn parse_braces<'a>(input: &ParseBuffer<'a>) -> Result<Braces<'a>> {
         parse_delimited(input, Delimiter::Brace)
             .map(|(span, content)| Braces {
@@ -94,7 +58,7 @@ pub mod group {
                 content,
             })
     }
-    #[doc(hidden)]
+    #[doc]
     pub fn parse_brackets<'a>(input: &ParseBuffer<'a>) -> Result<Brackets<'a>> {
         parse_delimited(input, Delimiter::Bracket)
             .map(|(span, content)| Brackets {
@@ -102,7 +66,7 @@ pub mod group {
                 content,
             })
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     pub(crate) fn parse_group<'a>(input: &ParseBuffer<'a>) -> Result<Group<'a>> {
         parse_delimited(input, Delimiter::None)
             .map(|(span, content)| Group {
@@ -141,56 +105,56 @@ pub mod group {
 #[macro_use]
 pub mod token {
     use self::private::WithSpan;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::buffer::Cursor;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::error::Result;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lifetime::Lifetime;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lit::{
         Lit, LitBool, LitByte, LitByteStr, LitChar, LitFloat, LitInt, LitStr,
     };
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lookahead;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, ParseStream};
     use crate::span::IntoSpans;
-    #[cfg(any(feature = "parsing", feature = "printing"))]
+    #[cfg]
     use proc_macro2::Ident;
     use proc_macro2::Span;
-    #[cfg(feature = "printing")]
+    #[cfg]
     use proc_macro2::TokenStream;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use proc_macro2::{Delimiter, Literal, Punct, TokenTree};
-    #[cfg(feature = "printing")]
+    #[cfg]
     use quote::{ToTokens, TokenStreamExt};
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::cmp;
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::fmt::{self, Debug};
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::hash::{Hash, Hasher};
     use std::ops::{Deref, DerefMut};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub trait Token: private::Sealed {
-        #[doc(hidden)]
+        #[doc]
         fn peek(cursor: Cursor) -> bool;
-        #[doc(hidden)]
+        #[doc]
         fn display() -> &'static str;
     }
     mod private {
         use proc_macro2::Span;
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub trait Sealed {}
-        #[repr(C)]
+        #[repr]
         pub struct WithSpan {
             pub span: Span,
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Ident {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     fn peek_impl(cursor: Cursor, peek: fn(ParseStream) -> bool) -> bool {
         use crate::parse::Unexpected;
         use std::cell::Cell;
@@ -200,7 +164,7 @@ pub mod token {
         let buffer = crate::parse::new_parse_buffer(scope, cursor, unexpected);
         peek(&buffer)
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Lifetime {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -212,9 +176,9 @@ pub mod token {
             "lifetime"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Lifetime {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Lit {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -226,9 +190,9 @@ pub mod token {
             "literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Lit {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitStr {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -240,9 +204,9 @@ pub mod token {
             "string literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitStr {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitByteStr {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -254,9 +218,9 @@ pub mod token {
             "byte string literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitByteStr {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitByte {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -268,9 +232,9 @@ pub mod token {
             "byte literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitByte {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitChar {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -282,9 +246,9 @@ pub mod token {
             "character literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitChar {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitInt {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -296,9 +260,9 @@ pub mod token {
             "integer literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitInt {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitFloat {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -310,9 +274,9 @@ pub mod token {
             "floating point literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitFloat {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LitBool {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -324,9 +288,9 @@ pub mod token {
             "boolean literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LitBool {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for proc_macro2::Group {
         fn peek(cursor: Cursor) -> bool {
             fn peek(input: ParseStream) -> bool {
@@ -338,9 +302,9 @@ pub mod token {
             "group token"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for proc_macro2::Group {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Punct {
         fn peek(cursor: Cursor) -> bool {
             cursor.punct().is_some()
@@ -349,9 +313,9 @@ pub mod token {
             "punctuation token"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Punct {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Literal {
         fn peek(cursor: Cursor) -> bool {
             cursor.literal().is_some()
@@ -360,9 +324,9 @@ pub mod token {
             "literal"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Literal {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for TokenTree {
         fn peek(cursor: Cursor) -> bool {
             cursor.token_tree().is_some()
@@ -371,17 +335,17 @@ pub mod token {
             "token"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for TokenTree {}
-    #[doc(hidden)]
-    #[cfg(feature = "parsing")]
+    #[doc]
+    #[cfg]
     pub trait CustomToken {
         fn peek(cursor: Cursor) -> bool;
         fn display() -> &'static str;
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl<T: CustomToken> private::Sealed for T {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl<T: CustomToken> Token for T {
         fn peek(cursor: Cursor) -> bool {
             <Self as CustomToken>::peek(cursor)
@@ -390,12 +354,12 @@ pub mod token {
             <Self as CustomToken>::display()
         }
     }
-    #[repr(C)]
+    #[repr]
     pub struct Underscore {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Underscore<S: IntoSpans<[Span; 1]>>(spans: S) -> Underscore {
         Underscore {
             spans: spans.into_spans(),
@@ -408,29 +372,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Underscore {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Underscore {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Underscore {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Underscore")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Underscore {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Underscore {
         fn eq(&self, _other: &Underscore) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Underscore {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -445,13 +409,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Underscore {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             tokens.append(Ident::new("_", self.span));
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Underscore {
         fn parse(input: ParseStream) -> Result<Self> {
             input
@@ -470,7 +434,7 @@ pub mod token {
                 })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Underscore {
         fn peek(cursor: Cursor) -> bool {
             if let Some((ident, _rest)) = cursor.ident() {
@@ -485,9 +449,9 @@ pub mod token {
             "`_`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Underscore {}
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Paren {
         fn peek(cursor: Cursor) -> bool {
             lookahead::is_delimiter(cursor, Delimiter::Parenthesis)
@@ -496,7 +460,7 @@ pub mod token {
             "parentheses"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Brace {
         fn peek(cursor: Cursor) -> bool {
             lookahead::is_delimiter(cursor, Delimiter::Brace)
@@ -505,7 +469,7 @@ pub mod token {
             "curly braces"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Bracket {
         fn peek(cursor: Cursor) -> bool {
             lookahead::is_delimiter(cursor, Delimiter::Bracket)
@@ -514,7 +478,7 @@ pub mod token {
             "square brackets"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Group {
         fn peek(cursor: Cursor) -> bool {
             lookahead::is_delimiter(cursor, Delimiter::None)
@@ -526,8 +490,8 @@ pub mod token {
     pub struct Abstract {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Abstract<S: IntoSpans<[Span; 1]>>(span: S) -> Abstract {
         Abstract {
             span: span.into_spans()[0],
@@ -540,39 +504,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Abstract {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Abstract {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Abstract {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Abstract")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Abstract {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Abstract {
         fn eq(&self, _other: &Abstract) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Abstract {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Abstract {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("abstract", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Abstract {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Abstract {
@@ -580,7 +544,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Abstract {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "abstract")
@@ -589,13 +553,13 @@ pub mod token {
             "`abstract`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Abstract {}
     pub struct As {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn As<S: IntoSpans<[Span; 1]>>(span: S) -> As {
         As { span: span.into_spans()[0] }
     }
@@ -604,39 +568,39 @@ pub mod token {
             As { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for As {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for As {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for As {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("As")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for As {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for As {
         fn eq(&self, _other: &As) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for As {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for As {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("as", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for As {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(As {
@@ -644,7 +608,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for As {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "as")
@@ -653,13 +617,13 @@ pub mod token {
             "`as`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for As {}
     pub struct Async {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Async<S: IntoSpans<[Span; 1]>>(span: S) -> Async {
         Async {
             span: span.into_spans()[0],
@@ -670,39 +634,39 @@ pub mod token {
             Async { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Async {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Async {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Async {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Async")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Async {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Async {
         fn eq(&self, _other: &Async) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Async {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Async {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("async", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Async {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Async {
@@ -710,7 +674,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Async {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "async")
@@ -719,13 +683,13 @@ pub mod token {
             "`async`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Async {}
     pub struct Auto {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Auto<S: IntoSpans<[Span; 1]>>(span: S) -> Auto {
         Auto { span: span.into_spans()[0] }
     }
@@ -734,39 +698,39 @@ pub mod token {
             Auto { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Auto {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Auto {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Auto {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Auto")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Auto {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Auto {
         fn eq(&self, _other: &Auto) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Auto {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Auto {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("auto", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Auto {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Auto {
@@ -774,7 +738,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Auto {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "auto")
@@ -783,13 +747,13 @@ pub mod token {
             "`auto`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Auto {}
     pub struct Await {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Await<S: IntoSpans<[Span; 1]>>(span: S) -> Await {
         Await {
             span: span.into_spans()[0],
@@ -800,39 +764,39 @@ pub mod token {
             Await { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Await {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Await {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Await {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Await")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Await {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Await {
         fn eq(&self, _other: &Await) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Await {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Await {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("await", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Await {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Await {
@@ -840,7 +804,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Await {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "await")
@@ -849,13 +813,13 @@ pub mod token {
             "`await`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Await {}
     pub struct Become {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Become<S: IntoSpans<[Span; 1]>>(span: S) -> Become {
         Become {
             span: span.into_spans()[0],
@@ -866,39 +830,39 @@ pub mod token {
             Become { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Become {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Become {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Become {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Become")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Become {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Become {
         fn eq(&self, _other: &Become) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Become {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Become {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("become", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Become {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Become {
@@ -906,7 +870,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Become {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "become")
@@ -915,13 +879,13 @@ pub mod token {
             "`become`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Become {}
     pub struct Box {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Box<S: IntoSpans<[Span; 1]>>(span: S) -> Box {
         Box { span: span.into_spans()[0] }
     }
@@ -930,39 +894,39 @@ pub mod token {
             Box { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Box {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Box {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Box {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Box")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Box {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Box {
         fn eq(&self, _other: &Box) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Box {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Box {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("box", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Box {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Box {
@@ -970,7 +934,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Box {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "box")
@@ -979,13 +943,13 @@ pub mod token {
             "`box`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Box {}
     pub struct Break {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Break<S: IntoSpans<[Span; 1]>>(span: S) -> Break {
         Break {
             span: span.into_spans()[0],
@@ -996,39 +960,39 @@ pub mod token {
             Break { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Break {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Break {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Break {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Break")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Break {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Break {
         fn eq(&self, _other: &Break) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Break {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Break {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("break", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Break {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Break {
@@ -1036,7 +1000,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Break {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "break")
@@ -1045,13 +1009,13 @@ pub mod token {
             "`break`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Break {}
     pub struct Const {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Const<S: IntoSpans<[Span; 1]>>(span: S) -> Const {
         Const {
             span: span.into_spans()[0],
@@ -1062,39 +1026,39 @@ pub mod token {
             Const { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Const {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Const {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Const {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Const")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Const {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Const {
         fn eq(&self, _other: &Const) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Const {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Const {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("const", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Const {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Const {
@@ -1102,7 +1066,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Const {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "const")
@@ -1111,13 +1075,13 @@ pub mod token {
             "`const`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Const {}
     pub struct Continue {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Continue<S: IntoSpans<[Span; 1]>>(span: S) -> Continue {
         Continue {
             span: span.into_spans()[0],
@@ -1130,39 +1094,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Continue {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Continue {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Continue {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Continue")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Continue {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Continue {
         fn eq(&self, _other: &Continue) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Continue {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Continue {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("continue", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Continue {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Continue {
@@ -1170,7 +1134,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Continue {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "continue")
@@ -1179,13 +1143,13 @@ pub mod token {
             "`continue`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Continue {}
     pub struct Crate {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Crate<S: IntoSpans<[Span; 1]>>(span: S) -> Crate {
         Crate {
             span: span.into_spans()[0],
@@ -1196,39 +1160,39 @@ pub mod token {
             Crate { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Crate {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Crate {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Crate {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Crate")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Crate {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Crate {
         fn eq(&self, _other: &Crate) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Crate {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Crate {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("crate", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Crate {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Crate {
@@ -1236,7 +1200,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Crate {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "crate")
@@ -1245,13 +1209,13 @@ pub mod token {
             "`crate`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Crate {}
     pub struct Default {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Default<S: IntoSpans<[Span; 1]>>(span: S) -> Default {
         Default {
             span: span.into_spans()[0],
@@ -1262,39 +1226,39 @@ pub mod token {
             Default { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Default {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Default {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Default {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Default")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Default {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Default {
         fn eq(&self, _other: &Default) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Default {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Default {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("default", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Default {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Default {
@@ -1302,7 +1266,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Default {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "default")
@@ -1311,13 +1275,13 @@ pub mod token {
             "`default`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Default {}
     pub struct Do {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Do<S: IntoSpans<[Span; 1]>>(span: S) -> Do {
         Do { span: span.into_spans()[0] }
     }
@@ -1326,39 +1290,39 @@ pub mod token {
             Do { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Do {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Do {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Do {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Do")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Do {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Do {
         fn eq(&self, _other: &Do) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Do {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Do {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("do", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Do {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Do {
@@ -1366,7 +1330,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Do {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "do")
@@ -1375,13 +1339,13 @@ pub mod token {
             "`do`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Do {}
     pub struct Dyn {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Dyn<S: IntoSpans<[Span; 1]>>(span: S) -> Dyn {
         Dyn { span: span.into_spans()[0] }
     }
@@ -1390,39 +1354,39 @@ pub mod token {
             Dyn { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Dyn {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Dyn {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Dyn {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Dyn")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Dyn {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Dyn {
         fn eq(&self, _other: &Dyn) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Dyn {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Dyn {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("dyn", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Dyn {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Dyn {
@@ -1430,7 +1394,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Dyn {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "dyn")
@@ -1439,13 +1403,13 @@ pub mod token {
             "`dyn`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Dyn {}
     pub struct Else {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Else<S: IntoSpans<[Span; 1]>>(span: S) -> Else {
         Else { span: span.into_spans()[0] }
     }
@@ -1454,39 +1418,39 @@ pub mod token {
             Else { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Else {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Else {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Else {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Else")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Else {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Else {
         fn eq(&self, _other: &Else) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Else {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Else {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("else", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Else {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Else {
@@ -1494,7 +1458,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Else {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "else")
@@ -1503,13 +1467,13 @@ pub mod token {
             "`else`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Else {}
     pub struct Enum {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Enum<S: IntoSpans<[Span; 1]>>(span: S) -> Enum {
         Enum { span: span.into_spans()[0] }
     }
@@ -1518,39 +1482,39 @@ pub mod token {
             Enum { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Enum {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Enum {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Enum {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Enum")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Enum {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Enum {
         fn eq(&self, _other: &Enum) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Enum {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Enum {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("enum", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Enum {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Enum {
@@ -1558,7 +1522,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Enum {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "enum")
@@ -1567,13 +1531,13 @@ pub mod token {
             "`enum`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Enum {}
     pub struct Extern {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Extern<S: IntoSpans<[Span; 1]>>(span: S) -> Extern {
         Extern {
             span: span.into_spans()[0],
@@ -1584,39 +1548,39 @@ pub mod token {
             Extern { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Extern {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Extern {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Extern {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Extern")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Extern {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Extern {
         fn eq(&self, _other: &Extern) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Extern {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Extern {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("extern", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Extern {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Extern {
@@ -1624,7 +1588,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Extern {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "extern")
@@ -1633,13 +1597,13 @@ pub mod token {
             "`extern`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Extern {}
     pub struct Final {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Final<S: IntoSpans<[Span; 1]>>(span: S) -> Final {
         Final {
             span: span.into_spans()[0],
@@ -1650,39 +1614,39 @@ pub mod token {
             Final { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Final {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Final {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Final {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Final")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Final {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Final {
         fn eq(&self, _other: &Final) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Final {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Final {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("final", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Final {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Final {
@@ -1690,7 +1654,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Final {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "final")
@@ -1699,13 +1663,13 @@ pub mod token {
             "`final`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Final {}
     pub struct Fn {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Fn<S: IntoSpans<[Span; 1]>>(span: S) -> Fn {
         Fn { span: span.into_spans()[0] }
     }
@@ -1714,39 +1678,39 @@ pub mod token {
             Fn { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Fn {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Fn {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Fn {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Fn")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Fn {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Fn {
         fn eq(&self, _other: &Fn) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Fn {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Fn {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("fn", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Fn {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Fn {
@@ -1754,7 +1718,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Fn {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "fn")
@@ -1763,13 +1727,13 @@ pub mod token {
             "`fn`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Fn {}
     pub struct For {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn For<S: IntoSpans<[Span; 1]>>(span: S) -> For {
         For { span: span.into_spans()[0] }
     }
@@ -1778,39 +1742,39 @@ pub mod token {
             For { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for For {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for For {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for For {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("For")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for For {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for For {
         fn eq(&self, _other: &For) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for For {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for For {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("for", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for For {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(For {
@@ -1818,7 +1782,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for For {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "for")
@@ -1827,13 +1791,13 @@ pub mod token {
             "`for`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for For {}
     pub struct If {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn If<S: IntoSpans<[Span; 1]>>(span: S) -> If {
         If { span: span.into_spans()[0] }
     }
@@ -1842,39 +1806,39 @@ pub mod token {
             If { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for If {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for If {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for If {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("If")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for If {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for If {
         fn eq(&self, _other: &If) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for If {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for If {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("if", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for If {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(If {
@@ -1882,7 +1846,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for If {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "if")
@@ -1891,13 +1855,13 @@ pub mod token {
             "`if`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for If {}
     pub struct Impl {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Impl<S: IntoSpans<[Span; 1]>>(span: S) -> Impl {
         Impl { span: span.into_spans()[0] }
     }
@@ -1906,39 +1870,39 @@ pub mod token {
             Impl { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Impl {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Impl {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Impl {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Impl")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Impl {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Impl {
         fn eq(&self, _other: &Impl) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Impl {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Impl {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("impl", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Impl {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Impl {
@@ -1946,7 +1910,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Impl {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "impl")
@@ -1955,13 +1919,13 @@ pub mod token {
             "`impl`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Impl {}
     pub struct In {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn In<S: IntoSpans<[Span; 1]>>(span: S) -> In {
         In { span: span.into_spans()[0] }
     }
@@ -1970,39 +1934,39 @@ pub mod token {
             In { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for In {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for In {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for In {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("In")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for In {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for In {
         fn eq(&self, _other: &In) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for In {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for In {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("in", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for In {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(In {
@@ -2010,7 +1974,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for In {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "in")
@@ -2019,13 +1983,13 @@ pub mod token {
             "`in`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for In {}
     pub struct Let {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Let<S: IntoSpans<[Span; 1]>>(span: S) -> Let {
         Let { span: span.into_spans()[0] }
     }
@@ -2034,39 +1998,39 @@ pub mod token {
             Let { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Let {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Let {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Let {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Let")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Let {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Let {
         fn eq(&self, _other: &Let) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Let {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Let {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("let", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Let {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Let {
@@ -2074,7 +2038,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Let {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "let")
@@ -2083,13 +2047,13 @@ pub mod token {
             "`let`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Let {}
     pub struct Loop {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Loop<S: IntoSpans<[Span; 1]>>(span: S) -> Loop {
         Loop { span: span.into_spans()[0] }
     }
@@ -2098,39 +2062,39 @@ pub mod token {
             Loop { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Loop {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Loop {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Loop {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Loop")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Loop {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Loop {
         fn eq(&self, _other: &Loop) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Loop {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Loop {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("loop", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Loop {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Loop {
@@ -2138,7 +2102,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Loop {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "loop")
@@ -2147,13 +2111,13 @@ pub mod token {
             "`loop`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Loop {}
     pub struct Macro {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Macro<S: IntoSpans<[Span; 1]>>(span: S) -> Macro {
         Macro {
             span: span.into_spans()[0],
@@ -2164,39 +2128,39 @@ pub mod token {
             Macro { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Macro {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Macro {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Macro {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Macro")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Macro {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Macro {
         fn eq(&self, _other: &Macro) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Macro {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Macro {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("macro", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Macro {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Macro {
@@ -2204,7 +2168,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Macro {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "macro")
@@ -2213,13 +2177,13 @@ pub mod token {
             "`macro`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Macro {}
     pub struct Match {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Match<S: IntoSpans<[Span; 1]>>(span: S) -> Match {
         Match {
             span: span.into_spans()[0],
@@ -2230,39 +2194,39 @@ pub mod token {
             Match { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Match {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Match {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Match {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Match")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Match {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Match {
         fn eq(&self, _other: &Match) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Match {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Match {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("match", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Match {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Match {
@@ -2270,7 +2234,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Match {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "match")
@@ -2279,13 +2243,13 @@ pub mod token {
             "`match`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Match {}
     pub struct Mod {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Mod<S: IntoSpans<[Span; 1]>>(span: S) -> Mod {
         Mod { span: span.into_spans()[0] }
     }
@@ -2294,39 +2258,39 @@ pub mod token {
             Mod { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Mod {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Mod {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Mod {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Mod")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Mod {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Mod {
         fn eq(&self, _other: &Mod) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Mod {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Mod {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("mod", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Mod {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Mod {
@@ -2334,7 +2298,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Mod {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "mod")
@@ -2343,13 +2307,13 @@ pub mod token {
             "`mod`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Mod {}
     pub struct Move {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Move<S: IntoSpans<[Span; 1]>>(span: S) -> Move {
         Move { span: span.into_spans()[0] }
     }
@@ -2358,39 +2322,39 @@ pub mod token {
             Move { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Move {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Move {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Move {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Move")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Move {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Move {
         fn eq(&self, _other: &Move) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Move {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Move {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("move", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Move {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Move {
@@ -2398,7 +2362,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Move {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "move")
@@ -2407,13 +2371,13 @@ pub mod token {
             "`move`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Move {}
     pub struct Mut {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Mut<S: IntoSpans<[Span; 1]>>(span: S) -> Mut {
         Mut { span: span.into_spans()[0] }
     }
@@ -2422,39 +2386,39 @@ pub mod token {
             Mut { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Mut {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Mut {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Mut {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Mut")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Mut {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Mut {
         fn eq(&self, _other: &Mut) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Mut {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Mut {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("mut", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Mut {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Mut {
@@ -2462,7 +2426,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Mut {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "mut")
@@ -2471,13 +2435,13 @@ pub mod token {
             "`mut`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Mut {}
     pub struct Override {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Override<S: IntoSpans<[Span; 1]>>(span: S) -> Override {
         Override {
             span: span.into_spans()[0],
@@ -2490,39 +2454,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Override {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Override {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Override {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Override")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Override {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Override {
         fn eq(&self, _other: &Override) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Override {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Override {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("override", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Override {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Override {
@@ -2530,7 +2494,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Override {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "override")
@@ -2539,13 +2503,13 @@ pub mod token {
             "`override`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Override {}
     pub struct Priv {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Priv<S: IntoSpans<[Span; 1]>>(span: S) -> Priv {
         Priv { span: span.into_spans()[0] }
     }
@@ -2554,39 +2518,39 @@ pub mod token {
             Priv { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Priv {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Priv {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Priv {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Priv")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Priv {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Priv {
         fn eq(&self, _other: &Priv) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Priv {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Priv {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("priv", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Priv {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Priv {
@@ -2594,7 +2558,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Priv {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "priv")
@@ -2603,13 +2567,13 @@ pub mod token {
             "`priv`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Priv {}
     pub struct Pub {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Pub<S: IntoSpans<[Span; 1]>>(span: S) -> Pub {
         Pub { span: span.into_spans()[0] }
     }
@@ -2618,39 +2582,39 @@ pub mod token {
             Pub { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Pub {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Pub {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Pub {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Pub")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Pub {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Pub {
         fn eq(&self, _other: &Pub) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Pub {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Pub {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("pub", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Pub {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Pub {
@@ -2658,7 +2622,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Pub {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "pub")
@@ -2667,13 +2631,13 @@ pub mod token {
             "`pub`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Pub {}
     pub struct Ref {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Ref<S: IntoSpans<[Span; 1]>>(span: S) -> Ref {
         Ref { span: span.into_spans()[0] }
     }
@@ -2682,39 +2646,39 @@ pub mod token {
             Ref { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Ref {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Ref {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Ref {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Ref")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Ref {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Ref {
         fn eq(&self, _other: &Ref) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Ref {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Ref {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("ref", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Ref {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Ref {
@@ -2722,7 +2686,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Ref {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "ref")
@@ -2731,13 +2695,13 @@ pub mod token {
             "`ref`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Ref {}
     pub struct Return {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Return<S: IntoSpans<[Span; 1]>>(span: S) -> Return {
         Return {
             span: span.into_spans()[0],
@@ -2748,39 +2712,39 @@ pub mod token {
             Return { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Return {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Return {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Return {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Return")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Return {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Return {
         fn eq(&self, _other: &Return) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Return {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Return {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("return", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Return {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Return {
@@ -2788,7 +2752,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Return {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "return")
@@ -2797,13 +2761,13 @@ pub mod token {
             "`return`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Return {}
     pub struct SelfType {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn SelfType<S: IntoSpans<[Span; 1]>>(span: S) -> SelfType {
         SelfType {
             span: span.into_spans()[0],
@@ -2816,39 +2780,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for SelfType {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for SelfType {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for SelfType {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("SelfType")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for SelfType {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for SelfType {
         fn eq(&self, _other: &SelfType) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for SelfType {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for SelfType {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("Self", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for SelfType {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(SelfType {
@@ -2856,7 +2820,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for SelfType {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "Self")
@@ -2865,13 +2829,13 @@ pub mod token {
             "`Self`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for SelfType {}
     pub struct SelfValue {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn SelfValue<S: IntoSpans<[Span; 1]>>(span: S) -> SelfValue {
         SelfValue {
             span: span.into_spans()[0],
@@ -2884,39 +2848,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for SelfValue {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for SelfValue {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for SelfValue {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("SelfValue")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for SelfValue {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for SelfValue {
         fn eq(&self, _other: &SelfValue) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for SelfValue {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for SelfValue {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("self", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for SelfValue {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(SelfValue {
@@ -2924,7 +2888,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for SelfValue {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "self")
@@ -2933,13 +2897,13 @@ pub mod token {
             "`self`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for SelfValue {}
     pub struct Static {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Static<S: IntoSpans<[Span; 1]>>(span: S) -> Static {
         Static {
             span: span.into_spans()[0],
@@ -2950,39 +2914,39 @@ pub mod token {
             Static { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Static {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Static {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Static {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Static")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Static {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Static {
         fn eq(&self, _other: &Static) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Static {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Static {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("static", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Static {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Static {
@@ -2990,7 +2954,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Static {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "static")
@@ -2999,13 +2963,13 @@ pub mod token {
             "`static`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Static {}
     pub struct Struct {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Struct<S: IntoSpans<[Span; 1]>>(span: S) -> Struct {
         Struct {
             span: span.into_spans()[0],
@@ -3016,39 +2980,39 @@ pub mod token {
             Struct { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Struct {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Struct {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Struct {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Struct")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Struct {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Struct {
         fn eq(&self, _other: &Struct) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Struct {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Struct {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("struct", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Struct {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Struct {
@@ -3056,7 +3020,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Struct {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "struct")
@@ -3065,13 +3029,13 @@ pub mod token {
             "`struct`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Struct {}
     pub struct Super {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Super<S: IntoSpans<[Span; 1]>>(span: S) -> Super {
         Super {
             span: span.into_spans()[0],
@@ -3082,39 +3046,39 @@ pub mod token {
             Super { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Super {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Super {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Super {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Super")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Super {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Super {
         fn eq(&self, _other: &Super) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Super {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Super {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("super", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Super {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Super {
@@ -3122,7 +3086,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Super {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "super")
@@ -3131,13 +3095,13 @@ pub mod token {
             "`super`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Super {}
     pub struct Trait {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Trait<S: IntoSpans<[Span; 1]>>(span: S) -> Trait {
         Trait {
             span: span.into_spans()[0],
@@ -3148,39 +3112,39 @@ pub mod token {
             Trait { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Trait {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Trait {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Trait {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Trait")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Trait {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Trait {
         fn eq(&self, _other: &Trait) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Trait {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Trait {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("trait", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Trait {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Trait {
@@ -3188,7 +3152,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Trait {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "trait")
@@ -3197,13 +3161,13 @@ pub mod token {
             "`trait`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Trait {}
     pub struct Try {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Try<S: IntoSpans<[Span; 1]>>(span: S) -> Try {
         Try { span: span.into_spans()[0] }
     }
@@ -3212,39 +3176,39 @@ pub mod token {
             Try { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Try {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Try {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Try {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Try")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Try {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Try {
         fn eq(&self, _other: &Try) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Try {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Try {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("try", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Try {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Try {
@@ -3252,7 +3216,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Try {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "try")
@@ -3261,13 +3225,13 @@ pub mod token {
             "`try`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Try {}
     pub struct Type {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Type<S: IntoSpans<[Span; 1]>>(span: S) -> Type {
         Type { span: span.into_spans()[0] }
     }
@@ -3276,39 +3240,39 @@ pub mod token {
             Type { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Type {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Type {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Type {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Type")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Type {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Type {
         fn eq(&self, _other: &Type) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Type {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Type {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("type", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Type {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Type {
@@ -3316,7 +3280,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Type {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "type")
@@ -3325,13 +3289,13 @@ pub mod token {
             "`type`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Type {}
     pub struct Typeof {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Typeof<S: IntoSpans<[Span; 1]>>(span: S) -> Typeof {
         Typeof {
             span: span.into_spans()[0],
@@ -3342,39 +3306,39 @@ pub mod token {
             Typeof { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Typeof {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Typeof {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Typeof {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Typeof")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Typeof {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Typeof {
         fn eq(&self, _other: &Typeof) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Typeof {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Typeof {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("typeof", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Typeof {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Typeof {
@@ -3382,7 +3346,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Typeof {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "typeof")
@@ -3391,13 +3355,13 @@ pub mod token {
             "`typeof`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Typeof {}
     pub struct Union {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Union<S: IntoSpans<[Span; 1]>>(span: S) -> Union {
         Union {
             span: span.into_spans()[0],
@@ -3408,39 +3372,39 @@ pub mod token {
             Union { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Union {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Union {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Union {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Union")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Union {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Union {
         fn eq(&self, _other: &Union) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Union {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Union {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("union", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Union {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Union {
@@ -3448,7 +3412,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Union {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "union")
@@ -3457,13 +3421,13 @@ pub mod token {
             "`union`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Union {}
     pub struct Unsafe {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Unsafe<S: IntoSpans<[Span; 1]>>(span: S) -> Unsafe {
         Unsafe {
             span: span.into_spans()[0],
@@ -3474,39 +3438,39 @@ pub mod token {
             Unsafe { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Unsafe {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Unsafe {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Unsafe {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Unsafe")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Unsafe {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Unsafe {
         fn eq(&self, _other: &Unsafe) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Unsafe {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Unsafe {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("unsafe", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Unsafe {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Unsafe {
@@ -3514,7 +3478,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Unsafe {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "unsafe")
@@ -3523,13 +3487,13 @@ pub mod token {
             "`unsafe`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Unsafe {}
     pub struct Unsized {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Unsized<S: IntoSpans<[Span; 1]>>(span: S) -> Unsized {
         Unsized {
             span: span.into_spans()[0],
@@ -3540,39 +3504,39 @@ pub mod token {
             Unsized { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Unsized {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Unsized {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Unsized {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Unsized")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Unsized {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Unsized {
         fn eq(&self, _other: &Unsized) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Unsized {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Unsized {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("unsized", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Unsized {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Unsized {
@@ -3580,7 +3544,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Unsized {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "unsized")
@@ -3589,13 +3553,13 @@ pub mod token {
             "`unsized`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Unsized {}
     pub struct Use {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Use<S: IntoSpans<[Span; 1]>>(span: S) -> Use {
         Use { span: span.into_spans()[0] }
     }
@@ -3604,39 +3568,39 @@ pub mod token {
             Use { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Use {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Use {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Use {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Use")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Use {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Use {
         fn eq(&self, _other: &Use) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Use {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Use {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("use", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Use {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Use {
@@ -3644,7 +3608,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Use {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "use")
@@ -3653,13 +3617,13 @@ pub mod token {
             "`use`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Use {}
     pub struct Virtual {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Virtual<S: IntoSpans<[Span; 1]>>(span: S) -> Virtual {
         Virtual {
             span: span.into_spans()[0],
@@ -3670,39 +3634,39 @@ pub mod token {
             Virtual { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Virtual {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Virtual {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Virtual {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Virtual")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Virtual {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Virtual {
         fn eq(&self, _other: &Virtual) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Virtual {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Virtual {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("virtual", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Virtual {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Virtual {
@@ -3710,7 +3674,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Virtual {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "virtual")
@@ -3719,13 +3683,13 @@ pub mod token {
             "`virtual`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Virtual {}
     pub struct Where {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Where<S: IntoSpans<[Span; 1]>>(span: S) -> Where {
         Where {
             span: span.into_spans()[0],
@@ -3736,39 +3700,39 @@ pub mod token {
             Where { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Where {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Where {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Where {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Where")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Where {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Where {
         fn eq(&self, _other: &Where) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Where {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Where {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("where", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Where {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Where {
@@ -3776,7 +3740,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Where {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "where")
@@ -3785,13 +3749,13 @@ pub mod token {
             "`where`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Where {}
     pub struct While {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn While<S: IntoSpans<[Span; 1]>>(span: S) -> While {
         While {
             span: span.into_spans()[0],
@@ -3802,39 +3766,39 @@ pub mod token {
             While { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for While {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for While {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for While {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("While")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for While {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for While {
         fn eq(&self, _other: &While) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for While {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for While {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("while", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for While {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(While {
@@ -3842,7 +3806,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for While {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "while")
@@ -3851,13 +3815,13 @@ pub mod token {
             "`while`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for While {}
     pub struct Yield {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Yield<S: IntoSpans<[Span; 1]>>(span: S) -> Yield {
         Yield {
             span: span.into_spans()[0],
@@ -3868,39 +3832,39 @@ pub mod token {
             Yield { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Yield {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Yield {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Yield {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Yield")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Yield {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Yield {
         fn eq(&self, _other: &Yield) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Yield {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Yield {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::keyword("yield", self.span, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Yield {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Yield {
@@ -3908,7 +3872,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Yield {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_keyword(cursor, "yield")
@@ -3917,14 +3881,14 @@ pub mod token {
             "`yield`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Yield {}
-    #[repr(C)]
+    #[repr]
     pub struct Add {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Add<S: IntoSpans<[Span; 1]>>(spans: S) -> Add {
         Add { spans: spans.into_spans() }
     }
@@ -3935,29 +3899,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Add {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Add {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Add {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Add")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Add {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Add {
         fn eq(&self, _other: &Add) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Add {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -3972,13 +3936,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Add {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("+", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Add {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Add {
@@ -3986,7 +3950,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Add {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "+")
@@ -3995,14 +3959,14 @@ pub mod token {
             "`+`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Add {}
-    #[repr(C)]
+    #[repr]
     pub struct AddEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn AddEq<S: IntoSpans<[Span; 2]>>(spans: S) -> AddEq {
         AddEq { spans: spans.into_spans() }
     }
@@ -4013,39 +3977,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for AddEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for AddEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for AddEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("AddEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for AddEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for AddEq {
         fn eq(&self, _other: &AddEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for AddEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for AddEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("+=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for AddEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(AddEq {
@@ -4053,7 +4017,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for AddEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "+=")
@@ -4062,14 +4026,14 @@ pub mod token {
             "`+=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for AddEq {}
-    #[repr(C)]
+    #[repr]
     pub struct And {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn And<S: IntoSpans<[Span; 1]>>(spans: S) -> And {
         And { spans: spans.into_spans() }
     }
@@ -4080,29 +4044,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for And {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for And {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for And {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("And")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for And {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for And {
         fn eq(&self, _other: &And) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for And {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4117,13 +4081,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for And {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("&", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for And {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(And {
@@ -4131,7 +4095,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for And {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "&")
@@ -4140,14 +4104,14 @@ pub mod token {
             "`&`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for And {}
-    #[repr(C)]
+    #[repr]
     pub struct AndAnd {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn AndAnd<S: IntoSpans<[Span; 2]>>(spans: S) -> AndAnd {
         AndAnd {
             spans: spans.into_spans(),
@@ -4160,39 +4124,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for AndAnd {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for AndAnd {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for AndAnd {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("AndAnd")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for AndAnd {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for AndAnd {
         fn eq(&self, _other: &AndAnd) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for AndAnd {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for AndAnd {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("&&", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for AndAnd {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(AndAnd {
@@ -4200,7 +4164,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for AndAnd {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "&&")
@@ -4209,14 +4173,14 @@ pub mod token {
             "`&&`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for AndAnd {}
-    #[repr(C)]
+    #[repr]
     pub struct AndEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn AndEq<S: IntoSpans<[Span; 2]>>(spans: S) -> AndEq {
         AndEq { spans: spans.into_spans() }
     }
@@ -4227,39 +4191,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for AndEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for AndEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for AndEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("AndEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for AndEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for AndEq {
         fn eq(&self, _other: &AndEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for AndEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for AndEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("&=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for AndEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(AndEq {
@@ -4267,7 +4231,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for AndEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "&=")
@@ -4276,14 +4240,14 @@ pub mod token {
             "`&=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for AndEq {}
-    #[repr(C)]
+    #[repr]
     pub struct At {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn At<S: IntoSpans<[Span; 1]>>(spans: S) -> At {
         At { spans: spans.into_spans() }
     }
@@ -4294,29 +4258,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for At {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for At {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for At {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("At")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for At {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for At {
         fn eq(&self, _other: &At) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for At {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4331,13 +4295,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for At {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("@", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for At {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(At {
@@ -4345,7 +4309,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for At {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "@")
@@ -4354,14 +4318,14 @@ pub mod token {
             "`@`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for At {}
-    #[repr(C)]
+    #[repr]
     pub struct Bang {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Bang<S: IntoSpans<[Span; 1]>>(spans: S) -> Bang {
         Bang { spans: spans.into_spans() }
     }
@@ -4372,29 +4336,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Bang {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Bang {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Bang {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Bang")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Bang {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Bang {
         fn eq(&self, _other: &Bang) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Bang {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4409,13 +4373,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Bang {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("!", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Bang {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Bang {
@@ -4423,7 +4387,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Bang {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "!")
@@ -4432,14 +4396,14 @@ pub mod token {
             "`!`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Bang {}
-    #[repr(C)]
+    #[repr]
     pub struct Caret {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Caret<S: IntoSpans<[Span; 1]>>(spans: S) -> Caret {
         Caret { spans: spans.into_spans() }
     }
@@ -4450,29 +4414,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Caret {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Caret {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Caret {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Caret")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Caret {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Caret {
         fn eq(&self, _other: &Caret) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Caret {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4487,13 +4451,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Caret {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("^", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Caret {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Caret {
@@ -4501,7 +4465,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Caret {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "^")
@@ -4510,14 +4474,14 @@ pub mod token {
             "`^`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Caret {}
-    #[repr(C)]
+    #[repr]
     pub struct CaretEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn CaretEq<S: IntoSpans<[Span; 2]>>(spans: S) -> CaretEq {
         CaretEq {
             spans: spans.into_spans(),
@@ -4530,39 +4494,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for CaretEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for CaretEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for CaretEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("CaretEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for CaretEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for CaretEq {
         fn eq(&self, _other: &CaretEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for CaretEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for CaretEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("^=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for CaretEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(CaretEq {
@@ -4570,7 +4534,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for CaretEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "^=")
@@ -4579,14 +4543,14 @@ pub mod token {
             "`^=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for CaretEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Colon {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Colon<S: IntoSpans<[Span; 1]>>(spans: S) -> Colon {
         Colon { spans: spans.into_spans() }
     }
@@ -4597,29 +4561,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Colon {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Colon {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Colon {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Colon")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Colon {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Colon {
         fn eq(&self, _other: &Colon) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Colon {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4634,13 +4598,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Colon {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(":", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Colon {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Colon {
@@ -4648,7 +4612,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Colon {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ":")
@@ -4657,14 +4621,14 @@ pub mod token {
             "`:`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Colon {}
-    #[repr(C)]
+    #[repr]
     pub struct Colon2 {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Colon2<S: IntoSpans<[Span; 2]>>(spans: S) -> Colon2 {
         Colon2 {
             spans: spans.into_spans(),
@@ -4677,39 +4641,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Colon2 {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Colon2 {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Colon2 {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Colon2")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Colon2 {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Colon2 {
         fn eq(&self, _other: &Colon2) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Colon2 {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Colon2 {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("::", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Colon2 {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Colon2 {
@@ -4717,7 +4681,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Colon2 {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "::")
@@ -4726,14 +4690,14 @@ pub mod token {
             "`::`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Colon2 {}
-    #[repr(C)]
+    #[repr]
     pub struct Comma {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Comma<S: IntoSpans<[Span; 1]>>(spans: S) -> Comma {
         Comma { spans: spans.into_spans() }
     }
@@ -4744,29 +4708,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Comma {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Comma {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Comma {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Comma")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Comma {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Comma {
         fn eq(&self, _other: &Comma) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Comma {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4781,13 +4745,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Comma {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(",", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Comma {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Comma {
@@ -4795,7 +4759,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Comma {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ",")
@@ -4804,14 +4768,14 @@ pub mod token {
             "`,`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Comma {}
-    #[repr(C)]
+    #[repr]
     pub struct Div {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Div<S: IntoSpans<[Span; 1]>>(spans: S) -> Div {
         Div { spans: spans.into_spans() }
     }
@@ -4822,29 +4786,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Div {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Div {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Div {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Div")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Div {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Div {
         fn eq(&self, _other: &Div) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Div {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -4859,13 +4823,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Div {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("/", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Div {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Div {
@@ -4873,7 +4837,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Div {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "/")
@@ -4882,14 +4846,14 @@ pub mod token {
             "`/`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Div {}
-    #[repr(C)]
+    #[repr]
     pub struct DivEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn DivEq<S: IntoSpans<[Span; 2]>>(spans: S) -> DivEq {
         DivEq { spans: spans.into_spans() }
     }
@@ -4900,39 +4864,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for DivEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for DivEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for DivEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("DivEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for DivEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for DivEq {
         fn eq(&self, _other: &DivEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for DivEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for DivEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("/=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for DivEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(DivEq {
@@ -4940,7 +4904,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for DivEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "/=")
@@ -4949,14 +4913,14 @@ pub mod token {
             "`/=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for DivEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Dollar {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Dollar<S: IntoSpans<[Span; 1]>>(spans: S) -> Dollar {
         Dollar {
             spans: spans.into_spans(),
@@ -4969,29 +4933,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Dollar {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Dollar {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Dollar {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Dollar")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Dollar {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Dollar {
         fn eq(&self, _other: &Dollar) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Dollar {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5006,13 +4970,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Dollar {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("$", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Dollar {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Dollar {
@@ -5020,7 +4984,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Dollar {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "$")
@@ -5029,14 +4993,14 @@ pub mod token {
             "`$`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Dollar {}
-    #[repr(C)]
+    #[repr]
     pub struct Dot {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Dot<S: IntoSpans<[Span; 1]>>(spans: S) -> Dot {
         Dot { spans: spans.into_spans() }
     }
@@ -5047,29 +5011,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Dot {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Dot {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Dot {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Dot")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Dot {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Dot {
         fn eq(&self, _other: &Dot) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Dot {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5084,13 +5048,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Dot {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(".", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Dot {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Dot {
@@ -5098,7 +5062,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Dot {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ".")
@@ -5107,14 +5071,14 @@ pub mod token {
             "`.`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Dot {}
-    #[repr(C)]
+    #[repr]
     pub struct Dot2 {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Dot2<S: IntoSpans<[Span; 2]>>(spans: S) -> Dot2 {
         Dot2 { spans: spans.into_spans() }
     }
@@ -5125,39 +5089,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Dot2 {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Dot2 {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Dot2 {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Dot2")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Dot2 {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Dot2 {
         fn eq(&self, _other: &Dot2) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Dot2 {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Dot2 {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("..", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Dot2 {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Dot2 {
@@ -5165,7 +5129,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Dot2 {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "..")
@@ -5174,14 +5138,14 @@ pub mod token {
             "`..`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Dot2 {}
-    #[repr(C)]
+    #[repr]
     pub struct Dot3 {
         pub spans: [Span; 3],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Dot3<S: IntoSpans<[Span; 3]>>(spans: S) -> Dot3 {
         Dot3 { spans: spans.into_spans() }
     }
@@ -5192,39 +5156,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Dot3 {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Dot3 {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Dot3 {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Dot3")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Dot3 {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Dot3 {
         fn eq(&self, _other: &Dot3) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Dot3 {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Dot3 {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("...", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Dot3 {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Dot3 {
@@ -5232,7 +5196,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Dot3 {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "...")
@@ -5241,14 +5205,14 @@ pub mod token {
             "`...`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Dot3 {}
-    #[repr(C)]
+    #[repr]
     pub struct DotDotEq {
         pub spans: [Span; 3],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn DotDotEq<S: IntoSpans<[Span; 3]>>(spans: S) -> DotDotEq {
         DotDotEq {
             spans: spans.into_spans(),
@@ -5261,39 +5225,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for DotDotEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for DotDotEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for DotDotEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("DotDotEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for DotDotEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for DotDotEq {
         fn eq(&self, _other: &DotDotEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for DotDotEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for DotDotEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("..=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for DotDotEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(DotDotEq {
@@ -5301,7 +5265,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for DotDotEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "..=")
@@ -5310,14 +5274,14 @@ pub mod token {
             "`..=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for DotDotEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Eq {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Eq<S: IntoSpans<[Span; 1]>>(spans: S) -> Eq {
         Eq { spans: spans.into_spans() }
     }
@@ -5328,29 +5292,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Eq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Eq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Eq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Eq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Eq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Eq {
         fn eq(&self, _other: &Eq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Eq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5365,13 +5329,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Eq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Eq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Eq {
@@ -5379,7 +5343,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Eq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "=")
@@ -5388,14 +5352,14 @@ pub mod token {
             "`=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Eq {}
-    #[repr(C)]
+    #[repr]
     pub struct EqEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn EqEq<S: IntoSpans<[Span; 2]>>(spans: S) -> EqEq {
         EqEq { spans: spans.into_spans() }
     }
@@ -5406,39 +5370,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for EqEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for EqEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for EqEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("EqEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for EqEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for EqEq {
         fn eq(&self, _other: &EqEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for EqEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for EqEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("==", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for EqEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(EqEq {
@@ -5446,7 +5410,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for EqEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "==")
@@ -5455,14 +5419,14 @@ pub mod token {
             "`==`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for EqEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Ge {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Ge<S: IntoSpans<[Span; 2]>>(spans: S) -> Ge {
         Ge { spans: spans.into_spans() }
     }
@@ -5473,39 +5437,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Ge {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Ge {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Ge {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Ge")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Ge {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Ge {
         fn eq(&self, _other: &Ge) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Ge {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Ge {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(">=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Ge {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Ge {
@@ -5513,7 +5477,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Ge {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ">=")
@@ -5522,14 +5486,14 @@ pub mod token {
             "`>=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Ge {}
-    #[repr(C)]
+    #[repr]
     pub struct Gt {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Gt<S: IntoSpans<[Span; 1]>>(spans: S) -> Gt {
         Gt { spans: spans.into_spans() }
     }
@@ -5540,29 +5504,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Gt {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Gt {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Gt {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Gt")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Gt {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Gt {
         fn eq(&self, _other: &Gt) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Gt {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5577,13 +5541,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Gt {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(">", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Gt {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Gt {
@@ -5591,7 +5555,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Gt {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ">")
@@ -5600,14 +5564,14 @@ pub mod token {
             "`>`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Gt {}
-    #[repr(C)]
+    #[repr]
     pub struct Le {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Le<S: IntoSpans<[Span; 2]>>(spans: S) -> Le {
         Le { spans: spans.into_spans() }
     }
@@ -5618,39 +5582,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Le {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Le {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Le {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Le")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Le {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Le {
         fn eq(&self, _other: &Le) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Le {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Le {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("<=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Le {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Le {
@@ -5658,7 +5622,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Le {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "<=")
@@ -5667,14 +5631,14 @@ pub mod token {
             "`<=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Le {}
-    #[repr(C)]
+    #[repr]
     pub struct Lt {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Lt<S: IntoSpans<[Span; 1]>>(spans: S) -> Lt {
         Lt { spans: spans.into_spans() }
     }
@@ -5685,29 +5649,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Lt {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Lt {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Lt {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Lt")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Lt {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Lt {
         fn eq(&self, _other: &Lt) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Lt {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5722,13 +5686,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Lt {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("<", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Lt {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Lt {
@@ -5736,7 +5700,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Lt {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "<")
@@ -5745,14 +5709,14 @@ pub mod token {
             "`<`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Lt {}
-    #[repr(C)]
+    #[repr]
     pub struct MulEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn MulEq<S: IntoSpans<[Span; 2]>>(spans: S) -> MulEq {
         MulEq { spans: spans.into_spans() }
     }
@@ -5763,39 +5727,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for MulEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for MulEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for MulEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("MulEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for MulEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for MulEq {
         fn eq(&self, _other: &MulEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for MulEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for MulEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("*=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for MulEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(MulEq {
@@ -5803,7 +5767,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for MulEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "*=")
@@ -5812,14 +5776,14 @@ pub mod token {
             "`*=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for MulEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Ne {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Ne<S: IntoSpans<[Span; 2]>>(spans: S) -> Ne {
         Ne { spans: spans.into_spans() }
     }
@@ -5830,39 +5794,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Ne {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Ne {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Ne {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Ne")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Ne {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Ne {
         fn eq(&self, _other: &Ne) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Ne {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Ne {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("!=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Ne {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Ne {
@@ -5870,7 +5834,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Ne {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "!=")
@@ -5879,14 +5843,14 @@ pub mod token {
             "`!=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Ne {}
-    #[repr(C)]
+    #[repr]
     pub struct Or {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Or<S: IntoSpans<[Span; 1]>>(spans: S) -> Or {
         Or { spans: spans.into_spans() }
     }
@@ -5897,29 +5861,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Or {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Or {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Or {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Or")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Or {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Or {
         fn eq(&self, _other: &Or) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Or {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -5934,13 +5898,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Or {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("|", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Or {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Or {
@@ -5948,7 +5912,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Or {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "|")
@@ -5957,14 +5921,14 @@ pub mod token {
             "`|`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Or {}
-    #[repr(C)]
+    #[repr]
     pub struct OrEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn OrEq<S: IntoSpans<[Span; 2]>>(spans: S) -> OrEq {
         OrEq { spans: spans.into_spans() }
     }
@@ -5975,39 +5939,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for OrEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for OrEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for OrEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("OrEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for OrEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for OrEq {
         fn eq(&self, _other: &OrEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for OrEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for OrEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("|=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for OrEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(OrEq {
@@ -6015,7 +5979,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for OrEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "|=")
@@ -6024,14 +5988,14 @@ pub mod token {
             "`|=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for OrEq {}
-    #[repr(C)]
+    #[repr]
     pub struct OrOr {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn OrOr<S: IntoSpans<[Span; 2]>>(spans: S) -> OrOr {
         OrOr { spans: spans.into_spans() }
     }
@@ -6042,39 +6006,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for OrOr {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for OrOr {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for OrOr {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("OrOr")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for OrOr {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for OrOr {
         fn eq(&self, _other: &OrOr) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for OrOr {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for OrOr {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("||", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for OrOr {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(OrOr {
@@ -6082,7 +6046,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for OrOr {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "||")
@@ -6091,14 +6055,14 @@ pub mod token {
             "`||`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for OrOr {}
-    #[repr(C)]
+    #[repr]
     pub struct Pound {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Pound<S: IntoSpans<[Span; 1]>>(spans: S) -> Pound {
         Pound { spans: spans.into_spans() }
     }
@@ -6109,29 +6073,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Pound {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Pound {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Pound {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Pound")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Pound {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Pound {
         fn eq(&self, _other: &Pound) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Pound {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -6146,13 +6110,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Pound {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("#", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Pound {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Pound {
@@ -6160,7 +6124,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Pound {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "#")
@@ -6169,14 +6133,14 @@ pub mod token {
             "`#`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Pound {}
-    #[repr(C)]
+    #[repr]
     pub struct Question {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Question<S: IntoSpans<[Span; 1]>>(spans: S) -> Question {
         Question {
             spans: spans.into_spans(),
@@ -6189,29 +6153,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Question {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Question {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Question {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Question")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Question {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Question {
         fn eq(&self, _other: &Question) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Question {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -6226,13 +6190,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Question {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("?", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Question {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Question {
@@ -6240,7 +6204,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Question {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "?")
@@ -6249,14 +6213,14 @@ pub mod token {
             "`?`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Question {}
-    #[repr(C)]
+    #[repr]
     pub struct RArrow {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn RArrow<S: IntoSpans<[Span; 2]>>(spans: S) -> RArrow {
         RArrow {
             spans: spans.into_spans(),
@@ -6269,39 +6233,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for RArrow {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for RArrow {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for RArrow {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("RArrow")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for RArrow {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for RArrow {
         fn eq(&self, _other: &RArrow) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for RArrow {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for RArrow {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("->", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for RArrow {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(RArrow {
@@ -6309,7 +6273,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for RArrow {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "->")
@@ -6318,14 +6282,14 @@ pub mod token {
             "`->`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for RArrow {}
-    #[repr(C)]
+    #[repr]
     pub struct LArrow {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn LArrow<S: IntoSpans<[Span; 2]>>(spans: S) -> LArrow {
         LArrow {
             spans: spans.into_spans(),
@@ -6338,39 +6302,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for LArrow {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LArrow {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for LArrow {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("LArrow")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for LArrow {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LArrow {
         fn eq(&self, _other: &LArrow) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LArrow {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for LArrow {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("<-", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for LArrow {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(LArrow {
@@ -6378,7 +6342,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for LArrow {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "<-")
@@ -6387,14 +6351,14 @@ pub mod token {
             "`<-`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for LArrow {}
-    #[repr(C)]
+    #[repr]
     pub struct Rem {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Rem<S: IntoSpans<[Span; 1]>>(spans: S) -> Rem {
         Rem { spans: spans.into_spans() }
     }
@@ -6405,29 +6369,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Rem {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Rem {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Rem {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Rem")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Rem {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Rem {
         fn eq(&self, _other: &Rem) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Rem {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -6442,13 +6406,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Rem {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("%", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Rem {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Rem {
@@ -6456,7 +6420,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Rem {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "%")
@@ -6465,14 +6429,14 @@ pub mod token {
             "`%`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Rem {}
-    #[repr(C)]
+    #[repr]
     pub struct RemEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn RemEq<S: IntoSpans<[Span; 2]>>(spans: S) -> RemEq {
         RemEq { spans: spans.into_spans() }
     }
@@ -6483,39 +6447,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for RemEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for RemEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for RemEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("RemEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for RemEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for RemEq {
         fn eq(&self, _other: &RemEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for RemEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for RemEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("%=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for RemEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(RemEq {
@@ -6523,7 +6487,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for RemEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "%=")
@@ -6532,14 +6496,14 @@ pub mod token {
             "`%=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for RemEq {}
-    #[repr(C)]
+    #[repr]
     pub struct FatArrow {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn FatArrow<S: IntoSpans<[Span; 2]>>(spans: S) -> FatArrow {
         FatArrow {
             spans: spans.into_spans(),
@@ -6552,39 +6516,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for FatArrow {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for FatArrow {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for FatArrow {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("FatArrow")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for FatArrow {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for FatArrow {
         fn eq(&self, _other: &FatArrow) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for FatArrow {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for FatArrow {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("=>", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for FatArrow {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(FatArrow {
@@ -6592,7 +6556,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for FatArrow {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "=>")
@@ -6601,14 +6565,14 @@ pub mod token {
             "`=>`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for FatArrow {}
-    #[repr(C)]
+    #[repr]
     pub struct Semi {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Semi<S: IntoSpans<[Span; 1]>>(spans: S) -> Semi {
         Semi { spans: spans.into_spans() }
     }
@@ -6619,29 +6583,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Semi {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Semi {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Semi {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Semi")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Semi {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Semi {
         fn eq(&self, _other: &Semi) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Semi {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -6656,13 +6620,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Semi {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(";", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Semi {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Semi {
@@ -6670,7 +6634,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Semi {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ";")
@@ -6679,14 +6643,14 @@ pub mod token {
             "`;`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Semi {}
-    #[repr(C)]
+    #[repr]
     pub struct Shl {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Shl<S: IntoSpans<[Span; 2]>>(spans: S) -> Shl {
         Shl { spans: spans.into_spans() }
     }
@@ -6697,39 +6661,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Shl {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Shl {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Shl {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Shl")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Shl {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Shl {
         fn eq(&self, _other: &Shl) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Shl {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Shl {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("<<", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Shl {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Shl {
@@ -6737,7 +6701,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Shl {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "<<")
@@ -6746,14 +6710,14 @@ pub mod token {
             "`<<`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Shl {}
-    #[repr(C)]
+    #[repr]
     pub struct ShlEq {
         pub spans: [Span; 3],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn ShlEq<S: IntoSpans<[Span; 3]>>(spans: S) -> ShlEq {
         ShlEq { spans: spans.into_spans() }
     }
@@ -6764,39 +6728,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for ShlEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for ShlEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for ShlEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("ShlEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for ShlEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for ShlEq {
         fn eq(&self, _other: &ShlEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for ShlEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for ShlEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("<<=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for ShlEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(ShlEq {
@@ -6804,7 +6768,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for ShlEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "<<=")
@@ -6813,14 +6777,14 @@ pub mod token {
             "`<<=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for ShlEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Shr {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Shr<S: IntoSpans<[Span; 2]>>(spans: S) -> Shr {
         Shr { spans: spans.into_spans() }
     }
@@ -6831,39 +6795,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Shr {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Shr {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Shr {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Shr")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Shr {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Shr {
         fn eq(&self, _other: &Shr) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Shr {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Shr {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(">>", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Shr {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Shr {
@@ -6871,7 +6835,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Shr {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ">>")
@@ -6880,14 +6844,14 @@ pub mod token {
             "`>>`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Shr {}
-    #[repr(C)]
+    #[repr]
     pub struct ShrEq {
         pub spans: [Span; 3],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn ShrEq<S: IntoSpans<[Span; 3]>>(spans: S) -> ShrEq {
         ShrEq { spans: spans.into_spans() }
     }
@@ -6898,39 +6862,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for ShrEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for ShrEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for ShrEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("ShrEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for ShrEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for ShrEq {
         fn eq(&self, _other: &ShrEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for ShrEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for ShrEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct(">>=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for ShrEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(ShrEq {
@@ -6938,7 +6902,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for ShrEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, ">>=")
@@ -6947,14 +6911,14 @@ pub mod token {
             "`>>=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for ShrEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Star {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Star<S: IntoSpans<[Span; 1]>>(spans: S) -> Star {
         Star { spans: spans.into_spans() }
     }
@@ -6965,29 +6929,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Star {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Star {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Star {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Star")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Star {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Star {
         fn eq(&self, _other: &Star) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Star {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -7002,13 +6966,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Star {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("*", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Star {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Star {
@@ -7016,7 +6980,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Star {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "*")
@@ -7025,14 +6989,14 @@ pub mod token {
             "`*`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Star {}
-    #[repr(C)]
+    #[repr]
     pub struct Sub {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Sub<S: IntoSpans<[Span; 1]>>(spans: S) -> Sub {
         Sub { spans: spans.into_spans() }
     }
@@ -7043,29 +7007,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Sub {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Sub {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Sub {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Sub")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Sub {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Sub {
         fn eq(&self, _other: &Sub) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Sub {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -7080,13 +7044,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Sub {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("-", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Sub {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Sub {
@@ -7094,7 +7058,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Sub {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "-")
@@ -7103,14 +7067,14 @@ pub mod token {
             "`-`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Sub {}
-    #[repr(C)]
+    #[repr]
     pub struct SubEq {
         pub spans: [Span; 2],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn SubEq<S: IntoSpans<[Span; 2]>>(spans: S) -> SubEq {
         SubEq { spans: spans.into_spans() }
     }
@@ -7121,39 +7085,39 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for SubEq {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for SubEq {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for SubEq {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("SubEq")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for SubEq {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for SubEq {
         fn eq(&self, _other: &SubEq) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for SubEq {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for SubEq {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("-=", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for SubEq {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(SubEq {
@@ -7161,7 +7125,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for SubEq {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "-=")
@@ -7170,14 +7134,14 @@ pub mod token {
             "`-=`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for SubEq {}
-    #[repr(C)]
+    #[repr]
     pub struct Tilde {
         pub spans: [Span; 1],
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Tilde<S: IntoSpans<[Span; 1]>>(spans: S) -> Tilde {
         Tilde { spans: spans.into_spans() }
     }
@@ -7188,29 +7152,29 @@ pub mod token {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Tilde {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Tilde {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Tilde {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Tilde")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Tilde {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Tilde {
         fn eq(&self, _other: &Tilde) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Tilde {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
@@ -7225,13 +7189,13 @@ pub mod token {
             unsafe { &mut *(self as *mut Self as *mut WithSpan) }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl ToTokens for Tilde {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             printing::punct("~", &self.spans, tokens);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Tilde {
         fn parse(input: ParseStream) -> Result<Self> {
             Ok(Tilde {
@@ -7239,7 +7203,7 @@ pub mod token {
             })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Tilde {
         fn peek(cursor: Cursor) -> bool {
             parsing::peek_punct(cursor, "~")
@@ -7248,13 +7212,13 @@ pub mod token {
             "`~`"
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Tilde {}
     pub struct Brace {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Brace<S: IntoSpans<[Span; 1]>>(span: S) -> Brace {
         Brace {
             span: span.into_spans()[0],
@@ -7265,34 +7229,34 @@ pub mod token {
             Brace { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Brace {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Brace {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Brace {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Brace")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Brace {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Brace {
         fn eq(&self, _other: &Brace) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Brace {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
     impl Brace {
-        #[cfg(feature = "printing")]
+        #[cfg]
         pub fn surround<F>(&self, tokens: &mut TokenStream, f: F)
         where
             F: FnOnce(&mut TokenStream),
@@ -7300,13 +7264,13 @@ pub mod token {
             printing::delim("{", self.span, tokens, f);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Brace {}
     pub struct Bracket {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Bracket<S: IntoSpans<[Span; 1]>>(span: S) -> Bracket {
         Bracket {
             span: span.into_spans()[0],
@@ -7317,34 +7281,34 @@ pub mod token {
             Bracket { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Bracket {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Bracket {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Bracket {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Bracket")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Bracket {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Bracket {
         fn eq(&self, _other: &Bracket) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Bracket {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
     impl Bracket {
-        #[cfg(feature = "printing")]
+        #[cfg]
         pub fn surround<F>(&self, tokens: &mut TokenStream, f: F)
         where
             F: FnOnce(&mut TokenStream),
@@ -7352,13 +7316,13 @@ pub mod token {
             printing::delim("[", self.span, tokens, f);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Bracket {}
     pub struct Paren {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Paren<S: IntoSpans<[Span; 1]>>(span: S) -> Paren {
         Paren {
             span: span.into_spans()[0],
@@ -7369,34 +7333,34 @@ pub mod token {
             Paren { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Paren {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Paren {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Paren {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Paren")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Paren {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Paren {
         fn eq(&self, _other: &Paren) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Paren {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
     impl Paren {
-        #[cfg(feature = "printing")]
+        #[cfg]
         pub fn surround<F>(&self, tokens: &mut TokenStream, f: F)
         where
             F: FnOnce(&mut TokenStream),
@@ -7404,13 +7368,13 @@ pub mod token {
             printing::delim("(", self.span, tokens, f);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Paren {}
     pub struct Group {
         pub span: Span,
     }
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[doc]
+    #[allow]
     pub fn Group<S: IntoSpans<[Span; 1]>>(span: S) -> Group {
         Group {
             span: span.into_spans()[0],
@@ -7421,34 +7385,34 @@ pub mod token {
             Group { span: Span::call_site() }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Copy for Group {}
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Group {
         fn clone(&self) -> Self {
             *self
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Group {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Group")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl cmp::Eq for Group {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Group {
         fn eq(&self, _other: &Group) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Group {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
     impl Group {
-        #[cfg(feature = "printing")]
+        #[cfg]
         pub fn surround<F>(&self, tokens: &mut TokenStream, f: F)
         where
             F: FnOnce(&mut TokenStream),
@@ -7456,10 +7420,10 @@ pub mod token {
             printing::delim(" ", self.span, tokens, f);
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl private::Sealed for Group {}
-    #[doc(hidden)]
-    #[cfg(feature = "parsing")]
+    #[doc]
+    #[cfg]
     pub mod parsing {
         use crate::buffer::Cursor;
         use crate::error::{Error, Result};
@@ -7518,11 +7482,11 @@ pub mod token {
                             Some((punct, rest)) => {
                                 spans[i] = punct.span();
                                 if punct.as_char() != ch {
-                                    break;
+                                    break
                                 } else if i == token.len() - 1 {
-                                    return Ok(((), rest));
+                                    return Ok(((), rest))
                                 } else if punct.spacing() != Spacing::Joint {
-                                    break;
+                                    break
                                 }
                                 cursor = rest;
                             }
@@ -7550,11 +7514,11 @@ pub mod token {
                 match cursor.punct() {
                     Some((punct, rest)) => {
                         if punct.as_char() != ch {
-                            break;
+                            break
                         } else if i == token.len() - 1 {
-                            return true;
+                            return true
                         } else if punct.spacing() != Spacing::Joint {
-                            break;
+                            break
                         }
                         cursor = rest;
                     }
@@ -7564,8 +7528,8 @@ pub mod token {
             false
         }
     }
-    #[doc(hidden)]
-    #[cfg(feature = "printing")]
+    #[doc]
+    #[cfg]
     pub mod printing {
         use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream};
         use quote::TokenStreamExt;
@@ -7626,22 +7590,22 @@ pub mod token {
     }
 }
 mod ident {
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::buffer::Cursor;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lookahead;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, ParseStream, Result};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::token::Token;
     pub use proc_macro2::Ident;
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn Ident(marker: lookahead::TokenMarker) -> Ident {
         match marker {}
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     fn accept_as_ident(ident: &Ident) -> bool {
         match ident.to_string().as_str() {
             "_" | "abstract" | "as" | "become" | "box" | "break" | "const" | "continue"
@@ -7654,7 +7618,7 @@ mod ident {
             _ => true,
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Parse for Ident {
         fn parse(input: ParseStream) -> Result<Self> {
             input
@@ -7668,7 +7632,7 @@ mod ident {
                 })
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl Token for Ident {
         fn peek(cursor: Cursor) -> bool {
             if let Some((ident, _rest)) = cursor.ident() {
@@ -7726,16 +7690,16 @@ mod ident {
     }
 }
 pub use crate::ident::Ident;
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod attr {
     use super::*;
     use crate::punctuated::Punctuated;
     use proc_macro2::TokenStream;
     use std::iter;
     use std::slice;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, ParseBuffer, ParseStream, Parser, Result};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::punctuated::Pair;
     pub struct Attribute {
         pub pound_token: crate::token::Pound,
@@ -7745,7 +7709,7 @@ mod attr {
         pub tokens: TokenStream,
     }
     impl Attribute {
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_meta(&self) -> Result<Meta> {
             fn clone_ident_segment(segment: &PathSegment) -> PathSegment {
                 PathSegment {
@@ -7780,11 +7744,11 @@ mod attr {
             );
             parse::Parser::parse2(parser, self.tokens.clone())
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_args<T: Parse>(&self) -> Result<T> {
             self.parse_args_with(T::parse)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_args_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             let parser = |input: ParseStream| {
                 let args = enter_args(self, input)?;
@@ -7792,7 +7756,7 @@ mod attr {
             };
             parser.parse2(self.tokens.clone())
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_outer(input: ParseStream) -> Result<Vec<Self>> {
             let mut attrs = Vec::new();
             while input.peek(crate::token::Pound) {
@@ -7800,14 +7764,14 @@ mod attr {
             }
             Ok(attrs)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_inner(input: ParseStream) -> Result<Vec<Self>> {
             let mut attrs = Vec::new();
             parsing::parse_inner(input, &mut attrs)?;
             Ok(attrs)
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     fn expected_parentheses(attr: &Attribute) -> String {
         let style = match attr.style {
             AttrStyle::Outer => "#",
@@ -7833,7 +7797,7 @@ mod attr {
             res
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     fn enter_args<'a>(
         attr: &Attribute,
         input: ParseStream<'a>,
@@ -7872,32 +7836,26 @@ mod attr {
                     content = parens.content;
                     parens.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
-            };
+                crate::__private::Err(error) => return crate::__private::Err(error),
+            }
         } else if input.peek(token::Bracket) {
             match crate::group::parse_brackets(&input) {
                 crate::__private::Ok(brackets) => {
                     content = brackets.content;
                     brackets.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
-            };
+                crate::__private::Err(error) => return crate::__private::Err(error),
+            }
         } else if input.peek(token::Brace) {
             match crate::group::parse_braces(&input) {
                 crate::__private::Ok(braces) => {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
-            };
+                crate::__private::Err(error) => return crate::__private::Err(error),
+            }
         } else {
-            return Err(input.error("unexpected token in attribute arguments"));
+            return Err(input.error("unexpected token in attribute arguments"))
         }
         if input.is_empty() {
             Ok(content)
@@ -8006,7 +7964,7 @@ mod attr {
             self.iter().filter(is_inner)
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -8030,9 +7988,7 @@ mod attr {
                         content = brackets.content;
                         brackets.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 },
                 path: content.call(Path::parse_mod_style)?,
                 tokens: content.parse()?,
@@ -8048,9 +8004,7 @@ mod attr {
                         content = brackets.content;
                         brackets.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 },
                 path: content.call(Path::parse_mod_style)?,
                 tokens: content.parse()?,
@@ -8071,9 +8025,9 @@ mod attr {
                         segments.push_punct(punct);
                     }
                     if segments.is_empty() {
-                        return Err(input.error("expected path"));
+                        return Err(input.error("expected path"))
                     } else if segments.trailing_punct() {
-                        return Err(input.error("expected path segment"));
+                        return Err(input.error("expected path segment"))
                     }
                     segments
                 },
@@ -8133,9 +8087,7 @@ mod attr {
                         content = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 },
                 nested: content.parse_terminated(NestedMeta::parse)?,
             })
@@ -8151,7 +8103,7 @@ mod attr {
             })
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -8176,12 +8128,7 @@ mod attr {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.path.to_tokens(tokens);
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.nested.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.nested.to_tokens(tokens) });
             }
         }
         impl ToTokens for MetaNameValue {
@@ -8193,7 +8140,7 @@ mod attr {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::attr::{
     AttrStyle, Attribute, AttributeArgs, Meta, MetaList, MetaNameValue, NestedMeta,
 };
@@ -8251,7 +8198,7 @@ mod bigint {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod data {
     use super::*;
     use crate::punctuated::Punctuated;
@@ -8398,7 +8345,7 @@ mod data {
         pub in_token: Option<crate::token::In>,
         pub path: Box<Path>,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -8568,7 +8515,7 @@ mod data {
                     )
                 }
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             pub(crate) fn is_some(&self) -> bool {
                 match self {
                     Visibility::Inherited => false,
@@ -8577,7 +8524,7 @@ mod data {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::print::TokensOrDefault;
@@ -8597,23 +8544,13 @@ mod data {
         impl ToTokens for FieldsNamed {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.brace_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.named.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.named.to_tokens(tokens) });
             }
         }
         impl ToTokens for FieldsUnnamed {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.unnamed.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.unnamed.to_tokens(tokens) });
             }
         }
         impl ToTokens for Field {
@@ -8652,24 +8589,24 @@ mod data {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::data::{
     Field, Fields, FieldsNamed, FieldsUnnamed, Variant, VisCrate, VisPublic,
     VisRestricted, Visibility,
 };
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod expr {
     use super::*;
     use crate::punctuated::Punctuated;
-    #[cfg(feature = "full")]
+    #[cfg]
     use crate::reserved::Reserved;
     use proc_macro2::{Span, TokenStream};
-    #[cfg(feature = "printing")]
+    #[cfg]
     use quote::IdentFragment;
-    #[cfg(feature = "printing")]
+    #[cfg]
     use std::fmt::{self, Display};
     use std::hash::{Hash, Hasher};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use std::mem;
     #[non_exhaustive]
     pub enum Expr {
@@ -8955,34 +8892,34 @@ mod expr {
             }
         }
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprArray {
         pub attrs: Vec<Attribute>,
         pub bracket_token: token::Bracket,
         pub elems: Punctuated<Expr, crate::token::Comma>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprAssign {
         pub attrs: Vec<Attribute>,
         pub left: Box<Expr>,
         pub eq_token: crate::token::Eq,
         pub right: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprAssignOp {
         pub attrs: Vec<Attribute>,
         pub left: Box<Expr>,
         pub op: BinOp,
         pub right: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprAsync {
         pub attrs: Vec<Attribute>,
         pub async_token: crate::token::Async,
         pub capture: Option<crate::token::Move>,
         pub block: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprAwait {
         pub attrs: Vec<Attribute>,
         pub base: Box<Expr>,
@@ -8995,19 +8932,19 @@ mod expr {
         pub op: BinOp,
         pub right: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprBlock {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
         pub block: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprBox {
         pub attrs: Vec<Attribute>,
         pub box_token: crate::token::Box,
         pub expr: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprBreak {
         pub attrs: Vec<Attribute>,
         pub break_token: crate::token::Break,
@@ -9026,7 +8963,7 @@ mod expr {
         pub as_token: crate::token::As,
         pub ty: Box<Type>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprClosure {
         pub attrs: Vec<Attribute>,
         pub movability: Option<crate::token::Static>,
@@ -9038,7 +8975,7 @@ mod expr {
         pub output: ReturnType,
         pub body: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprContinue {
         pub attrs: Vec<Attribute>,
         pub continue_token: crate::token::Continue,
@@ -9050,7 +8987,7 @@ mod expr {
         pub dot_token: crate::token::Dot,
         pub member: Member,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprForLoop {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
@@ -9060,13 +8997,13 @@ mod expr {
         pub expr: Box<Expr>,
         pub body: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprGroup {
         pub attrs: Vec<Attribute>,
         pub group_token: token::Group,
         pub expr: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprIf {
         pub attrs: Vec<Attribute>,
         pub if_token: crate::token::If,
@@ -9080,7 +9017,7 @@ mod expr {
         pub bracket_token: token::Bracket,
         pub index: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprLet {
         pub attrs: Vec<Attribute>,
         pub let_token: crate::token::Let,
@@ -9092,19 +9029,19 @@ mod expr {
         pub attrs: Vec<Attribute>,
         pub lit: Lit,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprLoop {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
         pub loop_token: crate::token::Loop,
         pub body: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprMacro {
         pub attrs: Vec<Attribute>,
         pub mac: Macro,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprMatch {
         pub attrs: Vec<Attribute>,
         pub match_token: crate::token::Match,
@@ -9112,7 +9049,7 @@ mod expr {
         pub brace_token: token::Brace,
         pub arms: Vec<Arm>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprMethodCall {
         pub attrs: Vec<Attribute>,
         pub receiver: Box<Expr>,
@@ -9132,14 +9069,14 @@ mod expr {
         pub qself: Option<QSelf>,
         pub path: Path,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprRange {
         pub attrs: Vec<Attribute>,
         pub from: Option<Box<Expr>>,
         pub limits: RangeLimits,
         pub to: Option<Box<Expr>>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprReference {
         pub attrs: Vec<Attribute>,
         pub and_token: crate::token::And,
@@ -9147,7 +9084,7 @@ mod expr {
         pub mutability: Option<crate::token::Mut>,
         pub expr: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprRepeat {
         pub attrs: Vec<Attribute>,
         pub bracket_token: token::Bracket,
@@ -9155,13 +9092,13 @@ mod expr {
         pub semi_token: crate::token::Semi,
         pub len: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprReturn {
         pub attrs: Vec<Attribute>,
         pub return_token: crate::token::Return,
         pub expr: Option<Box<Expr>>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprStruct {
         pub attrs: Vec<Attribute>,
         pub path: Path,
@@ -9170,25 +9107,25 @@ mod expr {
         pub dot2_token: Option<crate::token::Dot2>,
         pub rest: Option<Box<Expr>>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprTry {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
         pub question_token: crate::token::Question,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprTryBlock {
         pub attrs: Vec<Attribute>,
         pub try_token: crate::token::Try,
         pub block: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprTuple {
         pub attrs: Vec<Attribute>,
         pub paren_token: token::Paren,
         pub elems: Punctuated<Expr, crate::token::Comma>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprType {
         pub attrs: Vec<Attribute>,
         pub expr: Box<Expr>,
@@ -9200,13 +9137,13 @@ mod expr {
         pub op: UnOp,
         pub expr: Box<Expr>,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprUnsafe {
         pub attrs: Vec<Attribute>,
         pub unsafe_token: crate::token::Unsafe,
         pub block: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprWhile {
         pub attrs: Vec<Attribute>,
         pub label: Option<Label>,
@@ -9214,14 +9151,14 @@ mod expr {
         pub cond: Box<Expr>,
         pub body: Block,
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     pub struct ExprYield {
         pub attrs: Vec<Attribute>,
         pub yield_token: crate::token::Yield,
         pub expr: Option<Box<Expr>>,
     }
     impl Expr {
-        #[cfg(all(feature = "parsing", not(syn_no_const_vec_new)))]
+        #[cfg]
         const DUMMY: Self = Expr::Path(ExprPath {
             attrs: Vec::new(),
             qself: None,
@@ -9230,7 +9167,7 @@ mod expr {
                 segments: Punctuated::new(),
             },
         });
-        #[cfg(all(feature = "parsing", feature = "full"))]
+        #[cfg]
         pub(crate) fn replace_attrs(&mut self, new: Vec<Attribute>) -> Vec<Attribute> {
             match self {
                 Expr::Box(ExprBox { attrs, .. })
@@ -9313,7 +9250,7 @@ mod expr {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl IdentFragment for Member {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             match self {
@@ -9356,7 +9293,7 @@ mod expr {
             self.index.hash(state);
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl IdentFragment for Index {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             Display::fmt(&self.index, formatter)
@@ -9397,8 +9334,8 @@ mod expr {
         HalfOpen(crate::token::Dot2),
         Closed(crate::token::DotDotEq),
     }
-    #[cfg(any(feature = "parsing", feature = "printing"))]
-    #[cfg(feature = "full")]
+    #[cfg]
+    #[cfg]
     pub(crate) fn requires_terminator(expr: &Expr) -> bool {
         match *expr {
             Expr::Unsafe(..)
@@ -9413,22 +9350,22 @@ mod expr {
             _ => true,
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub(crate) mod parsing {
         use super::*;
-        #[cfg(feature = "full")]
+        #[cfg]
         use crate::parse::ParseBuffer;
         use crate::parse::{Parse, ParseStream, Result};
         use crate::path;
-        #[cfg(feature = "full")]
+        #[cfg]
         use proc_macro2::TokenTree;
         use std::cmp::Ordering;
-        #[allow(non_camel_case_types)]
+        #[allow]
         pub struct raw {
             pub span: crate::__private::Span,
         }
-        #[doc(hidden)]
-        #[allow(dead_code, non_snake_case)]
+        #[doc]
+        #[allow]
         pub fn raw<__S: crate::__private::IntoSpans<[crate::__private::Span; 1]>>(
             span: __S,
         ) -> raw {
@@ -9478,7 +9415,7 @@ mod expr {
             }
         }
         impl crate::__private::Copy for raw {}
-        #[allow(clippy::expl_impl_clone_on_copy)]
+        #[allow]
         impl crate::__private::Clone for raw {
             fn clone(&self) -> Self {
                 *self
@@ -9553,7 +9490,7 @@ mod expr {
             }
         }
         impl Expr {
-            #[cfg(feature = "full")]
+            #[cfg]
             pub fn parse_without_eager_brace(input: ParseStream) -> Result<Expr> {
                 ambiguous_expr(input, AllowStruct(false))
             }
@@ -9582,7 +9519,7 @@ mod expr {
                 Some(this.cmp(&other))
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn parse_expr(
             input: ParseStream,
             mut lhs: Expr,
@@ -9604,9 +9541,9 @@ mod expr {
                         if next > precedence
                             || next == precedence && precedence == Precedence::Assign
                         {
-                            rhs = parse_expr(input, rhs, allow_struct, next)?;
+                            rhs = parse_expr(input, rhs, allow_struct, next)?
                         } else {
-                            break;
+                            break
                         }
                     }
                     lhs = if precedence == Precedence::Assign {
@@ -9633,9 +9570,9 @@ mod expr {
                     loop {
                         let next = peek_precedence(input);
                         if next >= Precedence::Assign {
-                            rhs = parse_expr(input, rhs, allow_struct, next)?;
+                            rhs = parse_expr(input, rhs, allow_struct, next)?
                         } else {
-                            break;
+                            break
                         }
                     }
                     lhs = Expr::Assign(ExprAssign {
@@ -9658,9 +9595,9 @@ mod expr {
                         loop {
                             let next = peek_precedence(input);
                             if next > Precedence::Range {
-                                rhs = parse_expr(input, rhs, allow_struct, next)?;
+                                rhs = parse_expr(input, rhs, allow_struct, next)?
                             } else {
-                                break;
+                                break
                             }
                         }
                         Some(rhs)
@@ -9694,7 +9631,7 @@ mod expr {
                         ty: Box::new(ty),
                     });
                 } else {
-                    break;
+                    break
                 }
             }
             Ok(lhs)
@@ -9723,7 +9660,7 @@ mod expr {
             let lhs = unary_expr(input, allow_struct)?;
             parse_expr(input, lhs, allow_struct, Precedence::Any)
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_attrs(input: ParseStream) -> Result<Vec<Attribute>> {
             let mut attrs = Vec::new();
             loop {
@@ -9741,14 +9678,14 @@ mod expr {
                     }
                     attrs.push(attr);
                 } else if input.peek(crate::token::Pound) {
-                    attrs.push(input.call(attr::parsing::single_parse_outer)?);
+                    attrs.push(input.call(attr::parsing::single_parse_outer)?)
                 } else {
-                    break;
+                    break
                 }
             }
             Ok(attrs)
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn unary_expr(input: ParseStream, allow_struct: AllowStruct) -> Result<Expr> {
             let begin = input.fork();
             let attrs = input.call(expr_attrs)?;
@@ -9790,7 +9727,7 @@ mod expr {
                 trailer_expr(begin, attrs, input, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn trailer_expr(
             begin: ParseBuffer,
             mut attrs: Vec<Attribute>,
@@ -9800,7 +9737,7 @@ mod expr {
             let atom = atom_expr(input, allow_struct)?;
             let mut e = trailer_helper(input, atom)?;
             if let Expr::Verbatim(tokens) = &mut e {
-                *tokens = verbatim::between(begin, input);
+                *tokens = verbatim::between(begin, input)
             } else {
                 let inner_attrs = e.replace_attrs(Vec::new());
                 attrs.extend(inner_attrs);
@@ -9808,7 +9745,7 @@ mod expr {
             }
             Ok(e)
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn trailer_helper(input: ParseStream, mut e: Expr) -> Result<Expr> {
             loop {
                 if input.peek(token::Paren) {
@@ -9909,14 +9846,14 @@ mod expr {
                         attrs: Vec::new(),
                         expr: Box::new(e),
                         question_token: input.parse()?,
-                    });
+                    })
                 } else {
-                    break;
+                    break
                 }
             }
             Ok(e)
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn atom_expr(input: ParseStream, allow_struct: AllowStruct) -> Result<Expr> {
             if input.peek(token::Group) && !input.peek2(crate::token::Colon2)
                 && !input.peek2(crate::token::Bang) && !input.peek2(token::Brace)
@@ -9996,7 +9933,7 @@ mod expr {
                 } else if input.peek(token::Brace) {
                     Expr::Block(input.parse()?)
                 } else {
-                    return Err(input.error("expected loop or block expression"));
+                    return Err(input.error("expected loop or block expression"))
                 };
                 match &mut expr {
                     Expr::While(ExprWhile { label, .. })
@@ -10014,7 +9951,7 @@ mod expr {
                 Err(input.error("expected expression"))
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn path_or_macro_or_struct(
             input: ParseStream,
             allow_struct: AllowStruct,
@@ -10029,9 +9966,7 @@ mod expr {
                     match segment.arguments {
                         PathArguments::None => {}
                         PathArguments::AngleBracketed(_)
-                        | PathArguments::Parenthesized(_) => {
-                            contains_arguments = true;
-                        }
+                        | PathArguments::Parenthesized(_) => contains_arguments = true,
                     }
                 }
                 if !contains_arguments {
@@ -10061,7 +9996,7 @@ mod expr {
                 Ok(Expr::Path(expr))
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprMacro {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprMacro {
@@ -10070,7 +10005,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn paren_or_tuple(input: ParseStream) -> Result<Expr> {
             let content;
             let paren_token = match crate::group::parse_parens(&input) {
@@ -10078,9 +10013,7 @@ mod expr {
                     content = parens.content;
                     parens.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             if content.is_empty() {
                 return Ok(
@@ -10120,7 +10053,7 @@ mod expr {
                 }),
             )
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn array_or_repeat(input: ParseStream) -> Result<Expr> {
             let content;
             let bracket_token = match crate::group::parse_brackets(&input) {
@@ -10128,9 +10061,7 @@ mod expr {
                     content = brackets.content;
                     brackets.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             if content.is_empty() {
                 return Ok(
@@ -10177,7 +10108,7 @@ mod expr {
                 Err(content.error("expected `,` or `;`"))
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprArray {
             fn parse(input: ParseStream) -> Result<Self> {
                 let content;
@@ -10186,9 +10117,7 @@ mod expr {
                         content = brackets.content;
                         brackets.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 let mut elems = Punctuated::new();
                 while !content.is_empty() {
@@ -10207,7 +10136,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprRepeat {
             fn parse(input: ParseStream) -> Result<Self> {
                 let content;
@@ -10228,7 +10157,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub(crate) fn expr_early(input: ParseStream) -> Result<Expr> {
             let mut attrs = input.call(expr_attrs)?;
             let mut expr = if input.peek(crate::token::If) {
@@ -10277,7 +10206,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_group(input: ParseStream) -> Result<ExprGroup> {
             let group = crate::group::parse_group(input)?;
             Ok(ExprGroup {
@@ -10286,7 +10215,7 @@ mod expr {
                 expr: group.content.parse()?,
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprParen {
             fn parse(input: ParseStream) -> Result<Self> {
                 expr_paren(input)
@@ -10301,14 +10230,12 @@ mod expr {
                         content = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 },
                 expr: content.parse()?,
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for GenericMethodArgument {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.peek(Lit) {
@@ -10322,7 +10249,7 @@ mod expr {
                 input.parse().map(GenericMethodArgument::Type)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for MethodTurbofish {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(MethodTurbofish {
@@ -10348,7 +10275,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprLet {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprLet {
@@ -10364,7 +10291,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprIf {
             fn parse(input: ParseStream) -> Result<Self> {
                 let attrs = input.call(Attribute::parse_outer)?;
@@ -10383,7 +10310,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn else_block(input: ParseStream) -> Result<(crate::token::Else, Box<Expr>)> {
             let else_token: crate::token::Else = input.parse()?;
             let lookahead = input.lookahead1();
@@ -10396,11 +10323,11 @@ mod expr {
                     block: input.parse()?,
                 })
             } else {
-                return Err(lookahead.error());
+                return Err(lookahead.error())
             };
             Ok((else_token, Box::new(else_branch)))
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprForLoop {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -10415,9 +10342,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let stmts = content.call(Block::parse_within)?;
@@ -10432,7 +10357,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprLoop {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -10444,9 +10369,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let stmts = content.call(Block::parse_within)?;
@@ -10458,7 +10381,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprMatch {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -10470,9 +10393,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let mut arms = Vec::new();
@@ -10488,7 +10409,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprAssign {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10505,7 +10426,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprAssignOp {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10525,7 +10446,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprAwait {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10542,7 +10463,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprBinary {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10559,7 +10480,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprCall {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10579,7 +10500,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprCast {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10596,7 +10517,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprField {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10613,7 +10534,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprIndex {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10630,7 +10551,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprMethodCall {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10647,7 +10568,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprRange {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10664,7 +10585,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprTry {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10681,7 +10602,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprTuple {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10698,7 +10619,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(all(feature = "full", feature = "printing"))]
+        #[cfg]
         impl Parse for ExprType {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut expr: Expr = input.parse()?;
@@ -10718,7 +10639,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprBox {
             fn parse(input: ParseStream) -> Result<Self> {
                 let attrs = Vec::new();
@@ -10726,7 +10647,7 @@ mod expr {
                 expr_box(input, attrs, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_box(
             input: ParseStream,
             attrs: Vec<Attribute>,
@@ -10738,7 +10659,7 @@ mod expr {
                 expr: Box::new(unary_expr(input, allow_struct)?),
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprUnary {
             fn parse(input: ParseStream) -> Result<Self> {
                 let attrs = Vec::new();
@@ -10746,7 +10667,7 @@ mod expr {
                 expr_unary(input, attrs, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_unary(
             input: ParseStream,
             attrs: Vec<Attribute>,
@@ -10758,14 +10679,14 @@ mod expr {
                 expr: Box::new(unary_expr(input, allow_struct)?),
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprClosure {
             fn parse(input: ParseStream) -> Result<Self> {
                 let allow_struct = AllowStruct(true);
                 expr_closure(input, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprReference {
             fn parse(input: ParseStream) -> Result<Self> {
                 let allow_struct = AllowStruct(true);
@@ -10778,21 +10699,21 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprBreak {
             fn parse(input: ParseStream) -> Result<Self> {
                 let allow_struct = AllowStruct(true);
                 expr_break(input, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprReturn {
             fn parse(input: ParseStream) -> Result<Self> {
                 let allow_struct = AllowStruct(true);
                 expr_ret(input, allow_struct)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprTryBlock {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprTryBlock {
@@ -10802,7 +10723,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprYield {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprYield {
@@ -10820,7 +10741,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_closure(
             input: ParseStream,
             allow_struct: AllowStruct,
@@ -10870,7 +10791,7 @@ mod expr {
                 body: Box::new(body),
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprAsync {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprAsync {
@@ -10881,7 +10802,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn closure_arg(input: ParseStream) -> Result<Pat> {
             let attrs = input.call(Attribute::parse_outer)?;
             let mut pat: Pat = input.parse()?;
@@ -10920,7 +10841,7 @@ mod expr {
                 Ok(pat)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprWhile {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -10933,9 +10854,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let stmts = content.call(Block::parse_within)?;
@@ -10948,7 +10867,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for Label {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(Label {
@@ -10957,13 +10876,13 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for Option<Label> {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.peek(Lifetime) { input.parse().map(Some) } else { Ok(None) }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprContinue {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(ExprContinue {
@@ -10973,7 +10892,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_break(
             input: ParseStream,
             allow_struct: AllowStruct,
@@ -10995,7 +10914,7 @@ mod expr {
                 },
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_ret(
             input: ParseStream,
             allow_struct: AllowStruct,
@@ -11015,7 +10934,7 @@ mod expr {
                 },
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for FieldValue {
             fn parse(input: ParseStream) -> Result<Self> {
                 let attrs = input.call(Attribute::parse_outer)?;
@@ -11044,14 +10963,14 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprStruct {
             fn parse(input: ParseStream) -> Result<Self> {
                 let path: Path = input.parse()?;
                 expr_struct_helper(input, path)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_struct_helper(input: ParseStream, path: Path) -> Result<ExprStruct> {
             let content;
             let brace_token = match crate::group::parse_braces(&input) {
@@ -11059,9 +10978,7 @@ mod expr {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             let mut fields = Punctuated::new();
             while !content.is_empty() {
@@ -11095,7 +11012,7 @@ mod expr {
                 rest: None,
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprUnsafe {
             fn parse(input: ParseStream) -> Result<Self> {
                 let unsafe_token: crate::token::Unsafe = input.parse()?;
@@ -11105,9 +11022,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 let inner_attrs = content.call(Attribute::parse_inner)?;
                 let stmts = content.call(Block::parse_within)?;
@@ -11118,7 +11033,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub(crate) fn expr_const(input: ParseStream) -> Result<TokenStream> {
             let begin = input.fork();
             input.parse::<crate::token::Const>()?;
@@ -11128,15 +11043,13 @@ mod expr {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             content.call(Attribute::parse_inner)?;
             content.call(Block::parse_within)?;
             Ok(verbatim::between(begin, input))
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for ExprBlock {
             fn parse(input: ParseStream) -> Result<Self> {
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -11147,9 +11060,7 @@ mod expr {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let stmts = content.call(Block::parse_within)?;
@@ -11160,7 +11071,7 @@ mod expr {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn expr_range(
             input: ParseStream,
             allow_struct: AllowStruct,
@@ -11184,7 +11095,7 @@ mod expr {
                 },
             })
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for RangeLimits {
             fn parse(input: ParseStream) -> Result<Self> {
                 let lookahead = input.lookahead1();
@@ -11202,7 +11113,7 @@ mod expr {
         }
         impl Parse for ExprPath {
             fn parse(input: ParseStream) -> Result<Self> {
-                #[cfg(feature = "full")]
+                #[cfg]
                 let attrs = input.call(Attribute::parse_outer)?;
                 let (qself, path) = path::parsing::qpath(input, true)?;
                 Ok(ExprPath { attrs, qself, path })
@@ -11219,7 +11130,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for Arm {
             fn parse(input: ParseStream) -> Result<Arm> {
                 let requires_comma;
@@ -11280,7 +11191,7 @@ mod expr {
             for part in float_repr.split('.') {
                 let index = crate::parse_str(part)
                     .map_err(|err| Error::new(float.span(), err))?;
-                #[cfg(not(syn_no_const_vec_new))]
+                #[cfg]
                 let base = mem::replace(e, Expr::DUMMY);
                 *e = Expr::Field(ExprField {
                     attrs: Vec::new(),
@@ -11292,7 +11203,7 @@ mod expr {
             }
             Ok(!trailing_dot)
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Member {
             fn is_named(&self) -> bool {
                 match *self {
@@ -11321,7 +11232,7 @@ mod expr {
             } else if input.peek(token::Paren) {
                 "a function call"
             } else {
-                return Ok(());
+                return Ok(())
             };
             let msg = {
                 let res = ::alloc::fmt::format(
@@ -11335,39 +11246,34 @@ mod expr {
             Err(input.error(msg))
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub(crate) mod printing {
         use super::*;
-        #[cfg(feature = "full")]
+        #[cfg]
         use crate::attr::FilterAttrs;
         use proc_macro2::{Literal, TokenStream};
         use quote::{ToTokens, TokenStreamExt};
-        #[cfg(feature = "full")]
+        #[cfg]
         fn wrap_bare_struct(tokens: &mut TokenStream, e: &Expr) {
             if let Expr::Struct(_) = *e {
                 token::Paren::default()
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            e.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { e.to_tokens(tokens) })
             } else {
-                e.to_tokens(tokens);
+                e.to_tokens(tokens)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub(crate) fn outer_attrs_to_tokens(
             attrs: &[Attribute],
             tokens: &mut TokenStream,
         ) {
             tokens.append_all(attrs.outer());
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn inner_attrs_to_tokens(attrs: &[Attribute], tokens: &mut TokenStream) {
             tokens.append_all(attrs.inner());
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprBox {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11375,17 +11281,12 @@ mod expr {
                 self.expr.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprArray {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.bracket_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elems.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elems.to_tokens(tokens) });
             }
         }
         impl ToTokens for ExprCall {
@@ -11393,15 +11294,10 @@ mod expr {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.func.to_tokens(tokens);
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.args.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.args.to_tokens(tokens) });
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprMethodCall {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11410,15 +11306,10 @@ mod expr {
                 self.method.to_tokens(tokens);
                 self.turbofish.to_tokens(tokens);
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.args.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.args.to_tokens(tokens) });
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for MethodTurbofish {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.colon2_token.to_tokens(tokens);
@@ -11427,7 +11318,7 @@ mod expr {
                 self.gt_token.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for GenericMethodArgument {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 match self {
@@ -11436,7 +11327,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprTuple {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11481,7 +11372,7 @@ mod expr {
                 self.ty.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprType {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11490,7 +11381,7 @@ mod expr {
                 self.ty.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn maybe_wrap_else(
             tokens: &mut TokenStream,
             else_: &Option<(crate::token::Else, Box<Expr>)>,
@@ -11498,22 +11389,15 @@ mod expr {
             if let Some((else_token, else_)) = else_ {
                 else_token.to_tokens(tokens);
                 match **else_ {
-                    Expr::If(_) | Expr::Block(_) => {
-                        else_.to_tokens(tokens);
-                    }
+                    Expr::If(_) | Expr::Block(_) => else_.to_tokens(tokens),
                     _ => {
                         token::Brace::default()
-                            .surround(
-                                tokens,
-                                |tokens| {
-                                    else_.to_tokens(tokens);
-                                },
-                            );
+                            .surround(tokens, |tokens| { else_.to_tokens(tokens) })
                     }
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprLet {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11523,7 +11407,7 @@ mod expr {
                 wrap_bare_struct(tokens, &self.expr);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprIf {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11533,7 +11417,7 @@ mod expr {
                 maybe_wrap_else(tokens, &self.else_branch);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprWhile {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11551,7 +11435,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprForLoop {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11571,7 +11455,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprLoop {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11588,7 +11472,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprMatch {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11612,7 +11496,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprAsync {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11621,7 +11505,7 @@ mod expr {
                 self.block.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprAwait {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11630,7 +11514,7 @@ mod expr {
                 self.await_token.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprTryBlock {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11638,7 +11522,7 @@ mod expr {
                 self.block.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprYield {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11646,7 +11530,7 @@ mod expr {
                 self.expr.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprClosure {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11660,7 +11544,7 @@ mod expr {
                 self.body.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprUnsafe {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11676,7 +11560,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprBlock {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11692,7 +11576,7 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprAssign {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11701,7 +11585,7 @@ mod expr {
                 self.right.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprAssignOp {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11738,15 +11622,10 @@ mod expr {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.expr.to_tokens(tokens);
                 self.bracket_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.index.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.index.to_tokens(tokens) });
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for RangeLimits {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 match self {
@@ -11755,7 +11634,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprRange {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11770,7 +11649,7 @@ mod expr {
                 path::printing::print_path(tokens, &self.qself, &self.path);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprReference {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11779,7 +11658,7 @@ mod expr {
                 self.expr.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprBreak {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11788,7 +11667,7 @@ mod expr {
                 self.expr.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprContinue {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11796,7 +11675,7 @@ mod expr {
                 self.label.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprReturn {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11804,14 +11683,14 @@ mod expr {
                 self.expr.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprMacro {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.mac.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprStruct {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11822,16 +11701,16 @@ mod expr {
                         |tokens| {
                             self.fields.to_tokens(tokens);
                             if let Some(dot2_token) = &self.dot2_token {
-                                dot2_token.to_tokens(tokens);
+                                dot2_token.to_tokens(tokens)
                             } else if self.rest.is_some() {
-                                crate::token::Dot2(Span::call_site()).to_tokens(tokens);
+                                crate::token::Dot2(Span::call_site()).to_tokens(tokens)
                             }
                             self.rest.to_tokens(tokens);
                         },
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprRepeat {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11846,32 +11725,22 @@ mod expr {
                     );
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprGroup {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.group_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.expr.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.expr.to_tokens(tokens) });
             }
         }
         impl ToTokens for ExprParen {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.expr.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.expr.to_tokens(tokens) });
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for ExprTry {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11879,14 +11748,14 @@ mod expr {
                 self.question_token.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for Label {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.name.to_tokens(tokens);
                 self.colon_token.to_tokens(tokens);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for FieldValue {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 outer_attrs_to_tokens(&self.attrs, tokens);
@@ -11897,7 +11766,7 @@ mod expr {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl ToTokens for Arm {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 tokens.append_all(&self.attrs);
@@ -11913,11 +11782,11 @@ mod expr {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 pub use crate::expr::{
     Arm, FieldValue, GenericMethodArgument, Label, MethodTurbofish, RangeLimits,
 };
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::expr::{
     Expr, ExprArray, ExprAssign, ExprAssignOp, ExprAsync, ExprAwait, ExprBinary,
     ExprBlock, ExprBox, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprContinue,
@@ -11926,13 +11795,13 @@ pub use crate::expr::{
     ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprType,
     ExprUnary, ExprUnsafe, ExprWhile, ExprYield, Index, Member,
 };
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod generics {
     use super::*;
     use crate::punctuated::{Iter, IterMut, Punctuated};
-    #[cfg(all(feature = "printing", feature = "extra-traits"))]
+    #[cfg]
     use std::fmt::{self, Debug};
-    #[cfg(all(feature = "printing", feature = "extra-traits"))]
+    #[cfg]
     use std::hash::{Hash, Hasher};
     pub struct Generics {
         pub lt_token: Option<crate::token::Lt>,
@@ -12119,13 +11988,13 @@ mod generics {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub struct ImplGenerics<'a>(&'a Generics);
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub struct TypeGenerics<'a>(&'a Generics);
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub struct Turbofish<'a>(&'a Generics);
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl Generics {
         pub fn split_for_impl(
             &self,
@@ -12133,85 +12002,85 @@ mod generics {
             (ImplGenerics(self), TypeGenerics(self), self.where_clause.as_ref())
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl<'a> Clone for ImplGenerics<'a> {
         fn clone(&self) -> Self {
             ImplGenerics(self.0)
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Debug for ImplGenerics<'a> {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.debug_tuple("ImplGenerics").field(self.0).finish()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Eq for ImplGenerics<'a> {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> PartialEq for ImplGenerics<'a> {
         fn eq(&self, other: &Self) -> bool {
             self.0 == other.0
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Hash for ImplGenerics<'a> {
         fn hash<H: Hasher>(&self, state: &mut H) {
             self.0.hash(state);
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl<'a> Clone for TypeGenerics<'a> {
         fn clone(&self) -> Self {
             TypeGenerics(self.0)
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Debug for TypeGenerics<'a> {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.debug_tuple("TypeGenerics").field(self.0).finish()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Eq for TypeGenerics<'a> {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> PartialEq for TypeGenerics<'a> {
         fn eq(&self, other: &Self) -> bool {
             self.0 == other.0
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Hash for TypeGenerics<'a> {
         fn hash<H: Hasher>(&self, state: &mut H) {
             self.0.hash(state);
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl<'a> Clone for Turbofish<'a> {
         fn clone(&self) -> Self {
             Turbofish(self.0)
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Debug for Turbofish<'a> {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.debug_tuple("Turbofish").field(self.0).finish()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Eq for Turbofish<'a> {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> PartialEq for Turbofish<'a> {
         fn eq(&self, other: &Self) -> bool {
             self.0 == other.0
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<'a> Hash for Turbofish<'a> {
         fn hash<H: Hasher>(&self, state: &mut H) {
             self.0.hash(state);
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     impl<'a> TypeGenerics<'a> {
         pub fn as_turbofish(&self) -> Turbofish {
             Turbofish(self.0)
@@ -12336,7 +12205,7 @@ mod generics {
         pub eq_token: crate::token::Eq,
         pub rhs_ty: Type,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -12361,7 +12230,7 @@ mod generics {
                                     attrs,
                                     ..input.parse()?
                                 }),
-                            );
+                            )
                     } else if lookahead.peek(Ident) {
                         params
                             .push_value(
@@ -12369,7 +12238,7 @@ mod generics {
                                     attrs,
                                     ..input.parse()?
                                 }),
-                            );
+                            )
                     } else if lookahead.peek(crate::token::Const) {
                         params
                             .push_value(
@@ -12377,7 +12246,7 @@ mod generics {
                                     attrs,
                                     ..input.parse()?
                                 }),
-                            );
+                            )
                     } else if input.peek(crate::token::Underscore) {
                         params
                             .push_value(
@@ -12389,9 +12258,9 @@ mod generics {
                                     eq_token: None,
                                     default: None,
                                 }),
-                            );
+                            )
                     } else {
-                        return Err(lookahead.error());
+                        return Err(lookahead.error())
                     }
                     if input.peek(crate::token::Gt) {
                         break;
@@ -12585,7 +12454,7 @@ mod generics {
         }
         impl Parse for TraitBound {
             fn parse(input: ParseStream) -> Result<Self> {
-                #[cfg(feature = "full")]
+                #[cfg]
                 let tilde_const = if input.peek(crate::token::Tilde)
                     && input.peek2(crate::token::Const)
                 {
@@ -12607,7 +12476,7 @@ mod generics {
                     let parenthesized = PathArguments::Parenthesized(args);
                     path.segments.last_mut().unwrap().arguments = parenthesized;
                 }
-                #[cfg(feature = "full")]
+                #[cfg]
                 {
                     if let Some((tilde_token, const_token)) = tilde_const {
                         path.segments
@@ -12768,15 +12637,15 @@ mod generics {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
         use crate::print::TokensOrDefault;
-        #[cfg(feature = "full")]
+        #[cfg]
         use crate::punctuated::Pair;
         use proc_macro2::TokenStream;
-        #[cfg(feature = "full")]
+        #[cfg]
         use proc_macro2::TokenTree;
         use quote::{ToTokens, TokenStreamExt};
         impl ToTokens for Generics {
@@ -12883,12 +12752,8 @@ mod generics {
                                 "internal error: entered unreachable code",
                             )
                         }
-                        GenericParam::Type(param) => {
-                            param.ident.to_tokens(tokens);
-                        }
-                        GenericParam::Const(param) => {
-                            param.ident.to_tokens(tokens);
-                        }
+                        GenericParam::Type(param) => param.ident.to_tokens(tokens),
+                        GenericParam::Const(param) => param.ident.to_tokens(tokens),
                     }
                     param.punct().to_tokens(tokens);
                 }
@@ -12930,7 +12795,7 @@ mod generics {
                     self.bounds.to_tokens(tokens);
                 }
                 if let Some(default) = &self.default {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     {
                         if self.eq_token.is_none() {
                             if let Type::Verbatim(default) = default {
@@ -12960,7 +12825,7 @@ mod generics {
         impl ToTokens for TraitBound {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 let to_tokens = |tokens: &mut TokenStream| {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     let skip = match self.path.segments.pairs().next() {
                         Some(Pair::Punctuated(t, p)) if t.ident == "const" => {
                             crate::token::Tilde(p.spans[0]).to_tokens(tokens);
@@ -12971,7 +12836,7 @@ mod generics {
                     };
                     self.modifier.to_tokens(tokens);
                     self.lifetimes.to_tokens(tokens);
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     {
                         self.path.leading_colon.to_tokens(tokens);
                         tokens.append_all(self.path.segments.pairs().skip(skip));
@@ -13036,21 +12901,21 @@ mod generics {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::generics::{
     BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeDef, PredicateEq,
     PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam,
     TypeParamBound, WhereClause, WherePredicate,
 };
-#[cfg(all(any(feature = "full", feature = "derive"), feature = "printing"))]
+#[cfg]
 pub use crate::generics::{ImplGenerics, Turbofish, TypeGenerics};
-#[cfg(feature = "full")]
+#[cfg]
 mod item {
     use super::*;
     use crate::derive::{Data, DataEnum, DataStruct, DataUnion, DeriveInput};
     use crate::punctuated::Punctuated;
     use proc_macro2::TokenStream;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use std::mem;
     #[non_exhaustive]
     pub enum Item {
@@ -13319,7 +13184,7 @@ mod item {
         pub semi_token: crate::token::Semi,
     }
     impl Item {
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub(crate) fn replace_attrs(&mut self, new: Vec<Attribute>) -> Vec<Attribute> {
             match self {
                 Item::ExternCrate(ItemExternCrate { attrs, .. })
@@ -13759,7 +13624,7 @@ mod item {
             self.reference.as_ref()?.1.as_ref()
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -13768,12 +13633,12 @@ mod item {
         use crate::token::Brace;
         use proc_macro2::{Delimiter, Group, Punct, Spacing, TokenTree};
         use std::iter::{self, FromIterator};
-        #[allow(non_camel_case_types)]
+        #[allow]
         pub struct macro_rules {
             pub span: crate::__private::Span,
         }
-        #[doc(hidden)]
-        #[allow(dead_code, non_snake_case)]
+        #[doc]
+        #[allow]
         pub fn macro_rules<
             __S: crate::__private::IntoSpans<[crate::__private::Span; 1]>,
         >(span: __S) -> macro_rules {
@@ -13825,7 +13690,7 @@ mod item {
             }
         }
         impl crate::__private::Copy for macro_rules {}
-        #[allow(clippy::expl_impl_clone_on_copy)]
+        #[allow]
         impl crate::__private::Clone for macro_rules {
             fn clone(&self) -> Self {
                 *self
@@ -13933,7 +13798,7 @@ mod item {
                             {
                                 input.call(Ident::parse_any)?
                             } else {
-                                return Err(lookahead.error());
+                                return Err(lookahead.error())
                             }
                         };
                         let colon_token = input.parse()?;
@@ -14047,7 +13912,7 @@ mod item {
         }
         enum WhereClauseLocation {
             BeforeEq,
-            #[allow(dead_code)]
+            #[allow]
             AfterEq,
             Both,
         }
@@ -14179,7 +14044,7 @@ mod item {
                     body.set_span(brace_token.span);
                     rules.extend(iter::once(TokenTree::Group(body)));
                 } else {
-                    return Err(lookahead.error());
+                    return Err(lookahead.error())
                 }
                 Ok(ItemMacro2 {
                     attrs,
@@ -14260,9 +14125,7 @@ mod item {
                                     } else if input.peek(crate::token::Underscore) {
                                         Ident::from(input.parse::<crate::token::Underscore>()?)
                                     } else {
-                                        return Err(
-                                            input.error("expected identifier or underscore"),
-                                        );
+                                        return Err(input.error("expected identifier or underscore"))
                                     }
                                 },
                             }),
@@ -14326,7 +14189,7 @@ mod item {
                         {
                             input.call(Ident::parse_any)?
                         } else {
-                            return Err(lookahead.error());
+                            return Err(lookahead.error())
                         }
                     },
                     colon_token: input.parse()?,
@@ -14407,9 +14270,7 @@ mod item {
                         content = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 let mut inputs = parse_fn_args(&content)?;
                 let variadic = pop_variadic(&mut inputs);
@@ -14450,9 +14311,7 @@ mod item {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             attr::parsing::parse_inner(&content, &mut attrs)?;
             let stmts = content.call(Block::parse_within)?;
@@ -14629,9 +14488,7 @@ mod item {
                         content = braces.content;
                         braces.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 attr::parsing::parse_inner(&content, &mut attrs)?;
                 let mut items = Vec::new();
@@ -15024,9 +14881,7 @@ mod item {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             attr::parsing::parse_inner(&content, &mut attrs)?;
             let mut items = Vec::new();
@@ -15176,7 +15031,7 @@ mod item {
                         {
                             input.call(Ident::parse_any)?
                         } else {
-                            return Err(lookahead.error());
+                            return Err(lookahead.error())
                         }
                     },
                     colon_token: input.parse()?,
@@ -15217,7 +15072,7 @@ mod item {
                     let semi_token: crate::token::Semi = input.parse()?;
                     (None, Vec::new(), Some(semi_token))
                 } else {
-                    return Err(lookahead.error());
+                    return Err(lookahead.error())
                 };
                 Ok(TraitItemMethod {
                     attrs,
@@ -15376,17 +15231,17 @@ mod item {
                         first_ty = *ty.elem;
                     }
                     if let Type::Path(TypePath { qself: None, path }) = first_ty {
-                        trait_ = Some((polarity, path, for_token));
+                        trait_ = Some((polarity, path, for_token))
                     } else {
                         ::core::panicking::panic(
                             "internal error: entered unreachable code",
-                        );
+                        )
                     }
                 } else if !allow_verbatim_impl {
-                    #[cfg(feature = "printing")]
-                    return Err(Error::new_spanned(first_ty_ref, "expected trait path"));
+                    #[cfg]
+                    return Err(Error::new_spanned(first_ty_ref, "expected trait path"))
                 } else {
-                    trait_ = None;
+                    trait_ = None
                 }
                 self_ty = input.parse()?;
             } else {
@@ -15404,9 +15259,7 @@ mod item {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             attr::parsing::parse_inner(&content, &mut attrs)?;
             let mut items = Vec::new();
@@ -15474,7 +15327,7 @@ mod item {
                                     expr: input.parse()?,
                                     semi_token: input.parse()?,
                                 }),
-                            );
+                            )
                         } else {
                             input.parse::<crate::token::Semi>()?;
                             return Ok(
@@ -15524,7 +15377,7 @@ mod item {
                         {
                             input.call(Ident::parse_any)?
                         } else {
-                            return Err(lookahead.error());
+                            return Err(lookahead.error())
                         }
                     },
                     colon_token: input.parse()?,
@@ -15680,7 +15533,7 @@ mod item {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
@@ -15769,9 +15622,9 @@ mod item {
                                 tokens.append_all(self.attrs.inner());
                                 tokens.append_all(items);
                             },
-                        );
+                        )
                 } else {
-                    TokensOrDefault(&self.semi).to_tokens(tokens);
+                    TokensOrDefault(&self.semi).to_tokens(tokens)
                 }
             }
         }
@@ -15811,12 +15664,7 @@ mod item {
                 self.generics.to_tokens(tokens);
                 self.generics.where_clause.to_tokens(tokens);
                 self.brace_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.variants.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.variants.to_tokens(tokens) });
             }
         }
         impl ToTokens for ItemStruct {
@@ -15924,24 +15772,15 @@ mod item {
                 match &self.mac.delimiter {
                     MacroDelimiter::Paren(paren) => {
                         paren
-                            .surround(
-                                tokens,
-                                |tokens| self.mac.tokens.to_tokens(tokens),
-                            );
+                            .surround(tokens, |tokens| self.mac.tokens.to_tokens(tokens))
                     }
                     MacroDelimiter::Brace(brace) => {
                         brace
-                            .surround(
-                                tokens,
-                                |tokens| self.mac.tokens.to_tokens(tokens),
-                            );
+                            .surround(tokens, |tokens| self.mac.tokens.to_tokens(tokens))
                     }
                     MacroDelimiter::Bracket(bracket) => {
                         bracket
-                            .surround(
-                                tokens,
-                                |tokens| self.mac.tokens.to_tokens(tokens),
-                            );
+                            .surround(tokens, |tokens| self.mac.tokens.to_tokens(tokens))
                     }
                 }
                 self.semi_token.to_tokens(tokens);
@@ -15983,12 +15822,7 @@ mod item {
         impl ToTokens for UseGroup {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.brace_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.items.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.items.to_tokens(tokens) });
             }
         }
         impl ToTokens for TraitItemConst {
@@ -16019,11 +15853,9 @@ mod item {
                                     tokens.append_all(self.attrs.inner());
                                     tokens.append_all(&block.stmts);
                                 },
-                            );
+                            )
                     }
-                    None => {
-                        TokensOrDefault(&self.semi_token).to_tokens(tokens);
-                    }
+                    None => TokensOrDefault(&self.semi_token).to_tokens(tokens),
                 }
             }
         }
@@ -16223,7 +16055,7 @@ mod item {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 pub use crate::item::{
     FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
     ForeignItemType, ImplItem, ImplItemConst, ImplItemMacro, ImplItemMethod,
@@ -16233,7 +16065,7 @@ pub use crate::item::{
     TraitItemConst, TraitItemMacro, TraitItemMethod, TraitItemType, UseGlob, UseGroup,
     UseName, UsePath, UseRename, UseTree,
 };
-#[cfg(feature = "full")]
+#[cfg]
 mod file {
     use super::*;
     pub struct File {
@@ -16241,7 +16073,7 @@ mod file {
         pub attrs: Vec<Attribute>,
         pub items: Vec<Item>,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::{Parse, ParseStream, Result};
@@ -16261,7 +16093,7 @@ mod file {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
@@ -16275,14 +16107,14 @@ mod file {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 pub use crate::file::File;
 mod lifetime {
     use proc_macro2::{Ident, Span};
     use std::cmp::Ordering;
     use std::fmt::{self, Display};
     use std::hash::{Hash, Hasher};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lookahead;
     pub struct Lifetime {
         pub apostrophe: Span,
@@ -16363,13 +16195,13 @@ mod lifetime {
             self.ident.hash(h);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn Lifetime(marker: lookahead::TokenMarker) -> Lifetime {
         match marker {}
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::{Parse, ParseStream, Result};
@@ -16384,7 +16216,7 @@ mod lifetime {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::{Punct, Spacing, TokenStream};
@@ -16401,16 +16233,16 @@ mod lifetime {
 }
 pub use crate::lifetime::Lifetime;
 mod lit {
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::lookahead;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, Parser};
     use crate::{Error, Result};
     use proc_macro2::{Ident, Literal, Span};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use proc_macro2::{TokenStream, TokenTree};
     use std::fmt::{self, Display};
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::hash::{Hash, Hasher};
     use std::str::{self, FromStr};
     pub enum Lit {
@@ -16524,11 +16356,11 @@ mod lit {
             let (value, _suffix) = value::parse_lit_str(&repr);
             String::from(value)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse<T: Parse>(&self) -> Result<T> {
             self.parse_with(T::parse)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             use proc_macro2::Group;
             fn respan_token_stream(stream: TokenStream, span: Span) -> TokenStream {
@@ -16724,7 +16556,7 @@ mod lit {
                             &[::core::fmt::ArgumentV1::new_display(&repr)],
                         ),
                     )
-                };
+                }
             }
         }
     }
@@ -16808,7 +16640,7 @@ mod lit {
                             &[::core::fmt::ArgumentV1::new_display(&repr)],
                         ),
                     )
-                };
+                }
             }
         }
     }
@@ -16835,7 +16667,7 @@ mod lit {
             Ident::new(s, self.span)
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     mod debug_impls {
         use super::*;
         use std::fmt::{self, Debug};
@@ -16929,7 +16761,7 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitRepr {
         fn clone(&self) -> Self {
             LitRepr {
@@ -16938,7 +16770,7 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitIntRepr {
         fn clone(&self) -> Self {
             LitIntRepr {
@@ -16948,7 +16780,7 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitFloatRepr {
         fn clone(&self) -> Self {
             LitFloatRepr {
@@ -16958,19 +16790,19 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitStr {
         fn clone(&self) -> Self {
             LitStr { repr: self.repr.clone() }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitStr {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitStr {
         fn hash<H>(&self, state: &mut H)
         where
@@ -16979,13 +16811,13 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitStr(marker: lookahead::TokenMarker) -> LitStr {
         match marker {}
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitByteStr {
         fn clone(&self) -> Self {
             LitByteStr {
@@ -16993,13 +16825,13 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitByteStr {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitByteStr {
         fn hash<H>(&self, state: &mut H)
         where
@@ -17008,25 +16840,25 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitByteStr(marker: lookahead::TokenMarker) -> LitByteStr {
         match marker {}
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitByte {
         fn clone(&self) -> Self {
             LitByte { repr: self.repr.clone() }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitByte {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitByte {
         fn hash<H>(&self, state: &mut H)
         where
@@ -17035,25 +16867,25 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitByte(marker: lookahead::TokenMarker) -> LitByte {
         match marker {}
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitChar {
         fn clone(&self) -> Self {
             LitChar { repr: self.repr.clone() }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitChar {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitChar {
         fn hash<H>(&self, state: &mut H)
         where
@@ -17062,25 +16894,25 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitChar(marker: lookahead::TokenMarker) -> LitChar {
         match marker {}
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitInt {
         fn clone(&self) -> Self {
             LitInt { repr: self.repr.clone() }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitInt {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitInt {
         fn hash<H>(&self, state: &mut H)
         where
@@ -17089,13 +16921,13 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitInt(marker: lookahead::TokenMarker) -> LitInt {
         match marker {}
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for LitFloat {
         fn clone(&self) -> Self {
             LitFloat {
@@ -17103,13 +16935,13 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for LitFloat {
         fn eq(&self, other: &Self) -> bool {
             self.repr.token.to_string() == other.repr.token.to_string()
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for LitFloat {
         fn hash<H>(&self, state: &mut H)
         where
@@ -17118,15 +16950,15 @@ mod lit {
             self.repr.token.to_string().hash(state);
         }
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitFloat(marker: lookahead::TokenMarker) -> LitFloat {
         match marker {}
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn LitBool(marker: lookahead::TokenMarker) -> LitBool {
         match marker {}
     }
@@ -17134,13 +16966,13 @@ mod lit {
         Cooked,
         Raw(usize),
     }
-    #[cfg(feature = "parsing")]
-    #[doc(hidden)]
-    #[allow(non_snake_case)]
+    #[cfg]
+    #[doc]
+    #[allow]
     pub fn Lit(marker: lookahead::TokenMarker) -> Lit {
         match marker {}
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::buffer::Cursor;
@@ -17273,7 +17105,7 @@ mod lit {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -17441,7 +17273,7 @@ mod lit {
                 _ => ::core::panicking::panic("internal error: entered unreachable code"),
             }
         }
-        #[allow(clippy::needless_continue)]
+        #[allow]
         fn parse_lit_str_cooked(mut s: &str) -> (Box<str>, Box<str>) {
             match (&byte(s, 0), &b'"') {
                 (left_val, right_val) => {
@@ -17491,9 +17323,9 @@ mod lit {
                                 loop {
                                     let ch = next_chr(s);
                                     if ch.is_whitespace() {
-                                        s = &s[ch.len_utf8()..];
+                                        s = &s[ch.len_utf8()..]
                                     } else {
-                                        continue 'outer;
+                                        continue 'outer
                                     }
                                 }
                             }
@@ -17619,7 +17451,7 @@ mod lit {
                 _ => ::core::panicking::panic("internal error: entered unreachable code"),
             }
         }
-        #[allow(clippy::needless_continue)]
+        #[allow]
         fn parse_lit_byte_str_cooked(mut s: &str) -> (Vec<u8>, Box<str>) {
             match (&byte(s, 0), &b'b') {
                 (left_val, right_val) => {
@@ -17674,9 +17506,9 @@ mod lit {
                                     let byte = byte(v, 0);
                                     let ch = char::from_u32(u32::from(byte)).unwrap();
                                     if ch.is_whitespace() {
-                                        v = &v[1..];
+                                        v = &v[1..]
                                     } else {
-                                        continue 'outer;
+                                        continue 'outer
                                     }
                                 }
                             }
@@ -17988,7 +17820,7 @@ mod lit {
                             &[::core::fmt::ArgumentV1::new_lower_hex(&ch)],
                         ),
                     )
-                };
+                }
             }
         }
         pub fn parse_lit_int(mut s: &str) -> Option<(Box<str>, Box<str>)> {
@@ -18034,18 +17866,14 @@ mod lit {
                                 _ => {
                                     let suffix = &s[1 + i..];
                                     if has_exp && crate::ident::xid_ok(suffix) {
-                                        return None;
+                                        return None
                                     } else {
-                                        break 'outer;
+                                        break 'outer
                                     }
                                 }
                             }
                         }
-                        if has_exp {
-                            return None;
-                        } else {
-                            break;
-                        }
+                        if has_exp { return None } else { break }
                     }
                     _ => break,
                 };
@@ -18109,11 +17937,7 @@ mod lit {
                             _ => break,
                         }
                         if has_e {
-                            if has_exponent {
-                                break;
-                            } else {
-                                return None;
-                            }
+                            if has_exponent { break } else { return None }
                         }
                         has_e = true;
                         bytes[write] = b'e';
@@ -18124,7 +17948,7 @@ mod lit {
                         }
                         has_sign = true;
                         if bytes[read] == b'-' {
-                            bytes[write] = bytes[read];
+                            bytes[write] = bytes[read]
                         } else {
                             read += 1;
                             continue;
@@ -18147,7 +17971,7 @@ mod lit {
                 None
             }
         }
-        #[allow(clippy::unnecessary_wraps)]
+        #[allow]
         pub fn to_literal(repr: &str, digits: &str, suffix: &str) -> Option<Literal> {
             let _ = digits;
             let _ = suffix;
@@ -18158,14 +17982,14 @@ mod lit {
 pub use crate::lit::{
     Lit, LitBool, LitByte, LitByteStr, LitChar, LitFloat, LitInt, LitStr, StrStyle,
 };
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod mac {
     use super::*;
     use crate::token::{Brace, Bracket, Paren};
     use proc_macro2::TokenStream;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use proc_macro2::{Delimiter, Group, Span, TokenTree};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, ParseStream, Parser, Result};
     pub struct Macro {
         pub path: Path,
@@ -18178,7 +18002,7 @@ mod mac {
         Brace(Brace),
         Bracket(Bracket),
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     fn delimiter_span_close(macro_delimiter: &MacroDelimiter) -> Span {
         let delimiter = match macro_delimiter {
             MacroDelimiter::Paren(_) => Delimiter::Parenthesis,
@@ -18197,17 +18021,17 @@ mod mac {
         group.span_close()
     }
     impl Macro {
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_body<T: Parse>(&self) -> Result<T> {
             self.parse_body_with(T::parse)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_body_with<F: Parser>(&self, parser: F) -> Result<F::Output> {
             let scope = delimiter_span_close(&self.delimiter);
             crate::parse::parse_scoped(parser, scope, self.tokens.clone())
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub fn parse_delimiter(input: ParseStream) -> Result<(MacroDelimiter, TokenStream)> {
         input
             .step(|cursor| {
@@ -18217,9 +18041,7 @@ mod mac {
                         Delimiter::Parenthesis => MacroDelimiter::Paren(Paren(span)),
                         Delimiter::Brace => MacroDelimiter::Brace(Brace(span)),
                         Delimiter::Bracket => MacroDelimiter::Bracket(Bracket(span)),
-                        Delimiter::None => {
-                            return Err(cursor.error("expected delimiter"));
-                        }
+                        Delimiter::None => return Err(cursor.error("expected delimiter")),
                     };
                     Ok(((delimiter, g.stream()), rest))
                 } else {
@@ -18227,7 +18049,7 @@ mod mac {
                 }
             })
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::{Parse, ParseStream, Result};
@@ -18247,7 +18069,7 @@ mod mac {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -18258,22 +18080,22 @@ mod mac {
                 self.bang_token.to_tokens(tokens);
                 match &self.delimiter {
                     MacroDelimiter::Paren(paren) => {
-                        paren.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
+                        paren.surround(tokens, |tokens| self.tokens.to_tokens(tokens))
                     }
                     MacroDelimiter::Brace(brace) => {
-                        brace.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
+                        brace.surround(tokens, |tokens| self.tokens.to_tokens(tokens))
                     }
                     MacroDelimiter::Bracket(bracket) => {
-                        bracket.surround(tokens, |tokens| self.tokens.to_tokens(tokens));
+                        bracket.surround(tokens, |tokens| self.tokens.to_tokens(tokens))
                     }
                 }
             }
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::mac::{Macro, MacroDelimiter};
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod derive {
     use super::*;
     use crate::punctuated::Punctuated;
@@ -18318,7 +18140,7 @@ mod derive {
         pub union_token: crate::token::Union,
         pub fields: FieldsNamed,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::{Parse, ParseStream, Result};
@@ -18429,9 +18251,7 @@ mod derive {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             let variants = content.parse_terminated(Variant::parse)?;
             Ok((where_clause, brace, variants))
@@ -18444,7 +18264,7 @@ mod derive {
             Ok((where_clause, fields))
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
@@ -18487,9 +18307,7 @@ mod derive {
                         data.brace_token
                             .surround(
                                 tokens,
-                                |tokens| {
-                                    data.variants.to_tokens(tokens);
-                                },
+                                |tokens| { data.variants.to_tokens(tokens) },
                             );
                     }
                     Data::Union(data) => {
@@ -18501,9 +18319,9 @@ mod derive {
         }
     }
 }
-#[cfg(feature = "derive")]
+#[cfg]
 pub use crate::derive::{Data, DataEnum, DataStruct, DataUnion, DeriveInput};
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod op {
     pub enum BinOp {
         Add(crate::token::Add),
@@ -18540,7 +18358,7 @@ mod op {
         Not(crate::token::Bang),
         Neg(crate::token::Sub),
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::{Parse, ParseStream, Result};
@@ -18586,7 +18404,7 @@ mod op {
             }
         }
         impl Parse for BinOp {
-            #[cfg(feature = "full")]
+            #[cfg]
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.peek(crate::token::AddEq) {
                     input.parse().map(BinOp::AddEq)
@@ -18628,7 +18446,7 @@ mod op {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -18678,9 +18496,9 @@ mod op {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::op::{BinOp, UnOp};
-#[cfg(feature = "full")]
+#[cfg]
 mod stmt {
     use super::*;
     pub struct Block {
@@ -18700,7 +18518,7 @@ mod stmt {
         pub init: Option<(crate::token::Eq, Box<Expr>)>,
         pub semi_token: crate::token::Semi,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::parse::discouraged::Speculative;
@@ -18724,9 +18542,9 @@ mod stmt {
                     };
                     stmts.push(s);
                     if input.is_empty() {
-                        break;
+                        break
                     } else if requires_semicolon {
-                        return Err(input.error("unexpected token"));
+                        return Err(input.error("unexpected token"))
                     }
                 }
                 Ok(stmts)
@@ -18904,7 +18722,7 @@ mod stmt {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -18912,12 +18730,7 @@ mod stmt {
         impl ToTokens for Block {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.brace_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            tokens.append_all(&self.stmts);
-                        },
-                    );
+                    .surround(tokens, |tokens| { tokens.append_all(&self.stmts) });
             }
         }
         impl ToTokens for Stmt {
@@ -18947,9 +18760,9 @@ mod stmt {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 pub use crate::stmt::{Block, Local, Stmt};
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod ty {
     use super::*;
     use crate::punctuated::Punctuated;
@@ -19145,7 +18958,7 @@ mod ty {
         Default,
         Type(crate::token::RArrow, Box<Type>),
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -19184,7 +18997,7 @@ mod ty {
                                 }),
                                 path: Path::parse_helper(input, false)?,
                             }),
-                        );
+                        )
                     }
                 } else if input.peek(crate::token::Lt)
                     || input.peek(crate::token::Colon2) && input.peek3(crate::token::Lt)
@@ -19201,7 +19014,7 @@ mod ty {
                             Path::parse_rest(input, &mut ty.path, false)?;
                             return Ok(Type::Path(ty));
                         } else {
-                            group.elem = Box::new(Type::Path(ty));
+                            group.elem = Box::new(Type::Path(ty))
                         }
                     }
                 }
@@ -19231,9 +19044,7 @@ mod ty {
                         content = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 if content.is_empty() {
                     return Ok(
@@ -19439,9 +19250,7 @@ mod ty {
                         content = brackets.content;
                         brackets.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 let elem: Type = content.parse()?;
                 if content.peek(crate::token::Semi) {
@@ -19523,7 +19332,7 @@ mod ty {
                 } else if lookahead.peek(crate::token::Mut) {
                     (None, Some(input.parse()?))
                 } else {
-                    return Err(lookahead.error());
+                    return Err(lookahead.error())
                 };
                 Ok(TypePtr {
                     star_token,
@@ -19566,9 +19375,7 @@ mod ty {
                         args = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 },
                 inputs: {
                     let mut inputs = Punctuated::new();
@@ -19582,9 +19389,9 @@ mod ty {
                             break;
                         }
                         if let Some(arg) = parse_bare_fn_arg(&args, allow_mut_self)? {
-                            inputs.push_value(BareFnArg { attrs, ..arg });
+                            inputs.push_value(BareFnArg { attrs, ..arg })
                         } else {
-                            has_mut_self = true;
+                            has_mut_self = true
                         }
                         if args.is_empty() {
                             break;
@@ -19623,9 +19430,7 @@ mod ty {
                         content = parens.content;
                         parens.token
                     }
-                    crate::__private::Err(error) => {
-                        return crate::__private::Err(error);
-                    }
+                    crate::__private::Err(error) => return crate::__private::Err(error),
                 };
                 if content.is_empty() {
                     return Ok(TypeTuple {
@@ -19883,7 +19688,7 @@ mod ty {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
@@ -19893,12 +19698,7 @@ mod ty {
         impl ToTokens for TypeSlice {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.bracket_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elem.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elem.to_tokens(tokens) });
             }
         }
         impl ToTokens for TypeArray {
@@ -19919,9 +19719,7 @@ mod ty {
                 self.star_token.to_tokens(tokens);
                 match &self.mutability {
                     Some(tok) => tok.to_tokens(tokens),
-                    None => {
-                        TokensOrDefault(&self.const_token).to_tokens(tokens);
-                    }
+                    None => TokensOrDefault(&self.const_token).to_tokens(tokens),
                 }
                 self.elem.to_tokens(tokens);
             }
@@ -19965,12 +19763,7 @@ mod ty {
         impl ToTokens for TypeTuple {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elems.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elems.to_tokens(tokens) });
             }
         }
         impl ToTokens for TypePath {
@@ -19993,23 +19786,13 @@ mod ty {
         impl ToTokens for TypeGroup {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.group_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elem.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elem.to_tokens(tokens) });
             }
         }
         impl ToTokens for TypeParen {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elem.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elem.to_tokens(tokens) });
             }
         }
         impl ToTokens for TypeInfer {
@@ -20057,13 +19840,13 @@ mod ty {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::ty::{
     Abi, BareFnArg, ReturnType, Type, TypeArray, TypeBareFn, TypeGroup, TypeImplTrait,
     TypeInfer, TypeMacro, TypeNever, TypeParen, TypePath, TypePtr, TypeReference,
     TypeSlice, TypeTraitObject, TypeTuple, Variadic,
 };
-#[cfg(feature = "full")]
+#[cfg]
 mod pat {
     use super::*;
     use crate::punctuated::Punctuated;
@@ -20268,7 +20051,7 @@ mod pat {
         pub colon_token: Option<crate::token::Colon>,
         pub pat: Box<Pat>,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -20339,9 +20122,7 @@ mod pat {
                     match segment.arguments {
                         PathArguments::None => {}
                         PathArguments::AngleBracketed(_)
-                        | PathArguments::Parenthesized(_) => {
-                            contains_arguments = true;
-                        }
+                        | PathArguments::Parenthesized(_) => contains_arguments = true,
                     }
                 }
                 if !contains_arguments {
@@ -20430,9 +20211,7 @@ mod pat {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             let mut fields = Punctuated::new();
             while !content.is_empty() && !content.peek(crate::token::Dot2) {
@@ -20565,9 +20344,7 @@ mod pat {
                     content = parens.content;
                     parens.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             let mut elems = Punctuated::new();
             while !content.is_empty() {
@@ -20645,7 +20422,7 @@ mod pat {
             } else if lookahead.peek(crate::token::Const) {
                 Expr::Verbatim(input.call(expr::parsing::expr_const)?)
             } else {
-                return Err(lookahead.error());
+                return Err(lookahead.error())
             };
             Ok(
                 Some(
@@ -20670,9 +20447,7 @@ mod pat {
                     content = brackets.content;
                     brackets.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             let mut elems = Punctuated::new();
             while !content.is_empty() {
@@ -20699,9 +20474,7 @@ mod pat {
                     content = braces.content;
                     braces.token
                 }
-                crate::__private::Err(error) => {
-                    return crate::__private::Err(error);
-                }
+                crate::__private::Err(error) => return crate::__private::Err(error),
             };
             content.call(Attribute::parse_inner)?;
             content.call(Block::parse_within)?;
@@ -20742,7 +20515,7 @@ mod pat {
             Ok(pat)
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use crate::attr::FilterAttrs;
@@ -20810,12 +20583,7 @@ mod pat {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 tokens.append_all(self.attrs.outer());
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elems.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elems.to_tokens(tokens) });
             }
         }
         impl ToTokens for PatBox {
@@ -20857,12 +20625,7 @@ mod pat {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 tokens.append_all(self.attrs.outer());
                 self.bracket_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.elems.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.elems.to_tokens(tokens) });
             }
         }
         impl ToTokens for PatMacro {
@@ -20890,13 +20653,13 @@ mod pat {
         }
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 pub use crate::pat::{
     FieldPat, Pat, PatBox, PatIdent, PatLit, PatMacro, PatOr, PatPath, PatRange,
     PatReference, PatRest, PatSlice, PatStruct, PatTuple, PatTupleStruct, PatType,
     PatWild,
 };
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 mod path {
     use super::*;
     use crate::punctuated::Punctuated;
@@ -20950,7 +20713,7 @@ mod path {
                 PathArguments::Parenthesized(_) => false,
             }
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         fn is_none(&self) -> bool {
             match *self {
                 PathArguments::None => true,
@@ -20995,7 +20758,7 @@ mod path {
         pub as_token: Option<crate::token::As>,
         pub gt_token: crate::token::Gt,
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod parsing {
         use super::*;
         use crate::ext::IdentExt;
@@ -21019,17 +20782,14 @@ mod path {
                         Type::Verbatim(verbatim::between(begin, input))
                     } else if input.peek(token::Brace) {
                         let begin = input.fork();
-                        #[cfg(feature = "full")]
-                        {
-                            input.parse::<ExprBlock>()?;
-                        }
+                        #[cfg] { input.parse::<ExprBlock>()? }
                         Type::Verbatim(verbatim::between(begin, input))
                     } else {
                         input.parse()?
                     };
                     return Ok(GenericArgument::Binding(Binding { ident, eq_token, ty }));
                 }
-                #[cfg(feature = "full")]
+                #[cfg]
                 {
                     if input.peek(Ident) && input.peek2(crate::token::Colon)
                         && !input.peek2(crate::token::Colon2)
@@ -21040,10 +20800,10 @@ mod path {
                 if input.peek(Lit) || input.peek(token::Brace) {
                     return const_argument(input).map(GenericArgument::Const);
                 }
-                #[cfg(feature = "full")]
+                #[cfg]
                 let begin = input.fork();
                 let argument: Type = input.parse()?;
-                #[cfg(feature = "full")]
+                #[cfg]
                 {
                     if match &argument {
                         Type::Path(
@@ -21083,7 +20843,7 @@ mod path {
                 let lit = input.parse()?;
                 return Ok(Expr::Lit(lit));
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             {
                 if input.peek(Ident) {
                     let ident: Ident = input.parse()?;
@@ -21097,7 +20857,7 @@ mod path {
                 }
             }
             if input.peek(token::Brace) {
-                #[cfg(feature = "full")]
+                #[cfg]
                 {
                     let block: ExprBlock = input.parse()?;
                     return Ok(Expr::Block(block));
@@ -21188,7 +20948,7 @@ mod path {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Parse for Constraint {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(Constraint {
@@ -21198,7 +20958,7 @@ mod path {
                 })
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         fn constraint_bounds(
             input: ParseStream,
         ) -> Result<Punctuated<TypeParamBound, crate::token::Add>> {
@@ -21240,9 +21000,9 @@ mod path {
                             segments.push_punct(punct);
                         }
                         if segments.is_empty() {
-                            return Err(input.error("expected path"));
+                            return Err(input.error("expected path"))
                         } else if segments.trailing_punct() {
-                            return Err(input.error("expected path segment"));
+                            return Err(input.error("expected path segment"))
                         }
                         segments
                     },
@@ -21351,7 +21111,7 @@ mod path {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub(crate) mod printing {
         use super::*;
         use crate::print::TokensOrDefault;
@@ -21375,16 +21135,16 @@ mod path {
                 match self {
                     PathArguments::None => {}
                     PathArguments::AngleBracketed(arguments) => {
-                        arguments.to_tokens(tokens);
+                        arguments.to_tokens(tokens)
                     }
                     PathArguments::Parenthesized(arguments) => {
-                        arguments.to_tokens(tokens);
+                        arguments.to_tokens(tokens)
                     }
                 }
             }
         }
         impl ToTokens for GenericArgument {
-            #[allow(clippy::match_same_arms)]
+            #[allow]
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 match self {
                     GenericArgument::Lifetime(lt) => lt.to_tokens(tokens),
@@ -21394,16 +21154,11 @@ mod path {
                     GenericArgument::Const(e) => {
                         match *e {
                             Expr::Lit(_) => e.to_tokens(tokens),
-                            #[cfg(feature = "full")]
+                            #[cfg]
                             Expr::Block(_) => e.to_tokens(tokens),
                             _ => {
                                 token::Brace::default()
-                                    .surround(
-                                        tokens,
-                                        |tokens| {
-                                            e.to_tokens(tokens);
-                                        },
-                                    )
+                                    .surround(tokens, |tokens| { e.to_tokens(tokens) })
                             }
                         }
                     }
@@ -21475,12 +21230,7 @@ mod path {
         impl ToTokens for ParenthesizedGenericArguments {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 self.paren_token
-                    .surround(
-                        tokens,
-                        |tokens| {
-                            self.inputs.to_tokens(tokens);
-                        },
-                    );
+                    .surround(tokens, |tokens| { self.inputs.to_tokens(tokens) });
                 self.output.to_tokens(tokens);
             }
         }
@@ -21509,7 +21259,7 @@ mod path {
                         qself.gt_token.to_tokens(tokens);
                         segment.punct().to_tokens(tokens);
                     } else {
-                        segment.to_tokens(tokens);
+                        segment.to_tokens(tokens)
                     }
                 }
             } else {
@@ -21522,24 +21272,14 @@ mod path {
         }
     }
 }
-#[cfg(any(feature = "full", feature = "derive"))]
+#[cfg]
 pub use crate::path::{
     AngleBracketedGenericArguments, Binding, Constraint, GenericArgument,
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
 };
-#[cfg(feature = "parsing")]
+#[cfg]
 pub mod buffer {
-    #[cfg(
-        all(
-            not(
-                all(
-                    target_arch = "wasm32",
-                    any(target_os = "unknown", target_os = "wasi")
-                )
-            ),
-            feature = "proc-macro"
-        )
-    )]
+    #[cfg]
     use crate::proc_macro as pm;
     use crate::Lifetime;
     use proc_macro2::{
@@ -21573,15 +21313,9 @@ pub mod buffer {
             let mut groups = Vec::new();
             for tt in stream {
                 match tt {
-                    TokenTree::Ident(sym) => {
-                        entries.push(Entry::Ident(sym));
-                    }
-                    TokenTree::Punct(op) => {
-                        entries.push(Entry::Punct(op));
-                    }
-                    TokenTree::Literal(l) => {
-                        entries.push(Entry::Literal(l));
-                    }
+                    TokenTree::Ident(sym) => entries.push(Entry::Ident(sym)),
+                    TokenTree::Punct(op) => entries.push(Entry::Punct(op)),
+                    TokenTree::Literal(l) => entries.push(Entry::Literal(l)),
                     TokenTree::Group(g) => {
                         groups.push((entries.len(), g));
                         entries.push(Entry::End(ptr::null()));
@@ -21599,17 +21333,7 @@ pub mod buffer {
             }
             TokenBuffer { ptr: entries, len }
         }
-        #[cfg(
-            all(
-                not(
-                    all(
-                        target_arch = "wasm32",
-                        any(target_os = "unknown", target_os = "wasi")
-                    )
-                ),
-                feature = "proc-macro"
-            )
-        )]
+        #[cfg]
         pub fn new(stream: pm::TokenStream) -> Self {
             Self::new2(stream.into())
         }
@@ -21664,7 +21388,7 @@ pub mod buffer {
                         *self = Cursor::create(buf.ptr, self.scope);
                     }
                 } else {
-                    break;
+                    break
                 }
             }
         }
@@ -21803,7 +21527,7 @@ pub mod buffer {
         }
     }
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 pub mod ext {
     use crate::buffer::Cursor;
     use crate::parse::Peek;
@@ -21813,7 +21537,7 @@ pub mod ext {
     use proc_macro2::Ident;
     pub trait IdentExt: Sized + private::Sealed {
         fn parse_any(input: ParseStream) -> Result<Self>;
-        #[allow(non_upper_case_globals)]
+        #[allow]
         const peek_any: private::PeekFn = private::PeekFn;
         fn unraw(&self) -> Ident;
     }
@@ -21861,27 +21585,27 @@ pub mod ext {
     }
 }
 pub mod punctuated {
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::fmt::{self, Debug};
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::hash::{Hash, Hasher};
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     use std::iter;
     use std::iter::FromIterator;
     use std::ops::{Index, IndexMut};
     use std::option;
     use std::slice;
     use std::vec;
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::parse::{Parse, ParseStream, Result};
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::token::Token;
     pub struct Punctuated<T, P> {
         inner: Vec<(T, P)>,
         last: Option<Box<T>>,
     }
     impl<T, P> Punctuated<T, P> {
-        #[cfg(not(syn_no_const_vec_new))]
+        #[cfg]
         pub const fn new() -> Self {
             Punctuated {
                 inner: Vec::new(),
@@ -21991,16 +21715,16 @@ pub mod punctuated {
                 { ::std::rt::begin_panic("Punctuated::insert: index out of range") }
             }
             if index == self.len() {
-                self.push(value);
+                self.push(value)
             } else {
-                self.inner.insert(index, (value, Default::default()));
+                self.inner.insert(index, (value, Default::default()))
             }
         }
         pub fn clear(&mut self) {
             self.inner.clear();
             self.last = None;
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_terminated(input: ParseStream) -> Result<Self>
         where
             T: Parse,
@@ -22008,7 +21732,7 @@ pub mod punctuated {
         {
             Self::parse_terminated_with(input, T::parse)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_terminated_with(
             input: ParseStream,
             parser: fn(ParseStream) -> Result<T>,
@@ -22031,7 +21755,7 @@ pub mod punctuated {
             }
             Ok(punctuated)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_separated_nonempty(input: ParseStream) -> Result<Self>
         where
             T: Parse,
@@ -22039,7 +21763,7 @@ pub mod punctuated {
         {
             Self::parse_separated_nonempty_with(input, T::parse)
         }
-        #[cfg(feature = "parsing")]
+        #[cfg]
         pub fn parse_separated_nonempty_with(
             input: ParseStream,
             parser: fn(ParseStream) -> Result<T>,
@@ -22060,7 +21784,7 @@ pub mod punctuated {
             Ok(punctuated)
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl<T, P> Clone for Punctuated<T, P>
     where
         T: Clone,
@@ -22073,13 +21797,13 @@ pub mod punctuated {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<T, P> Eq for Punctuated<T, P>
     where
         T: Eq,
         P: Eq,
     {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<T, P> PartialEq for Punctuated<T, P>
     where
         T: PartialEq,
@@ -22090,7 +21814,7 @@ pub mod punctuated {
             *inner == other.inner && *last == other.last
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<T, P> Hash for Punctuated<T, P>
     where
         T: Hash,
@@ -22102,7 +21826,7 @@ pub mod punctuated {
             last.hash(state);
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl<T: Debug, P: Debug> Debug for Punctuated<T, P> {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut list = f.debug_list();
@@ -22354,7 +22078,7 @@ pub mod punctuated {
         inner: slice::Iter<'a, (T, P)>,
         last: option::IntoIter<&'a T>,
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     pub(crate) fn empty_punctuated_iter<'a, T>() -> Iter<'a, T> {
         Iter {
             inner: Box::new(iter::empty()),
@@ -22431,7 +22155,7 @@ pub mod punctuated {
         inner: slice::IterMut<'a, (T, P)>,
         last: option::IntoIter<&'a mut T>,
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     pub(crate) fn empty_punctuated_iter_mut<'a, T>() -> IterMut<'a, T> {
         IterMut {
             inner: Box::new(iter::empty()),
@@ -22523,7 +22247,7 @@ pub mod punctuated {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl<T, P> Clone for Pair<T, P>
     where
         T: Clone,
@@ -22561,7 +22285,7 @@ pub mod punctuated {
             }
         }
     }
-    #[cfg(feature = "printing")]
+    #[cfg]
     mod printing {
         use super::*;
         use proc_macro2::TokenStream;
@@ -22592,7 +22316,7 @@ pub mod punctuated {
         }
     }
 }
-#[cfg(all(any(feature = "full", feature = "derive"), feature = "extra-traits"))]
+#[cfg]
 mod tt {
     use proc_macro2::{Delimiter, TokenStream, TokenTree};
     use std::hash::{Hash, Hasher};
@@ -22694,12 +22418,12 @@ mod tt {
         }
     }
 }
-#[cfg(feature = "parsing")]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 pub mod parse_quote {
     use crate::parse::{Parse, ParseStream, Parser, Result};
     use proc_macro2::TokenStream;
-    #[doc(hidden)]
+    #[doc]
     pub fn parse<T: ParseQuote>(token_stream: TokenStream) -> T {
         let parser = T::parse;
         match parser.parse2(token_stream) {
@@ -22707,7 +22431,7 @@ pub mod parse_quote {
             Err(err) => ::std::rt::panic_display(&err),
         }
     }
-    #[doc(hidden)]
+    #[doc]
     pub trait ParseQuote: Sized {
         fn parse(input: ParseStream) -> Result<Self>;
     }
@@ -22717,11 +22441,11 @@ pub mod parse_quote {
         }
     }
     use crate::punctuated::Punctuated;
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     use crate::{attr, Attribute};
-    #[cfg(feature = "full")]
+    #[cfg]
     use crate::{Block, Stmt};
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     impl ParseQuote for Attribute {
         fn parse(input: ParseStream) -> Result<Self> {
             if input.peek(crate::token::Pound) && input.peek2(crate::token::Bang) {
@@ -22736,29 +22460,23 @@ pub mod parse_quote {
             Self::parse_terminated(input)
         }
     }
-    #[cfg(feature = "full")]
+    #[cfg]
     impl ParseQuote for Vec<Stmt> {
         fn parse(input: ParseStream) -> Result<Self> {
             Block::parse_within(input)
         }
     }
 }
-#[cfg(
-    all(
-        not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "wasi"))),
-        feature = "parsing",
-        feature = "proc-macro"
-    )
-)]
-#[doc(hidden)]
+#[cfg]
+#[doc]
 pub mod parse_macro_input {
     use crate::parse::{Parse, ParseStream, Parser, Result};
     use proc_macro::TokenStream;
-    #[doc(hidden)]
+    #[doc]
     pub fn parse<T: ParseMacroInput>(token_stream: TokenStream) -> Result<T> {
         T::parse.parse(token_stream)
     }
-    #[doc(hidden)]
+    #[doc]
     pub trait ParseMacroInput: Sized {
         fn parse(input: ParseStream) -> Result<Self>;
     }
@@ -22767,9 +22485,9 @@ pub mod parse_macro_input {
             <T as Parse>::parse(input)
         }
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     use crate::AttributeArgs;
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     impl ParseMacroInput for AttributeArgs {
         fn parse(input: ParseStream) -> Result<Self> {
             let mut metas = Vec::new();
@@ -22788,7 +22506,7 @@ pub mod parse_macro_input {
         }
     }
 }
-#[cfg(all(feature = "parsing", feature = "printing"))]
+#[cfg]
 pub mod spanned {
     use proc_macro2::Span;
     use quote::spanned::Spanned as ToTokens;
@@ -22801,7 +22519,7 @@ pub mod spanned {
         }
     }
 }
-#[cfg(all(feature = "parsing", feature = "full"))]
+#[cfg]
 mod whitespace {
     pub fn skip(mut s: &str) -> &str {
         'skip: while !s.is_empty() {
@@ -22815,7 +22533,7 @@ mod whitespace {
                         s = &s[i + 1..];
                         continue;
                     } else {
-                        return "";
+                        return ""
                     }
                 } else if s.starts_with("/**/") {
                     s = &s[4..];
@@ -22868,419 +22586,419 @@ mod whitespace {
     }
 }
 mod gen {
-    #[cfg(feature = "visit")]
+    #[cfg]
     #[rustfmt::skip]
     pub mod visit {
-        #![allow(unused_variables)]
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #![allow]
+        #[cfg]
         use crate::gen::helper::visit::*;
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[cfg]
         use crate::punctuated::Punctuated;
         use crate::*;
         use proc_macro2::Span;
         pub trait Visit<'ast> {
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_abi(&mut self, i: &'ast Abi) {
                 visit_abi(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_angle_bracketed_generic_arguments(
                 &mut self,
                 i: &'ast AngleBracketedGenericArguments,
             ) {
                 visit_angle_bracketed_generic_arguments(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_arm(&mut self, i: &'ast Arm) {
                 visit_arm(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_attr_style(&mut self, i: &'ast AttrStyle) {
                 visit_attr_style(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_attribute(&mut self, i: &'ast Attribute) {
                 visit_attribute(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bare_fn_arg(&mut self, i: &'ast BareFnArg) {
                 visit_bare_fn_arg(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bin_op(&mut self, i: &'ast BinOp) {
                 visit_bin_op(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_binding(&mut self, i: &'ast Binding) {
                 visit_binding(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_block(&mut self, i: &'ast Block) {
                 visit_block(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bound_lifetimes(&mut self, i: &'ast BoundLifetimes) {
                 visit_bound_lifetimes(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_const_param(&mut self, i: &'ast ConstParam) {
                 visit_const_param(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_constraint(&mut self, i: &'ast Constraint) {
                 visit_constraint(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data(&mut self, i: &'ast Data) {
                 visit_data(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_enum(&mut self, i: &'ast DataEnum) {
                 visit_data_enum(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_struct(&mut self, i: &'ast DataStruct) {
                 visit_data_struct(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_union(&mut self, i: &'ast DataUnion) {
                 visit_data_union(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_derive_input(&mut self, i: &'ast DeriveInput) {
                 visit_derive_input(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr(&mut self, i: &'ast Expr) {
                 visit_expr(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_array(&mut self, i: &'ast ExprArray) {
                 visit_expr_array(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_assign(&mut self, i: &'ast ExprAssign) {
                 visit_expr_assign(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_assign_op(&mut self, i: &'ast ExprAssignOp) {
                 visit_expr_assign_op(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_async(&mut self, i: &'ast ExprAsync) {
                 visit_expr_async(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_await(&mut self, i: &'ast ExprAwait) {
                 visit_expr_await(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_binary(&mut self, i: &'ast ExprBinary) {
                 visit_expr_binary(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_block(&mut self, i: &'ast ExprBlock) {
                 visit_expr_block(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_box(&mut self, i: &'ast ExprBox) {
                 visit_expr_box(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_break(&mut self, i: &'ast ExprBreak) {
                 visit_expr_break(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_call(&mut self, i: &'ast ExprCall) {
                 visit_expr_call(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_cast(&mut self, i: &'ast ExprCast) {
                 visit_expr_cast(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_closure(&mut self, i: &'ast ExprClosure) {
                 visit_expr_closure(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_continue(&mut self, i: &'ast ExprContinue) {
                 visit_expr_continue(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_field(&mut self, i: &'ast ExprField) {
                 visit_expr_field(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_for_loop(&mut self, i: &'ast ExprForLoop) {
                 visit_expr_for_loop(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_group(&mut self, i: &'ast ExprGroup) {
                 visit_expr_group(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_if(&mut self, i: &'ast ExprIf) {
                 visit_expr_if(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_index(&mut self, i: &'ast ExprIndex) {
                 visit_expr_index(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_let(&mut self, i: &'ast ExprLet) {
                 visit_expr_let(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_lit(&mut self, i: &'ast ExprLit) {
                 visit_expr_lit(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_loop(&mut self, i: &'ast ExprLoop) {
                 visit_expr_loop(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_macro(&mut self, i: &'ast ExprMacro) {
                 visit_expr_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_match(&mut self, i: &'ast ExprMatch) {
                 visit_expr_match(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
                 visit_expr_method_call(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_paren(&mut self, i: &'ast ExprParen) {
                 visit_expr_paren(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_path(&mut self, i: &'ast ExprPath) {
                 visit_expr_path(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_range(&mut self, i: &'ast ExprRange) {
                 visit_expr_range(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_reference(&mut self, i: &'ast ExprReference) {
                 visit_expr_reference(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_repeat(&mut self, i: &'ast ExprRepeat) {
                 visit_expr_repeat(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_return(&mut self, i: &'ast ExprReturn) {
                 visit_expr_return(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_struct(&mut self, i: &'ast ExprStruct) {
                 visit_expr_struct(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_try(&mut self, i: &'ast ExprTry) {
                 visit_expr_try(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_try_block(&mut self, i: &'ast ExprTryBlock) {
                 visit_expr_try_block(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_tuple(&mut self, i: &'ast ExprTuple) {
                 visit_expr_tuple(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_type(&mut self, i: &'ast ExprType) {
                 visit_expr_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_unary(&mut self, i: &'ast ExprUnary) {
                 visit_expr_unary(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_unsafe(&mut self, i: &'ast ExprUnsafe) {
                 visit_expr_unsafe(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_while(&mut self, i: &'ast ExprWhile) {
                 visit_expr_while(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_yield(&mut self, i: &'ast ExprYield) {
                 visit_expr_yield(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_field(&mut self, i: &'ast Field) {
                 visit_field(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_field_pat(&mut self, i: &'ast FieldPat) {
                 visit_field_pat(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_field_value(&mut self, i: &'ast FieldValue) {
                 visit_field_value(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields(&mut self, i: &'ast Fields) {
                 visit_fields(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields_named(&mut self, i: &'ast FieldsNamed) {
                 visit_fields_named(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields_unnamed(&mut self, i: &'ast FieldsUnnamed) {
                 visit_fields_unnamed(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_file(&mut self, i: &'ast File) {
                 visit_file(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_fn_arg(&mut self, i: &'ast FnArg) {
                 visit_fn_arg(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item(&mut self, i: &'ast ForeignItem) {
                 visit_foreign_item(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_fn(&mut self, i: &'ast ForeignItemFn) {
                 visit_foreign_item_fn(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_macro(&mut self, i: &'ast ForeignItemMacro) {
                 visit_foreign_item_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_static(&mut self, i: &'ast ForeignItemStatic) {
                 visit_foreign_item_static(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_type(&mut self, i: &'ast ForeignItemType) {
                 visit_foreign_item_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generic_argument(&mut self, i: &'ast GenericArgument) {
                 visit_generic_argument(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_generic_method_argument(&mut self, i: &'ast GenericMethodArgument) {
                 visit_generic_method_argument(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generic_param(&mut self, i: &'ast GenericParam) {
                 visit_generic_param(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generics(&mut self, i: &'ast Generics) {
                 visit_generics(self, i);
             }
             fn visit_ident(&mut self, i: &'ast Ident) {
                 visit_ident(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item(&mut self, i: &'ast ImplItem) {
                 visit_impl_item(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_const(&mut self, i: &'ast ImplItemConst) {
                 visit_impl_item_const(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_macro(&mut self, i: &'ast ImplItemMacro) {
                 visit_impl_item_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_method(&mut self, i: &'ast ImplItemMethod) {
                 visit_impl_item_method(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_type(&mut self, i: &'ast ImplItemType) {
                 visit_impl_item_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_index(&mut self, i: &'ast Index) {
                 visit_index(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item(&mut self, i: &'ast Item) {
                 visit_item(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_const(&mut self, i: &'ast ItemConst) {
                 visit_item_const(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
                 visit_item_enum(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_extern_crate(&mut self, i: &'ast ItemExternCrate) {
                 visit_item_extern_crate(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_fn(&mut self, i: &'ast ItemFn) {
                 visit_item_fn(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_foreign_mod(&mut self, i: &'ast ItemForeignMod) {
                 visit_item_foreign_mod(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_impl(&mut self, i: &'ast ItemImpl) {
                 visit_item_impl(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_macro(&mut self, i: &'ast ItemMacro) {
                 visit_item_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_macro2(&mut self, i: &'ast ItemMacro2) {
                 visit_item_macro2(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_mod(&mut self, i: &'ast ItemMod) {
                 visit_item_mod(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_static(&mut self, i: &'ast ItemStatic) {
                 visit_item_static(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
                 visit_item_struct(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_trait(&mut self, i: &'ast ItemTrait) {
                 visit_item_trait(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_trait_alias(&mut self, i: &'ast ItemTraitAlias) {
                 visit_item_trait_alias(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_type(&mut self, i: &'ast ItemType) {
                 visit_item_type(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_union(&mut self, i: &'ast ItemUnion) {
                 visit_item_union(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_use(&mut self, i: &'ast ItemUse) {
                 visit_item_use(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_label(&mut self, i: &'ast Label) {
                 visit_label(self, i);
             }
             fn visit_lifetime(&mut self, i: &'ast Lifetime) {
                 visit_lifetime(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_lifetime_def(&mut self, i: &'ast LifetimeDef) {
                 visit_lifetime_def(self, i);
             }
@@ -23308,322 +23026,322 @@ mod gen {
             fn visit_lit_str(&mut self, i: &'ast LitStr) {
                 visit_lit_str(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_local(&mut self, i: &'ast Local) {
                 visit_local(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_macro(&mut self, i: &'ast Macro) {
                 visit_macro(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_macro_delimiter(&mut self, i: &'ast MacroDelimiter) {
                 visit_macro_delimiter(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_member(&mut self, i: &'ast Member) {
                 visit_member(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta(&mut self, i: &'ast Meta) {
                 visit_meta(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta_list(&mut self, i: &'ast MetaList) {
                 visit_meta_list(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta_name_value(&mut self, i: &'ast MetaNameValue) {
                 visit_meta_name_value(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_method_turbofish(&mut self, i: &'ast MethodTurbofish) {
                 visit_method_turbofish(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_nested_meta(&mut self, i: &'ast NestedMeta) {
                 visit_nested_meta(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_parenthesized_generic_arguments(
                 &mut self,
                 i: &'ast ParenthesizedGenericArguments,
             ) {
                 visit_parenthesized_generic_arguments(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat(&mut self, i: &'ast Pat) {
                 visit_pat(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_box(&mut self, i: &'ast PatBox) {
                 visit_pat_box(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_ident(&mut self, i: &'ast PatIdent) {
                 visit_pat_ident(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_lit(&mut self, i: &'ast PatLit) {
                 visit_pat_lit(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_macro(&mut self, i: &'ast PatMacro) {
                 visit_pat_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_or(&mut self, i: &'ast PatOr) {
                 visit_pat_or(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_path(&mut self, i: &'ast PatPath) {
                 visit_pat_path(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_range(&mut self, i: &'ast PatRange) {
                 visit_pat_range(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_reference(&mut self, i: &'ast PatReference) {
                 visit_pat_reference(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_rest(&mut self, i: &'ast PatRest) {
                 visit_pat_rest(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_slice(&mut self, i: &'ast PatSlice) {
                 visit_pat_slice(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_struct(&mut self, i: &'ast PatStruct) {
                 visit_pat_struct(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_tuple(&mut self, i: &'ast PatTuple) {
                 visit_pat_tuple(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_tuple_struct(&mut self, i: &'ast PatTupleStruct) {
                 visit_pat_tuple_struct(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_type(&mut self, i: &'ast PatType) {
                 visit_pat_type(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_wild(&mut self, i: &'ast PatWild) {
                 visit_pat_wild(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path(&mut self, i: &'ast Path) {
                 visit_path(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path_arguments(&mut self, i: &'ast PathArguments) {
                 visit_path_arguments(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path_segment(&mut self, i: &'ast PathSegment) {
                 visit_path_segment(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_eq(&mut self, i: &'ast PredicateEq) {
                 visit_predicate_eq(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_lifetime(&mut self, i: &'ast PredicateLifetime) {
                 visit_predicate_lifetime(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_type(&mut self, i: &'ast PredicateType) {
                 visit_predicate_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_qself(&mut self, i: &'ast QSelf) {
                 visit_qself(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_range_limits(&mut self, i: &'ast RangeLimits) {
                 visit_range_limits(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_receiver(&mut self, i: &'ast Receiver) {
                 visit_receiver(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_return_type(&mut self, i: &'ast ReturnType) {
                 visit_return_type(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_signature(&mut self, i: &'ast Signature) {
                 visit_signature(self, i);
             }
             fn visit_span(&mut self, i: &Span) {
                 visit_span(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_stmt(&mut self, i: &'ast Stmt) {
                 visit_stmt(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_trait_bound(&mut self, i: &'ast TraitBound) {
                 visit_trait_bound(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_trait_bound_modifier(&mut self, i: &'ast TraitBoundModifier) {
                 visit_trait_bound_modifier(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item(&mut self, i: &'ast TraitItem) {
                 visit_trait_item(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_const(&mut self, i: &'ast TraitItemConst) {
                 visit_trait_item_const(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_macro(&mut self, i: &'ast TraitItemMacro) {
                 visit_trait_item_macro(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_method(&mut self, i: &'ast TraitItemMethod) {
                 visit_trait_item_method(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_type(&mut self, i: &'ast TraitItemType) {
                 visit_trait_item_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type(&mut self, i: &'ast Type) {
                 visit_type(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_array(&mut self, i: &'ast TypeArray) {
                 visit_type_array(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_bare_fn(&mut self, i: &'ast TypeBareFn) {
                 visit_type_bare_fn(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_group(&mut self, i: &'ast TypeGroup) {
                 visit_type_group(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_impl_trait(&mut self, i: &'ast TypeImplTrait) {
                 visit_type_impl_trait(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_infer(&mut self, i: &'ast TypeInfer) {
                 visit_type_infer(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_macro(&mut self, i: &'ast TypeMacro) {
                 visit_type_macro(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_never(&mut self, i: &'ast TypeNever) {
                 visit_type_never(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_param(&mut self, i: &'ast TypeParam) {
                 visit_type_param(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_param_bound(&mut self, i: &'ast TypeParamBound) {
                 visit_type_param_bound(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_paren(&mut self, i: &'ast TypeParen) {
                 visit_type_paren(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_path(&mut self, i: &'ast TypePath) {
                 visit_type_path(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_ptr(&mut self, i: &'ast TypePtr) {
                 visit_type_ptr(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_reference(&mut self, i: &'ast TypeReference) {
                 visit_type_reference(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_slice(&mut self, i: &'ast TypeSlice) {
                 visit_type_slice(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_trait_object(&mut self, i: &'ast TypeTraitObject) {
                 visit_type_trait_object(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_tuple(&mut self, i: &'ast TypeTuple) {
                 visit_type_tuple(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_un_op(&mut self, i: &'ast UnOp) {
                 visit_un_op(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_glob(&mut self, i: &'ast UseGlob) {
                 visit_use_glob(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_group(&mut self, i: &'ast UseGroup) {
                 visit_use_group(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_name(&mut self, i: &'ast UseName) {
                 visit_use_name(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_path(&mut self, i: &'ast UsePath) {
                 visit_use_path(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_rename(&mut self, i: &'ast UseRename) {
                 visit_use_rename(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_tree(&mut self, i: &'ast UseTree) {
                 visit_use_tree(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_variadic(&mut self, i: &'ast Variadic) {
                 visit_variadic(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_variant(&mut self, i: &'ast Variant) {
                 visit_variant(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_crate(&mut self, i: &'ast VisCrate) {
                 visit_vis_crate(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_public(&mut self, i: &'ast VisPublic) {
                 visit_vis_public(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_restricted(&mut self, i: &'ast VisRestricted) {
                 visit_vis_restricted(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_visibility(&mut self, i: &'ast Visibility) {
                 visit_visibility(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_where_clause(&mut self, i: &'ast WhereClause) {
                 visit_where_clause(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_where_predicate(&mut self, i: &'ast WherePredicate) {
                 visit_where_predicate(self, i);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_abi<'ast, V>(v: &mut V, node: &'ast Abi)
         where
             V: Visit<'ast> + ?Sized,
@@ -23633,7 +23351,7 @@ mod gen {
                 v.visit_lit_str(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_angle_bracketed_generic_arguments<'ast, V>(
             v: &mut V,
             node: &'ast AngleBracketedGenericArguments,
@@ -23654,7 +23372,7 @@ mod gen {
             }
             tokens_helper(v, &node.gt_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_arm<'ast, V>(v: &mut V, node: &'ast Arm)
         where
             V: Visit<'ast> + ?Sized,
@@ -23673,19 +23391,17 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_attr_style<'ast, V>(v: &mut V, node: &'ast AttrStyle)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
                 AttrStyle::Outer => {}
-                AttrStyle::Inner(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
+                AttrStyle::Inner(_binding_0) => tokens_helper(v, &_binding_0.spans),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_attribute<'ast, V>(v: &mut V, node: &'ast Attribute)
         where
             V: Visit<'ast> + ?Sized,
@@ -23695,7 +23411,7 @@ mod gen {
             tokens_helper(v, &node.bracket_token.span);
             v.visit_path(&node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bare_fn_arg<'ast, V>(v: &mut V, node: &'ast BareFnArg)
         where
             V: Visit<'ast> + ?Sized,
@@ -23709,99 +23425,43 @@ mod gen {
             }
             v.visit_type(&node.ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bin_op<'ast, V>(v: &mut V, node: &'ast BinOp)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                BinOp::Add(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Sub(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Mul(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Div(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Rem(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::And(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Or(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitXor(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitAnd(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitOr(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Shl(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Shr(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Eq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Lt(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Le(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Ne(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Ge(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::Gt(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::AddEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::SubEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::MulEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::DivEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::RemEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitXorEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitAndEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::BitOrEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::ShlEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                BinOp::ShrEq(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
+                BinOp::Add(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Sub(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Mul(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Div(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Rem(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::And(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Or(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitXor(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitAnd(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitOr(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Shl(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Shr(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Eq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Lt(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Le(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Ne(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Ge(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::Gt(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::AddEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::SubEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::MulEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::DivEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::RemEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitXorEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitAndEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::BitOrEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::ShlEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                BinOp::ShrEq(_binding_0) => tokens_helper(v, &_binding_0.spans),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_binding<'ast, V>(v: &mut V, node: &'ast Binding)
         where
             V: Visit<'ast> + ?Sized,
@@ -23810,7 +23470,7 @@ mod gen {
             tokens_helper(v, &node.eq_token.spans);
             v.visit_type(&node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_block<'ast, V>(v: &mut V, node: &'ast Block)
         where
             V: Visit<'ast> + ?Sized,
@@ -23820,7 +23480,7 @@ mod gen {
                 v.visit_stmt(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bound_lifetimes<'ast, V>(v: &mut V, node: &'ast BoundLifetimes)
         where
             V: Visit<'ast> + ?Sized,
@@ -23836,7 +23496,7 @@ mod gen {
             }
             tokens_helper(v, &node.gt_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_const_param<'ast, V>(v: &mut V, node: &'ast ConstParam)
         where
             V: Visit<'ast> + ?Sized,
@@ -23855,7 +23515,7 @@ mod gen {
                 v.visit_expr(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_constraint<'ast, V>(v: &mut V, node: &'ast Constraint)
         where
             V: Visit<'ast> + ?Sized,
@@ -23870,24 +23530,18 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data<'ast, V>(v: &mut V, node: &'ast Data)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Data::Struct(_binding_0) => {
-                    v.visit_data_struct(_binding_0);
-                }
-                Data::Enum(_binding_0) => {
-                    v.visit_data_enum(_binding_0);
-                }
-                Data::Union(_binding_0) => {
-                    v.visit_data_union(_binding_0);
-                }
+                Data::Struct(_binding_0) => v.visit_data_struct(_binding_0),
+                Data::Enum(_binding_0) => v.visit_data_enum(_binding_0),
+                Data::Union(_binding_0) => v.visit_data_union(_binding_0),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_enum<'ast, V>(v: &mut V, node: &'ast DataEnum)
         where
             V: Visit<'ast> + ?Sized,
@@ -23902,7 +23556,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_struct<'ast, V>(v: &mut V, node: &'ast DataStruct)
         where
             V: Visit<'ast> + ?Sized,
@@ -23913,7 +23567,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_union<'ast, V>(v: &mut V, node: &'ast DataUnion)
         where
             V: Visit<'ast> + ?Sized,
@@ -23921,7 +23575,7 @@ mod gen {
             tokens_helper(v, &node.union_token.span);
             v.visit_fields_named(&node.fields);
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_derive_input<'ast, V>(v: &mut V, node: &'ast DeriveInput)
         where
             V: Visit<'ast> + ?Sized,
@@ -23934,133 +23588,55 @@ mod gen {
             v.visit_generics(&node.generics);
             v.visit_data(&node.data);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr<'ast, V>(v: &mut V, node: &'ast Expr)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Expr::Array(_binding_0) => {
-                    v.visit_expr_array(_binding_0);
-                }
-                Expr::Assign(_binding_0) => {
-                    v.visit_expr_assign(_binding_0);
-                }
-                Expr::AssignOp(_binding_0) => {
-                    v.visit_expr_assign_op(_binding_0);
-                }
-                Expr::Async(_binding_0) => {
-                    v.visit_expr_async(_binding_0);
-                }
-                Expr::Await(_binding_0) => {
-                    v.visit_expr_await(_binding_0);
-                }
-                Expr::Binary(_binding_0) => {
-                    v.visit_expr_binary(_binding_0);
-                }
-                Expr::Block(_binding_0) => {
-                    v.visit_expr_block(_binding_0);
-                }
-                Expr::Box(_binding_0) => {
-                    v.visit_expr_box(_binding_0);
-                }
-                Expr::Break(_binding_0) => {
-                    v.visit_expr_break(_binding_0);
-                }
-                Expr::Call(_binding_0) => {
-                    v.visit_expr_call(_binding_0);
-                }
-                Expr::Cast(_binding_0) => {
-                    v.visit_expr_cast(_binding_0);
-                }
-                Expr::Closure(_binding_0) => {
-                    v.visit_expr_closure(_binding_0);
-                }
-                Expr::Continue(_binding_0) => {
-                    v.visit_expr_continue(_binding_0);
-                }
-                Expr::Field(_binding_0) => {
-                    v.visit_expr_field(_binding_0);
-                }
-                Expr::ForLoop(_binding_0) => {
-                    v.visit_expr_for_loop(_binding_0);
-                }
-                Expr::Group(_binding_0) => {
-                    v.visit_expr_group(_binding_0);
-                }
-                Expr::If(_binding_0) => {
-                    v.visit_expr_if(_binding_0);
-                }
-                Expr::Index(_binding_0) => {
-                    v.visit_expr_index(_binding_0);
-                }
-                Expr::Let(_binding_0) => {
-                    v.visit_expr_let(_binding_0);
-                }
-                Expr::Lit(_binding_0) => {
-                    v.visit_expr_lit(_binding_0);
-                }
-                Expr::Loop(_binding_0) => {
-                    v.visit_expr_loop(_binding_0);
-                }
-                Expr::Macro(_binding_0) => {
-                    v.visit_expr_macro(_binding_0);
-                }
-                Expr::Match(_binding_0) => {
-                    v.visit_expr_match(_binding_0);
-                }
-                Expr::MethodCall(_binding_0) => {
-                    v.visit_expr_method_call(_binding_0);
-                }
-                Expr::Paren(_binding_0) => {
-                    v.visit_expr_paren(_binding_0);
-                }
-                Expr::Path(_binding_0) => {
-                    v.visit_expr_path(_binding_0);
-                }
-                Expr::Range(_binding_0) => {
-                    v.visit_expr_range(_binding_0);
-                }
-                Expr::Reference(_binding_0) => {
-                    v.visit_expr_reference(_binding_0);
-                }
-                Expr::Repeat(_binding_0) => {
-                    v.visit_expr_repeat(_binding_0);
-                }
-                Expr::Return(_binding_0) => {
-                    v.visit_expr_return(_binding_0);
-                }
-                Expr::Struct(_binding_0) => {
-                    v.visit_expr_struct(_binding_0);
-                }
-                Expr::Try(_binding_0) => {
-                    v.visit_expr_try(_binding_0);
-                }
-                Expr::TryBlock(_binding_0) => {
-                    v.visit_expr_try_block(_binding_0);
-                }
-                Expr::Tuple(_binding_0) => {
-                    v.visit_expr_tuple(_binding_0);
-                }
-                Expr::Type(_binding_0) => {
-                    v.visit_expr_type(_binding_0);
-                }
-                Expr::Unary(_binding_0) => {
-                    v.visit_expr_unary(_binding_0);
-                }
-                Expr::Unsafe(_binding_0) => {
-                    v.visit_expr_unsafe(_binding_0);
-                }
+                Expr::Array(_binding_0) => v.visit_expr_array(_binding_0),
+                Expr::Assign(_binding_0) => v.visit_expr_assign(_binding_0),
+                Expr::AssignOp(_binding_0) => v.visit_expr_assign_op(_binding_0),
+                Expr::Async(_binding_0) => v.visit_expr_async(_binding_0),
+                Expr::Await(_binding_0) => v.visit_expr_await(_binding_0),
+                Expr::Binary(_binding_0) => v.visit_expr_binary(_binding_0),
+                Expr::Block(_binding_0) => v.visit_expr_block(_binding_0),
+                Expr::Box(_binding_0) => v.visit_expr_box(_binding_0),
+                Expr::Break(_binding_0) => v.visit_expr_break(_binding_0),
+                Expr::Call(_binding_0) => v.visit_expr_call(_binding_0),
+                Expr::Cast(_binding_0) => v.visit_expr_cast(_binding_0),
+                Expr::Closure(_binding_0) => v.visit_expr_closure(_binding_0),
+                Expr::Continue(_binding_0) => v.visit_expr_continue(_binding_0),
+                Expr::Field(_binding_0) => v.visit_expr_field(_binding_0),
+                Expr::ForLoop(_binding_0) => v.visit_expr_for_loop(_binding_0),
+                Expr::Group(_binding_0) => v.visit_expr_group(_binding_0),
+                Expr::If(_binding_0) => v.visit_expr_if(_binding_0),
+                Expr::Index(_binding_0) => v.visit_expr_index(_binding_0),
+                Expr::Let(_binding_0) => v.visit_expr_let(_binding_0),
+                Expr::Lit(_binding_0) => v.visit_expr_lit(_binding_0),
+                Expr::Loop(_binding_0) => v.visit_expr_loop(_binding_0),
+                Expr::Macro(_binding_0) => v.visit_expr_macro(_binding_0),
+                Expr::Match(_binding_0) => v.visit_expr_match(_binding_0),
+                Expr::MethodCall(_binding_0) => v.visit_expr_method_call(_binding_0),
+                Expr::Paren(_binding_0) => v.visit_expr_paren(_binding_0),
+                Expr::Path(_binding_0) => v.visit_expr_path(_binding_0),
+                Expr::Range(_binding_0) => v.visit_expr_range(_binding_0),
+                Expr::Reference(_binding_0) => v.visit_expr_reference(_binding_0),
+                Expr::Repeat(_binding_0) => v.visit_expr_repeat(_binding_0),
+                Expr::Return(_binding_0) => v.visit_expr_return(_binding_0),
+                Expr::Struct(_binding_0) => v.visit_expr_struct(_binding_0),
+                Expr::Try(_binding_0) => v.visit_expr_try(_binding_0),
+                Expr::TryBlock(_binding_0) => v.visit_expr_try_block(_binding_0),
+                Expr::Tuple(_binding_0) => v.visit_expr_tuple(_binding_0),
+                Expr::Type(_binding_0) => v.visit_expr_type(_binding_0),
+                Expr::Unary(_binding_0) => v.visit_expr_unary(_binding_0),
+                Expr::Unsafe(_binding_0) => v.visit_expr_unsafe(_binding_0),
                 Expr::Verbatim(_binding_0) => {}
-                Expr::While(_binding_0) => {
-                    v.visit_expr_while(_binding_0);
-                }
-                Expr::Yield(_binding_0) => {
-                    v.visit_expr_yield(_binding_0);
-                }
+                Expr::While(_binding_0) => v.visit_expr_while(_binding_0),
+                Expr::Yield(_binding_0) => v.visit_expr_yield(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_array<'ast, V>(v: &mut V, node: &'ast ExprArray)
         where
             V: Visit<'ast> + ?Sized,
@@ -24077,7 +23653,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_assign<'ast, V>(v: &mut V, node: &'ast ExprAssign)
         where
             V: Visit<'ast> + ?Sized,
@@ -24089,7 +23665,7 @@ mod gen {
             tokens_helper(v, &node.eq_token.spans);
             v.visit_expr(&*node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_assign_op<'ast, V>(v: &mut V, node: &'ast ExprAssignOp)
         where
             V: Visit<'ast> + ?Sized,
@@ -24101,7 +23677,7 @@ mod gen {
             v.visit_bin_op(&node.op);
             v.visit_expr(&*node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_async<'ast, V>(v: &mut V, node: &'ast ExprAsync)
         where
             V: Visit<'ast> + ?Sized,
@@ -24115,7 +23691,7 @@ mod gen {
             }
             v.visit_block(&node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_await<'ast, V>(v: &mut V, node: &'ast ExprAwait)
         where
             V: Visit<'ast> + ?Sized,
@@ -24127,7 +23703,7 @@ mod gen {
             tokens_helper(v, &node.dot_token.spans);
             tokens_helper(v, &node.await_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_binary<'ast, V>(v: &mut V, node: &'ast ExprBinary)
         where
             V: Visit<'ast> + ?Sized,
@@ -24139,7 +23715,7 @@ mod gen {
             v.visit_bin_op(&node.op);
             v.visit_expr(&*node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_block<'ast, V>(v: &mut V, node: &'ast ExprBlock)
         where
             V: Visit<'ast> + ?Sized,
@@ -24152,7 +23728,7 @@ mod gen {
             }
             v.visit_block(&node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_box<'ast, V>(v: &mut V, node: &'ast ExprBox)
         where
             V: Visit<'ast> + ?Sized,
@@ -24163,7 +23739,7 @@ mod gen {
             tokens_helper(v, &node.box_token.span);
             v.visit_expr(&*node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_break<'ast, V>(v: &mut V, node: &'ast ExprBreak)
         where
             V: Visit<'ast> + ?Sized,
@@ -24179,7 +23755,7 @@ mod gen {
                 v.visit_expr(&**it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_call<'ast, V>(v: &mut V, node: &'ast ExprCall)
         where
             V: Visit<'ast> + ?Sized,
@@ -24197,7 +23773,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_cast<'ast, V>(v: &mut V, node: &'ast ExprCast)
         where
             V: Visit<'ast> + ?Sized,
@@ -24209,7 +23785,7 @@ mod gen {
             tokens_helper(v, &node.as_token.span);
             v.visit_type(&*node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_closure<'ast, V>(v: &mut V, node: &'ast ExprClosure)
         where
             V: Visit<'ast> + ?Sized,
@@ -24238,7 +23814,7 @@ mod gen {
             v.visit_return_type(&node.output);
             v.visit_expr(&*node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_continue<'ast, V>(v: &mut V, node: &'ast ExprContinue)
         where
             V: Visit<'ast> + ?Sized,
@@ -24251,7 +23827,7 @@ mod gen {
                 v.visit_lifetime(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_field<'ast, V>(v: &mut V, node: &'ast ExprField)
         where
             V: Visit<'ast> + ?Sized,
@@ -24263,7 +23839,7 @@ mod gen {
             tokens_helper(v, &node.dot_token.spans);
             v.visit_member(&node.member);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_for_loop<'ast, V>(v: &mut V, node: &'ast ExprForLoop)
         where
             V: Visit<'ast> + ?Sized,
@@ -24280,7 +23856,7 @@ mod gen {
             v.visit_expr(&*node.expr);
             v.visit_block(&node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_group<'ast, V>(v: &mut V, node: &'ast ExprGroup)
         where
             V: Visit<'ast> + ?Sized,
@@ -24291,7 +23867,7 @@ mod gen {
             tokens_helper(v, &node.group_token.span);
             v.visit_expr(&*node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_if<'ast, V>(v: &mut V, node: &'ast ExprIf)
         where
             V: Visit<'ast> + ?Sized,
@@ -24307,7 +23883,7 @@ mod gen {
                 v.visit_expr(&*(it).1);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_index<'ast, V>(v: &mut V, node: &'ast ExprIndex)
         where
             V: Visit<'ast> + ?Sized,
@@ -24319,7 +23895,7 @@ mod gen {
             tokens_helper(v, &node.bracket_token.span);
             v.visit_expr(&*node.index);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_let<'ast, V>(v: &mut V, node: &'ast ExprLet)
         where
             V: Visit<'ast> + ?Sized,
@@ -24332,7 +23908,7 @@ mod gen {
             tokens_helper(v, &node.eq_token.spans);
             v.visit_expr(&*node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_lit<'ast, V>(v: &mut V, node: &'ast ExprLit)
         where
             V: Visit<'ast> + ?Sized,
@@ -24342,7 +23918,7 @@ mod gen {
             }
             v.visit_lit(&node.lit);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_loop<'ast, V>(v: &mut V, node: &'ast ExprLoop)
         where
             V: Visit<'ast> + ?Sized,
@@ -24356,7 +23932,7 @@ mod gen {
             tokens_helper(v, &node.loop_token.span);
             v.visit_block(&node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_macro<'ast, V>(v: &mut V, node: &'ast ExprMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -24366,7 +23942,7 @@ mod gen {
             }
             v.visit_macro(&node.mac);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_match<'ast, V>(v: &mut V, node: &'ast ExprMatch)
         where
             V: Visit<'ast> + ?Sized,
@@ -24381,7 +23957,7 @@ mod gen {
                 v.visit_arm(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_method_call<'ast, V>(v: &mut V, node: &'ast ExprMethodCall)
         where
             V: Visit<'ast> + ?Sized,
@@ -24404,7 +23980,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_paren<'ast, V>(v: &mut V, node: &'ast ExprParen)
         where
             V: Visit<'ast> + ?Sized,
@@ -24415,7 +23991,7 @@ mod gen {
             tokens_helper(v, &node.paren_token.span);
             v.visit_expr(&*node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_path<'ast, V>(v: &mut V, node: &'ast ExprPath)
         where
             V: Visit<'ast> + ?Sized,
@@ -24428,7 +24004,7 @@ mod gen {
             }
             v.visit_path(&node.path);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_range<'ast, V>(v: &mut V, node: &'ast ExprRange)
         where
             V: Visit<'ast> + ?Sized,
@@ -24444,7 +24020,7 @@ mod gen {
                 v.visit_expr(&**it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_reference<'ast, V>(v: &mut V, node: &'ast ExprReference)
         where
             V: Visit<'ast> + ?Sized,
@@ -24458,7 +24034,7 @@ mod gen {
             }
             v.visit_expr(&*node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_repeat<'ast, V>(v: &mut V, node: &'ast ExprRepeat)
         where
             V: Visit<'ast> + ?Sized,
@@ -24471,7 +24047,7 @@ mod gen {
             tokens_helper(v, &node.semi_token.spans);
             v.visit_expr(&*node.len);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_return<'ast, V>(v: &mut V, node: &'ast ExprReturn)
         where
             V: Visit<'ast> + ?Sized,
@@ -24484,7 +24060,7 @@ mod gen {
                 v.visit_expr(&**it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_struct<'ast, V>(v: &mut V, node: &'ast ExprStruct)
         where
             V: Visit<'ast> + ?Sized,
@@ -24508,7 +24084,7 @@ mod gen {
                 v.visit_expr(&**it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_try<'ast, V>(v: &mut V, node: &'ast ExprTry)
         where
             V: Visit<'ast> + ?Sized,
@@ -24519,7 +24095,7 @@ mod gen {
             v.visit_expr(&*node.expr);
             tokens_helper(v, &node.question_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_try_block<'ast, V>(v: &mut V, node: &'ast ExprTryBlock)
         where
             V: Visit<'ast> + ?Sized,
@@ -24530,7 +24106,7 @@ mod gen {
             tokens_helper(v, &node.try_token.span);
             v.visit_block(&node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_tuple<'ast, V>(v: &mut V, node: &'ast ExprTuple)
         where
             V: Visit<'ast> + ?Sized,
@@ -24547,7 +24123,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_type<'ast, V>(v: &mut V, node: &'ast ExprType)
         where
             V: Visit<'ast> + ?Sized,
@@ -24559,7 +24135,7 @@ mod gen {
             tokens_helper(v, &node.colon_token.spans);
             v.visit_type(&*node.ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_unary<'ast, V>(v: &mut V, node: &'ast ExprUnary)
         where
             V: Visit<'ast> + ?Sized,
@@ -24570,7 +24146,7 @@ mod gen {
             v.visit_un_op(&node.op);
             v.visit_expr(&*node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_unsafe<'ast, V>(v: &mut V, node: &'ast ExprUnsafe)
         where
             V: Visit<'ast> + ?Sized,
@@ -24581,7 +24157,7 @@ mod gen {
             tokens_helper(v, &node.unsafe_token.span);
             v.visit_block(&node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_while<'ast, V>(v: &mut V, node: &'ast ExprWhile)
         where
             V: Visit<'ast> + ?Sized,
@@ -24596,7 +24172,7 @@ mod gen {
             v.visit_expr(&*node.cond);
             v.visit_block(&node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_yield<'ast, V>(v: &mut V, node: &'ast ExprYield)
         where
             V: Visit<'ast> + ?Sized,
@@ -24609,7 +24185,7 @@ mod gen {
                 v.visit_expr(&**it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_field<'ast, V>(v: &mut V, node: &'ast Field)
         where
             V: Visit<'ast> + ?Sized,
@@ -24626,7 +24202,7 @@ mod gen {
             }
             v.visit_type(&node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_field_pat<'ast, V>(v: &mut V, node: &'ast FieldPat)
         where
             V: Visit<'ast> + ?Sized,
@@ -24640,7 +24216,7 @@ mod gen {
             }
             v.visit_pat(&*node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_field_value<'ast, V>(v: &mut V, node: &'ast FieldValue)
         where
             V: Visit<'ast> + ?Sized,
@@ -24654,22 +24230,18 @@ mod gen {
             }
             v.visit_expr(&node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields<'ast, V>(v: &mut V, node: &'ast Fields)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Fields::Named(_binding_0) => {
-                    v.visit_fields_named(_binding_0);
-                }
-                Fields::Unnamed(_binding_0) => {
-                    v.visit_fields_unnamed(_binding_0);
-                }
+                Fields::Named(_binding_0) => v.visit_fields_named(_binding_0),
+                Fields::Unnamed(_binding_0) => v.visit_fields_unnamed(_binding_0),
                 Fields::Unit => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields_named<'ast, V>(v: &mut V, node: &'ast FieldsNamed)
         where
             V: Visit<'ast> + ?Sized,
@@ -24683,7 +24255,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields_unnamed<'ast, V>(v: &mut V, node: &'ast FieldsUnnamed)
         where
             V: Visit<'ast> + ?Sized,
@@ -24697,7 +24269,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_file<'ast, V>(v: &mut V, node: &'ast File)
         where
             V: Visit<'ast> + ?Sized,
@@ -24709,42 +24281,32 @@ mod gen {
                 v.visit_item(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_fn_arg<'ast, V>(v: &mut V, node: &'ast FnArg)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                FnArg::Receiver(_binding_0) => {
-                    v.visit_receiver(_binding_0);
-                }
-                FnArg::Typed(_binding_0) => {
-                    v.visit_pat_type(_binding_0);
-                }
+                FnArg::Receiver(_binding_0) => v.visit_receiver(_binding_0),
+                FnArg::Typed(_binding_0) => v.visit_pat_type(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item<'ast, V>(v: &mut V, node: &'ast ForeignItem)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                ForeignItem::Fn(_binding_0) => {
-                    v.visit_foreign_item_fn(_binding_0);
-                }
+                ForeignItem::Fn(_binding_0) => v.visit_foreign_item_fn(_binding_0),
                 ForeignItem::Static(_binding_0) => {
-                    v.visit_foreign_item_static(_binding_0);
+                    v.visit_foreign_item_static(_binding_0)
                 }
-                ForeignItem::Type(_binding_0) => {
-                    v.visit_foreign_item_type(_binding_0);
-                }
-                ForeignItem::Macro(_binding_0) => {
-                    v.visit_foreign_item_macro(_binding_0);
-                }
+                ForeignItem::Type(_binding_0) => v.visit_foreign_item_type(_binding_0),
+                ForeignItem::Macro(_binding_0) => v.visit_foreign_item_macro(_binding_0),
                 ForeignItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_fn<'ast, V>(v: &mut V, node: &'ast ForeignItemFn)
         where
             V: Visit<'ast> + ?Sized,
@@ -24756,7 +24318,7 @@ mod gen {
             v.visit_signature(&node.sig);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_macro<'ast, V>(v: &mut V, node: &'ast ForeignItemMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -24769,7 +24331,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_static<'ast, V>(
             v: &mut V,
             node: &'ast ForeignItemStatic,
@@ -24790,7 +24352,7 @@ mod gen {
             v.visit_type(&*node.ty);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_type<'ast, V>(v: &mut V, node: &'ast ForeignItemType)
         where
             V: Visit<'ast> + ?Sized,
@@ -24803,30 +24365,20 @@ mod gen {
             v.visit_ident(&node.ident);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generic_argument<'ast, V>(v: &mut V, node: &'ast GenericArgument)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                GenericArgument::Lifetime(_binding_0) => {
-                    v.visit_lifetime(_binding_0);
-                }
-                GenericArgument::Type(_binding_0) => {
-                    v.visit_type(_binding_0);
-                }
-                GenericArgument::Binding(_binding_0) => {
-                    v.visit_binding(_binding_0);
-                }
-                GenericArgument::Constraint(_binding_0) => {
-                    v.visit_constraint(_binding_0);
-                }
-                GenericArgument::Const(_binding_0) => {
-                    v.visit_expr(_binding_0);
-                }
+                GenericArgument::Lifetime(_binding_0) => v.visit_lifetime(_binding_0),
+                GenericArgument::Type(_binding_0) => v.visit_type(_binding_0),
+                GenericArgument::Binding(_binding_0) => v.visit_binding(_binding_0),
+                GenericArgument::Constraint(_binding_0) => v.visit_constraint(_binding_0),
+                GenericArgument::Const(_binding_0) => v.visit_expr(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_generic_method_argument<'ast, V>(
             v: &mut V,
             node: &'ast GenericMethodArgument,
@@ -24835,32 +24387,22 @@ mod gen {
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                GenericMethodArgument::Type(_binding_0) => {
-                    v.visit_type(_binding_0);
-                }
-                GenericMethodArgument::Const(_binding_0) => {
-                    v.visit_expr(_binding_0);
-                }
+                GenericMethodArgument::Type(_binding_0) => v.visit_type(_binding_0),
+                GenericMethodArgument::Const(_binding_0) => v.visit_expr(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generic_param<'ast, V>(v: &mut V, node: &'ast GenericParam)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                GenericParam::Type(_binding_0) => {
-                    v.visit_type_param(_binding_0);
-                }
-                GenericParam::Lifetime(_binding_0) => {
-                    v.visit_lifetime_def(_binding_0);
-                }
-                GenericParam::Const(_binding_0) => {
-                    v.visit_const_param(_binding_0);
-                }
+                GenericParam::Type(_binding_0) => v.visit_type_param(_binding_0),
+                GenericParam::Lifetime(_binding_0) => v.visit_lifetime_def(_binding_0),
+                GenericParam::Const(_binding_0) => v.visit_const_param(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generics<'ast, V>(v: &mut V, node: &'ast Generics)
         where
             V: Visit<'ast> + ?Sized,
@@ -24888,28 +24430,20 @@ mod gen {
         {
             v.visit_span(&node.span());
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item<'ast, V>(v: &mut V, node: &'ast ImplItem)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                ImplItem::Const(_binding_0) => {
-                    v.visit_impl_item_const(_binding_0);
-                }
-                ImplItem::Method(_binding_0) => {
-                    v.visit_impl_item_method(_binding_0);
-                }
-                ImplItem::Type(_binding_0) => {
-                    v.visit_impl_item_type(_binding_0);
-                }
-                ImplItem::Macro(_binding_0) => {
-                    v.visit_impl_item_macro(_binding_0);
-                }
+                ImplItem::Const(_binding_0) => v.visit_impl_item_const(_binding_0),
+                ImplItem::Method(_binding_0) => v.visit_impl_item_method(_binding_0),
+                ImplItem::Type(_binding_0) => v.visit_impl_item_type(_binding_0),
+                ImplItem::Macro(_binding_0) => v.visit_impl_item_macro(_binding_0),
                 ImplItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_const<'ast, V>(v: &mut V, node: &'ast ImplItemConst)
         where
             V: Visit<'ast> + ?Sized,
@@ -24929,7 +24463,7 @@ mod gen {
             v.visit_expr(&node.expr);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_macro<'ast, V>(v: &mut V, node: &'ast ImplItemMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -24942,7 +24476,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_method<'ast, V>(v: &mut V, node: &'ast ImplItemMethod)
         where
             V: Visit<'ast> + ?Sized,
@@ -24957,7 +24491,7 @@ mod gen {
             v.visit_signature(&node.sig);
             v.visit_block(&node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_type<'ast, V>(v: &mut V, node: &'ast ImplItemType)
         where
             V: Visit<'ast> + ?Sized,
@@ -24976,71 +24510,39 @@ mod gen {
             v.visit_type(&node.ty);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_index<'ast, V>(v: &mut V, node: &'ast Index)
         where
             V: Visit<'ast> + ?Sized,
         {
             v.visit_span(&node.span);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item<'ast, V>(v: &mut V, node: &'ast Item)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Item::Const(_binding_0) => {
-                    v.visit_item_const(_binding_0);
-                }
-                Item::Enum(_binding_0) => {
-                    v.visit_item_enum(_binding_0);
-                }
-                Item::ExternCrate(_binding_0) => {
-                    v.visit_item_extern_crate(_binding_0);
-                }
-                Item::Fn(_binding_0) => {
-                    v.visit_item_fn(_binding_0);
-                }
-                Item::ForeignMod(_binding_0) => {
-                    v.visit_item_foreign_mod(_binding_0);
-                }
-                Item::Impl(_binding_0) => {
-                    v.visit_item_impl(_binding_0);
-                }
-                Item::Macro(_binding_0) => {
-                    v.visit_item_macro(_binding_0);
-                }
-                Item::Macro2(_binding_0) => {
-                    v.visit_item_macro2(_binding_0);
-                }
-                Item::Mod(_binding_0) => {
-                    v.visit_item_mod(_binding_0);
-                }
-                Item::Static(_binding_0) => {
-                    v.visit_item_static(_binding_0);
-                }
-                Item::Struct(_binding_0) => {
-                    v.visit_item_struct(_binding_0);
-                }
-                Item::Trait(_binding_0) => {
-                    v.visit_item_trait(_binding_0);
-                }
-                Item::TraitAlias(_binding_0) => {
-                    v.visit_item_trait_alias(_binding_0);
-                }
-                Item::Type(_binding_0) => {
-                    v.visit_item_type(_binding_0);
-                }
-                Item::Union(_binding_0) => {
-                    v.visit_item_union(_binding_0);
-                }
-                Item::Use(_binding_0) => {
-                    v.visit_item_use(_binding_0);
-                }
+                Item::Const(_binding_0) => v.visit_item_const(_binding_0),
+                Item::Enum(_binding_0) => v.visit_item_enum(_binding_0),
+                Item::ExternCrate(_binding_0) => v.visit_item_extern_crate(_binding_0),
+                Item::Fn(_binding_0) => v.visit_item_fn(_binding_0),
+                Item::ForeignMod(_binding_0) => v.visit_item_foreign_mod(_binding_0),
+                Item::Impl(_binding_0) => v.visit_item_impl(_binding_0),
+                Item::Macro(_binding_0) => v.visit_item_macro(_binding_0),
+                Item::Macro2(_binding_0) => v.visit_item_macro2(_binding_0),
+                Item::Mod(_binding_0) => v.visit_item_mod(_binding_0),
+                Item::Static(_binding_0) => v.visit_item_static(_binding_0),
+                Item::Struct(_binding_0) => v.visit_item_struct(_binding_0),
+                Item::Trait(_binding_0) => v.visit_item_trait(_binding_0),
+                Item::TraitAlias(_binding_0) => v.visit_item_trait_alias(_binding_0),
+                Item::Type(_binding_0) => v.visit_item_type(_binding_0),
+                Item::Union(_binding_0) => v.visit_item_union(_binding_0),
+                Item::Use(_binding_0) => v.visit_item_use(_binding_0),
                 Item::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_const<'ast, V>(v: &mut V, node: &'ast ItemConst)
         where
             V: Visit<'ast> + ?Sized,
@@ -25057,7 +24559,7 @@ mod gen {
             v.visit_expr(&*node.expr);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_enum<'ast, V>(v: &mut V, node: &'ast ItemEnum)
         where
             V: Visit<'ast> + ?Sized,
@@ -25078,7 +24580,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_extern_crate<'ast, V>(v: &mut V, node: &'ast ItemExternCrate)
         where
             V: Visit<'ast> + ?Sized,
@@ -25096,7 +24598,7 @@ mod gen {
             }
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_fn<'ast, V>(v: &mut V, node: &'ast ItemFn)
         where
             V: Visit<'ast> + ?Sized,
@@ -25108,7 +24610,7 @@ mod gen {
             v.visit_signature(&node.sig);
             v.visit_block(&*node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_foreign_mod<'ast, V>(v: &mut V, node: &'ast ItemForeignMod)
         where
             V: Visit<'ast> + ?Sized,
@@ -25122,7 +24624,7 @@ mod gen {
                 v.visit_foreign_item(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_impl<'ast, V>(v: &mut V, node: &'ast ItemImpl)
         where
             V: Visit<'ast> + ?Sized,
@@ -25151,7 +24653,7 @@ mod gen {
                 v.visit_impl_item(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_macro<'ast, V>(v: &mut V, node: &'ast ItemMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -25167,7 +24669,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_macro2<'ast, V>(v: &mut V, node: &'ast ItemMacro2)
         where
             V: Visit<'ast> + ?Sized,
@@ -25179,7 +24681,7 @@ mod gen {
             tokens_helper(v, &node.macro_token.span);
             v.visit_ident(&node.ident);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_mod<'ast, V>(v: &mut V, node: &'ast ItemMod)
         where
             V: Visit<'ast> + ?Sized,
@@ -25200,7 +24702,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_static<'ast, V>(v: &mut V, node: &'ast ItemStatic)
         where
             V: Visit<'ast> + ?Sized,
@@ -25220,7 +24722,7 @@ mod gen {
             v.visit_expr(&*node.expr);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_struct<'ast, V>(v: &mut V, node: &'ast ItemStruct)
         where
             V: Visit<'ast> + ?Sized,
@@ -25237,7 +24739,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_trait<'ast, V>(v: &mut V, node: &'ast ItemTrait)
         where
             V: Visit<'ast> + ?Sized,
@@ -25270,7 +24772,7 @@ mod gen {
                 v.visit_trait_item(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_trait_alias<'ast, V>(v: &mut V, node: &'ast ItemTraitAlias)
         where
             V: Visit<'ast> + ?Sized,
@@ -25292,7 +24794,7 @@ mod gen {
             }
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_type<'ast, V>(v: &mut V, node: &'ast ItemType)
         where
             V: Visit<'ast> + ?Sized,
@@ -25308,7 +24810,7 @@ mod gen {
             v.visit_type(&*node.ty);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_union<'ast, V>(v: &mut V, node: &'ast ItemUnion)
         where
             V: Visit<'ast> + ?Sized,
@@ -25322,7 +24824,7 @@ mod gen {
             v.visit_generics(&node.generics);
             v.visit_fields_named(&node.fields);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_use<'ast, V>(v: &mut V, node: &'ast ItemUse)
         where
             V: Visit<'ast> + ?Sized,
@@ -25338,7 +24840,7 @@ mod gen {
             v.visit_use_tree(&node.tree);
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_label<'ast, V>(v: &mut V, node: &'ast Label)
         where
             V: Visit<'ast> + ?Sized,
@@ -25353,7 +24855,7 @@ mod gen {
             v.visit_span(&node.apostrophe);
             v.visit_ident(&node.ident);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_lifetime_def<'ast, V>(v: &mut V, node: &'ast LifetimeDef)
         where
             V: Visit<'ast> + ?Sized,
@@ -25378,27 +24880,13 @@ mod gen {
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Lit::Str(_binding_0) => {
-                    v.visit_lit_str(_binding_0);
-                }
-                Lit::ByteStr(_binding_0) => {
-                    v.visit_lit_byte_str(_binding_0);
-                }
-                Lit::Byte(_binding_0) => {
-                    v.visit_lit_byte(_binding_0);
-                }
-                Lit::Char(_binding_0) => {
-                    v.visit_lit_char(_binding_0);
-                }
-                Lit::Int(_binding_0) => {
-                    v.visit_lit_int(_binding_0);
-                }
-                Lit::Float(_binding_0) => {
-                    v.visit_lit_float(_binding_0);
-                }
-                Lit::Bool(_binding_0) => {
-                    v.visit_lit_bool(_binding_0);
-                }
+                Lit::Str(_binding_0) => v.visit_lit_str(_binding_0),
+                Lit::ByteStr(_binding_0) => v.visit_lit_byte_str(_binding_0),
+                Lit::Byte(_binding_0) => v.visit_lit_byte(_binding_0),
+                Lit::Char(_binding_0) => v.visit_lit_char(_binding_0),
+                Lit::Int(_binding_0) => v.visit_lit_int(_binding_0),
+                Lit::Float(_binding_0) => v.visit_lit_float(_binding_0),
+                Lit::Bool(_binding_0) => v.visit_lit_bool(_binding_0),
                 Lit::Verbatim(_binding_0) => {}
             }
         }
@@ -25432,7 +24920,7 @@ mod gen {
         where
             V: Visit<'ast> + ?Sized,
         {}
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_local<'ast, V>(v: &mut V, node: &'ast Local)
         where
             V: Visit<'ast> + ?Sized,
@@ -25448,7 +24936,7 @@ mod gen {
             }
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_macro<'ast, V>(v: &mut V, node: &'ast Macro)
         where
             V: Visit<'ast> + ?Sized,
@@ -25457,55 +24945,39 @@ mod gen {
             tokens_helper(v, &node.bang_token.spans);
             v.visit_macro_delimiter(&node.delimiter);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_macro_delimiter<'ast, V>(v: &mut V, node: &'ast MacroDelimiter)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                MacroDelimiter::Paren(_binding_0) => {
-                    tokens_helper(v, &_binding_0.span);
-                }
-                MacroDelimiter::Brace(_binding_0) => {
-                    tokens_helper(v, &_binding_0.span);
-                }
-                MacroDelimiter::Bracket(_binding_0) => {
-                    tokens_helper(v, &_binding_0.span);
-                }
+                MacroDelimiter::Paren(_binding_0) => tokens_helper(v, &_binding_0.span),
+                MacroDelimiter::Brace(_binding_0) => tokens_helper(v, &_binding_0.span),
+                MacroDelimiter::Bracket(_binding_0) => tokens_helper(v, &_binding_0.span),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_member<'ast, V>(v: &mut V, node: &'ast Member)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Member::Named(_binding_0) => {
-                    v.visit_ident(_binding_0);
-                }
-                Member::Unnamed(_binding_0) => {
-                    v.visit_index(_binding_0);
-                }
+                Member::Named(_binding_0) => v.visit_ident(_binding_0),
+                Member::Unnamed(_binding_0) => v.visit_index(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta<'ast, V>(v: &mut V, node: &'ast Meta)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Meta::Path(_binding_0) => {
-                    v.visit_path(_binding_0);
-                }
-                Meta::List(_binding_0) => {
-                    v.visit_meta_list(_binding_0);
-                }
-                Meta::NameValue(_binding_0) => {
-                    v.visit_meta_name_value(_binding_0);
-                }
+                Meta::Path(_binding_0) => v.visit_path(_binding_0),
+                Meta::List(_binding_0) => v.visit_meta_list(_binding_0),
+                Meta::NameValue(_binding_0) => v.visit_meta_name_value(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta_list<'ast, V>(v: &mut V, node: &'ast MetaList)
         where
             V: Visit<'ast> + ?Sized,
@@ -25520,7 +24992,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta_name_value<'ast, V>(v: &mut V, node: &'ast MetaNameValue)
         where
             V: Visit<'ast> + ?Sized,
@@ -25529,7 +25001,7 @@ mod gen {
             tokens_helper(v, &node.eq_token.spans);
             v.visit_lit(&node.lit);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_method_turbofish<'ast, V>(v: &mut V, node: &'ast MethodTurbofish)
         where
             V: Visit<'ast> + ?Sized,
@@ -25545,21 +25017,17 @@ mod gen {
             }
             tokens_helper(v, &node.gt_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_nested_meta<'ast, V>(v: &mut V, node: &'ast NestedMeta)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                NestedMeta::Meta(_binding_0) => {
-                    v.visit_meta(_binding_0);
-                }
-                NestedMeta::Lit(_binding_0) => {
-                    v.visit_lit(_binding_0);
-                }
+                NestedMeta::Meta(_binding_0) => v.visit_meta(_binding_0),
+                NestedMeta::Lit(_binding_0) => v.visit_lit(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_parenthesized_generic_arguments<'ast, V>(
             v: &mut V,
             node: &'ast ParenthesizedGenericArguments,
@@ -25577,61 +25045,31 @@ mod gen {
             }
             v.visit_return_type(&node.output);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat<'ast, V>(v: &mut V, node: &'ast Pat)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Pat::Box(_binding_0) => {
-                    v.visit_pat_box(_binding_0);
-                }
-                Pat::Ident(_binding_0) => {
-                    v.visit_pat_ident(_binding_0);
-                }
-                Pat::Lit(_binding_0) => {
-                    v.visit_pat_lit(_binding_0);
-                }
-                Pat::Macro(_binding_0) => {
-                    v.visit_pat_macro(_binding_0);
-                }
-                Pat::Or(_binding_0) => {
-                    v.visit_pat_or(_binding_0);
-                }
-                Pat::Path(_binding_0) => {
-                    v.visit_pat_path(_binding_0);
-                }
-                Pat::Range(_binding_0) => {
-                    v.visit_pat_range(_binding_0);
-                }
-                Pat::Reference(_binding_0) => {
-                    v.visit_pat_reference(_binding_0);
-                }
-                Pat::Rest(_binding_0) => {
-                    v.visit_pat_rest(_binding_0);
-                }
-                Pat::Slice(_binding_0) => {
-                    v.visit_pat_slice(_binding_0);
-                }
-                Pat::Struct(_binding_0) => {
-                    v.visit_pat_struct(_binding_0);
-                }
-                Pat::Tuple(_binding_0) => {
-                    v.visit_pat_tuple(_binding_0);
-                }
-                Pat::TupleStruct(_binding_0) => {
-                    v.visit_pat_tuple_struct(_binding_0);
-                }
-                Pat::Type(_binding_0) => {
-                    v.visit_pat_type(_binding_0);
-                }
+                Pat::Box(_binding_0) => v.visit_pat_box(_binding_0),
+                Pat::Ident(_binding_0) => v.visit_pat_ident(_binding_0),
+                Pat::Lit(_binding_0) => v.visit_pat_lit(_binding_0),
+                Pat::Macro(_binding_0) => v.visit_pat_macro(_binding_0),
+                Pat::Or(_binding_0) => v.visit_pat_or(_binding_0),
+                Pat::Path(_binding_0) => v.visit_pat_path(_binding_0),
+                Pat::Range(_binding_0) => v.visit_pat_range(_binding_0),
+                Pat::Reference(_binding_0) => v.visit_pat_reference(_binding_0),
+                Pat::Rest(_binding_0) => v.visit_pat_rest(_binding_0),
+                Pat::Slice(_binding_0) => v.visit_pat_slice(_binding_0),
+                Pat::Struct(_binding_0) => v.visit_pat_struct(_binding_0),
+                Pat::Tuple(_binding_0) => v.visit_pat_tuple(_binding_0),
+                Pat::TupleStruct(_binding_0) => v.visit_pat_tuple_struct(_binding_0),
+                Pat::Type(_binding_0) => v.visit_pat_type(_binding_0),
                 Pat::Verbatim(_binding_0) => {}
-                Pat::Wild(_binding_0) => {
-                    v.visit_pat_wild(_binding_0);
-                }
+                Pat::Wild(_binding_0) => v.visit_pat_wild(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_box<'ast, V>(v: &mut V, node: &'ast PatBox)
         where
             V: Visit<'ast> + ?Sized,
@@ -25642,7 +25080,7 @@ mod gen {
             tokens_helper(v, &node.box_token.span);
             v.visit_pat(&*node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_ident<'ast, V>(v: &mut V, node: &'ast PatIdent)
         where
             V: Visit<'ast> + ?Sized,
@@ -25662,7 +25100,7 @@ mod gen {
                 v.visit_pat(&*(it).1);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_lit<'ast, V>(v: &mut V, node: &'ast PatLit)
         where
             V: Visit<'ast> + ?Sized,
@@ -25672,7 +25110,7 @@ mod gen {
             }
             v.visit_expr(&*node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_macro<'ast, V>(v: &mut V, node: &'ast PatMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -25682,7 +25120,7 @@ mod gen {
             }
             v.visit_macro(&node.mac);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_or<'ast, V>(v: &mut V, node: &'ast PatOr)
         where
             V: Visit<'ast> + ?Sized,
@@ -25701,7 +25139,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_path<'ast, V>(v: &mut V, node: &'ast PatPath)
         where
             V: Visit<'ast> + ?Sized,
@@ -25714,7 +25152,7 @@ mod gen {
             }
             v.visit_path(&node.path);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_range<'ast, V>(v: &mut V, node: &'ast PatRange)
         where
             V: Visit<'ast> + ?Sized,
@@ -25726,7 +25164,7 @@ mod gen {
             v.visit_range_limits(&node.limits);
             v.visit_expr(&*node.hi);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_reference<'ast, V>(v: &mut V, node: &'ast PatReference)
         where
             V: Visit<'ast> + ?Sized,
@@ -25740,7 +25178,7 @@ mod gen {
             }
             v.visit_pat(&*node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_rest<'ast, V>(v: &mut V, node: &'ast PatRest)
         where
             V: Visit<'ast> + ?Sized,
@@ -25750,7 +25188,7 @@ mod gen {
             }
             tokens_helper(v, &node.dot2_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_slice<'ast, V>(v: &mut V, node: &'ast PatSlice)
         where
             V: Visit<'ast> + ?Sized,
@@ -25767,7 +25205,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_struct<'ast, V>(v: &mut V, node: &'ast PatStruct)
         where
             V: Visit<'ast> + ?Sized,
@@ -25788,7 +25226,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_tuple<'ast, V>(v: &mut V, node: &'ast PatTuple)
         where
             V: Visit<'ast> + ?Sized,
@@ -25805,7 +25243,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_tuple_struct<'ast, V>(v: &mut V, node: &'ast PatTupleStruct)
         where
             V: Visit<'ast> + ?Sized,
@@ -25816,7 +25254,7 @@ mod gen {
             v.visit_path(&node.path);
             v.visit_pat_tuple(&node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_type<'ast, V>(v: &mut V, node: &'ast PatType)
         where
             V: Visit<'ast> + ?Sized,
@@ -25828,7 +25266,7 @@ mod gen {
             tokens_helper(v, &node.colon_token.spans);
             v.visit_type(&*node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_wild<'ast, V>(v: &mut V, node: &'ast PatWild)
         where
             V: Visit<'ast> + ?Sized,
@@ -25838,7 +25276,7 @@ mod gen {
             }
             tokens_helper(v, &node.underscore_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path<'ast, V>(v: &mut V, node: &'ast Path)
         where
             V: Visit<'ast> + ?Sized,
@@ -25854,7 +25292,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path_arguments<'ast, V>(v: &mut V, node: &'ast PathArguments)
         where
             V: Visit<'ast> + ?Sized,
@@ -25862,14 +25300,14 @@ mod gen {
             match node {
                 PathArguments::None => {}
                 PathArguments::AngleBracketed(_binding_0) => {
-                    v.visit_angle_bracketed_generic_arguments(_binding_0);
+                    v.visit_angle_bracketed_generic_arguments(_binding_0)
                 }
                 PathArguments::Parenthesized(_binding_0) => {
-                    v.visit_parenthesized_generic_arguments(_binding_0);
+                    v.visit_parenthesized_generic_arguments(_binding_0)
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path_segment<'ast, V>(v: &mut V, node: &'ast PathSegment)
         where
             V: Visit<'ast> + ?Sized,
@@ -25877,7 +25315,7 @@ mod gen {
             v.visit_ident(&node.ident);
             v.visit_path_arguments(&node.arguments);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_eq<'ast, V>(v: &mut V, node: &'ast PredicateEq)
         where
             V: Visit<'ast> + ?Sized,
@@ -25886,7 +25324,7 @@ mod gen {
             tokens_helper(v, &node.eq_token.spans);
             v.visit_type(&node.rhs_ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_lifetime<'ast, V>(
             v: &mut V,
             node: &'ast PredicateLifetime,
@@ -25904,7 +25342,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_type<'ast, V>(v: &mut V, node: &'ast PredicateType)
         where
             V: Visit<'ast> + ?Sized,
@@ -25922,7 +25360,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_qself<'ast, V>(v: &mut V, node: &'ast QSelf)
         where
             V: Visit<'ast> + ?Sized,
@@ -25934,21 +25372,17 @@ mod gen {
             }
             tokens_helper(v, &node.gt_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_range_limits<'ast, V>(v: &mut V, node: &'ast RangeLimits)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                RangeLimits::HalfOpen(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                RangeLimits::Closed(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
+                RangeLimits::HalfOpen(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                RangeLimits::Closed(_binding_0) => tokens_helper(v, &_binding_0.spans),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_receiver<'ast, V>(v: &mut V, node: &'ast Receiver)
         where
             V: Visit<'ast> + ?Sized,
@@ -25967,7 +25401,7 @@ mod gen {
             }
             tokens_helper(v, &node.self_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_return_type<'ast, V>(v: &mut V, node: &'ast ReturnType)
         where
             V: Visit<'ast> + ?Sized,
@@ -25980,7 +25414,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_signature<'ast, V>(v: &mut V, node: &'ast Signature)
         where
             V: Visit<'ast> + ?Sized,
@@ -26017,28 +25451,22 @@ mod gen {
         where
             V: Visit<'ast> + ?Sized,
         {}
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_stmt<'ast, V>(v: &mut V, node: &'ast Stmt)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Stmt::Local(_binding_0) => {
-                    v.visit_local(_binding_0);
-                }
-                Stmt::Item(_binding_0) => {
-                    v.visit_item(_binding_0);
-                }
-                Stmt::Expr(_binding_0) => {
-                    v.visit_expr(_binding_0);
-                }
+                Stmt::Local(_binding_0) => v.visit_local(_binding_0),
+                Stmt::Item(_binding_0) => v.visit_item(_binding_0),
+                Stmt::Expr(_binding_0) => v.visit_expr(_binding_0),
                 Stmt::Semi(_binding_0, _binding_1) => {
                     v.visit_expr(_binding_0);
                     tokens_helper(v, &_binding_1.spans);
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_trait_bound<'ast, V>(v: &mut V, node: &'ast TraitBound)
         where
             V: Visit<'ast> + ?Sized,
@@ -26052,7 +25480,7 @@ mod gen {
             }
             v.visit_path(&node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_trait_bound_modifier<'ast, V>(
             v: &mut V,
             node: &'ast TraitBoundModifier,
@@ -26063,32 +25491,24 @@ mod gen {
             match node {
                 TraitBoundModifier::None => {}
                 TraitBoundModifier::Maybe(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
+                    tokens_helper(v, &_binding_0.spans)
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item<'ast, V>(v: &mut V, node: &'ast TraitItem)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                TraitItem::Const(_binding_0) => {
-                    v.visit_trait_item_const(_binding_0);
-                }
-                TraitItem::Method(_binding_0) => {
-                    v.visit_trait_item_method(_binding_0);
-                }
-                TraitItem::Type(_binding_0) => {
-                    v.visit_trait_item_type(_binding_0);
-                }
-                TraitItem::Macro(_binding_0) => {
-                    v.visit_trait_item_macro(_binding_0);
-                }
+                TraitItem::Const(_binding_0) => v.visit_trait_item_const(_binding_0),
+                TraitItem::Method(_binding_0) => v.visit_trait_item_method(_binding_0),
+                TraitItem::Type(_binding_0) => v.visit_trait_item_type(_binding_0),
+                TraitItem::Macro(_binding_0) => v.visit_trait_item_macro(_binding_0),
                 TraitItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_const<'ast, V>(v: &mut V, node: &'ast TraitItemConst)
         where
             V: Visit<'ast> + ?Sized,
@@ -26106,7 +25526,7 @@ mod gen {
             }
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_macro<'ast, V>(v: &mut V, node: &'ast TraitItemMacro)
         where
             V: Visit<'ast> + ?Sized,
@@ -26119,7 +25539,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_method<'ast, V>(v: &mut V, node: &'ast TraitItemMethod)
         where
             V: Visit<'ast> + ?Sized,
@@ -26135,7 +25555,7 @@ mod gen {
                 tokens_helper(v, &it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_type<'ast, V>(v: &mut V, node: &'ast TraitItemType)
         where
             V: Visit<'ast> + ?Sized,
@@ -26162,58 +25582,30 @@ mod gen {
             }
             tokens_helper(v, &node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type<'ast, V>(v: &mut V, node: &'ast Type)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Type::Array(_binding_0) => {
-                    v.visit_type_array(_binding_0);
-                }
-                Type::BareFn(_binding_0) => {
-                    v.visit_type_bare_fn(_binding_0);
-                }
-                Type::Group(_binding_0) => {
-                    v.visit_type_group(_binding_0);
-                }
-                Type::ImplTrait(_binding_0) => {
-                    v.visit_type_impl_trait(_binding_0);
-                }
-                Type::Infer(_binding_0) => {
-                    v.visit_type_infer(_binding_0);
-                }
-                Type::Macro(_binding_0) => {
-                    v.visit_type_macro(_binding_0);
-                }
-                Type::Never(_binding_0) => {
-                    v.visit_type_never(_binding_0);
-                }
-                Type::Paren(_binding_0) => {
-                    v.visit_type_paren(_binding_0);
-                }
-                Type::Path(_binding_0) => {
-                    v.visit_type_path(_binding_0);
-                }
-                Type::Ptr(_binding_0) => {
-                    v.visit_type_ptr(_binding_0);
-                }
-                Type::Reference(_binding_0) => {
-                    v.visit_type_reference(_binding_0);
-                }
-                Type::Slice(_binding_0) => {
-                    v.visit_type_slice(_binding_0);
-                }
-                Type::TraitObject(_binding_0) => {
-                    v.visit_type_trait_object(_binding_0);
-                }
-                Type::Tuple(_binding_0) => {
-                    v.visit_type_tuple(_binding_0);
-                }
+                Type::Array(_binding_0) => v.visit_type_array(_binding_0),
+                Type::BareFn(_binding_0) => v.visit_type_bare_fn(_binding_0),
+                Type::Group(_binding_0) => v.visit_type_group(_binding_0),
+                Type::ImplTrait(_binding_0) => v.visit_type_impl_trait(_binding_0),
+                Type::Infer(_binding_0) => v.visit_type_infer(_binding_0),
+                Type::Macro(_binding_0) => v.visit_type_macro(_binding_0),
+                Type::Never(_binding_0) => v.visit_type_never(_binding_0),
+                Type::Paren(_binding_0) => v.visit_type_paren(_binding_0),
+                Type::Path(_binding_0) => v.visit_type_path(_binding_0),
+                Type::Ptr(_binding_0) => v.visit_type_ptr(_binding_0),
+                Type::Reference(_binding_0) => v.visit_type_reference(_binding_0),
+                Type::Slice(_binding_0) => v.visit_type_slice(_binding_0),
+                Type::TraitObject(_binding_0) => v.visit_type_trait_object(_binding_0),
+                Type::Tuple(_binding_0) => v.visit_type_tuple(_binding_0),
                 Type::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_array<'ast, V>(v: &mut V, node: &'ast TypeArray)
         where
             V: Visit<'ast> + ?Sized,
@@ -26223,7 +25615,7 @@ mod gen {
             tokens_helper(v, &node.semi_token.spans);
             v.visit_expr(&node.len);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_bare_fn<'ast, V>(v: &mut V, node: &'ast TypeBareFn)
         where
             V: Visit<'ast> + ?Sized,
@@ -26251,7 +25643,7 @@ mod gen {
             }
             v.visit_return_type(&node.output);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_group<'ast, V>(v: &mut V, node: &'ast TypeGroup)
         where
             V: Visit<'ast> + ?Sized,
@@ -26259,7 +25651,7 @@ mod gen {
             tokens_helper(v, &node.group_token.span);
             v.visit_type(&*node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_impl_trait<'ast, V>(v: &mut V, node: &'ast TypeImplTrait)
         where
             V: Visit<'ast> + ?Sized,
@@ -26273,28 +25665,28 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_infer<'ast, V>(v: &mut V, node: &'ast TypeInfer)
         where
             V: Visit<'ast> + ?Sized,
         {
             tokens_helper(v, &node.underscore_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_macro<'ast, V>(v: &mut V, node: &'ast TypeMacro)
         where
             V: Visit<'ast> + ?Sized,
         {
             v.visit_macro(&node.mac);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_never<'ast, V>(v: &mut V, node: &'ast TypeNever)
         where
             V: Visit<'ast> + ?Sized,
         {
             tokens_helper(v, &node.bang_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_param<'ast, V>(v: &mut V, node: &'ast TypeParam)
         where
             V: Visit<'ast> + ?Sized,
@@ -26320,21 +25712,17 @@ mod gen {
                 v.visit_type(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_param_bound<'ast, V>(v: &mut V, node: &'ast TypeParamBound)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                TypeParamBound::Trait(_binding_0) => {
-                    v.visit_trait_bound(_binding_0);
-                }
-                TypeParamBound::Lifetime(_binding_0) => {
-                    v.visit_lifetime(_binding_0);
-                }
+                TypeParamBound::Trait(_binding_0) => v.visit_trait_bound(_binding_0),
+                TypeParamBound::Lifetime(_binding_0) => v.visit_lifetime(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_paren<'ast, V>(v: &mut V, node: &'ast TypeParen)
         where
             V: Visit<'ast> + ?Sized,
@@ -26342,7 +25730,7 @@ mod gen {
             tokens_helper(v, &node.paren_token.span);
             v.visit_type(&*node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_path<'ast, V>(v: &mut V, node: &'ast TypePath)
         where
             V: Visit<'ast> + ?Sized,
@@ -26352,7 +25740,7 @@ mod gen {
             }
             v.visit_path(&node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_ptr<'ast, V>(v: &mut V, node: &'ast TypePtr)
         where
             V: Visit<'ast> + ?Sized,
@@ -26366,7 +25754,7 @@ mod gen {
             }
             v.visit_type(&*node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_reference<'ast, V>(v: &mut V, node: &'ast TypeReference)
         where
             V: Visit<'ast> + ?Sized,
@@ -26380,7 +25768,7 @@ mod gen {
             }
             v.visit_type(&*node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_slice<'ast, V>(v: &mut V, node: &'ast TypeSlice)
         where
             V: Visit<'ast> + ?Sized,
@@ -26388,7 +25776,7 @@ mod gen {
             tokens_helper(v, &node.bracket_token.span);
             v.visit_type(&*node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_trait_object<'ast, V>(v: &mut V, node: &'ast TypeTraitObject)
         where
             V: Visit<'ast> + ?Sized,
@@ -26404,7 +25792,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_tuple<'ast, V>(v: &mut V, node: &'ast TypeTuple)
         where
             V: Visit<'ast> + ?Sized,
@@ -26418,31 +25806,25 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_un_op<'ast, V>(v: &mut V, node: &'ast UnOp)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                UnOp::Deref(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                UnOp::Not(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
-                UnOp::Neg(_binding_0) => {
-                    tokens_helper(v, &_binding_0.spans);
-                }
+                UnOp::Deref(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                UnOp::Not(_binding_0) => tokens_helper(v, &_binding_0.spans),
+                UnOp::Neg(_binding_0) => tokens_helper(v, &_binding_0.spans),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_glob<'ast, V>(v: &mut V, node: &'ast UseGlob)
         where
             V: Visit<'ast> + ?Sized,
         {
             tokens_helper(v, &node.star_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_group<'ast, V>(v: &mut V, node: &'ast UseGroup)
         where
             V: Visit<'ast> + ?Sized,
@@ -26456,14 +25838,14 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_name<'ast, V>(v: &mut V, node: &'ast UseName)
         where
             V: Visit<'ast> + ?Sized,
         {
             v.visit_ident(&node.ident);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_path<'ast, V>(v: &mut V, node: &'ast UsePath)
         where
             V: Visit<'ast> + ?Sized,
@@ -26472,7 +25854,7 @@ mod gen {
             tokens_helper(v, &node.colon2_token.spans);
             v.visit_use_tree(&*node.tree);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_rename<'ast, V>(v: &mut V, node: &'ast UseRename)
         where
             V: Visit<'ast> + ?Sized,
@@ -26481,30 +25863,20 @@ mod gen {
             tokens_helper(v, &node.as_token.span);
             v.visit_ident(&node.rename);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_tree<'ast, V>(v: &mut V, node: &'ast UseTree)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                UseTree::Path(_binding_0) => {
-                    v.visit_use_path(_binding_0);
-                }
-                UseTree::Name(_binding_0) => {
-                    v.visit_use_name(_binding_0);
-                }
-                UseTree::Rename(_binding_0) => {
-                    v.visit_use_rename(_binding_0);
-                }
-                UseTree::Glob(_binding_0) => {
-                    v.visit_use_glob(_binding_0);
-                }
-                UseTree::Group(_binding_0) => {
-                    v.visit_use_group(_binding_0);
-                }
+                UseTree::Path(_binding_0) => v.visit_use_path(_binding_0),
+                UseTree::Name(_binding_0) => v.visit_use_name(_binding_0),
+                UseTree::Rename(_binding_0) => v.visit_use_rename(_binding_0),
+                UseTree::Glob(_binding_0) => v.visit_use_glob(_binding_0),
+                UseTree::Group(_binding_0) => v.visit_use_group(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_variadic<'ast, V>(v: &mut V, node: &'ast Variadic)
         where
             V: Visit<'ast> + ?Sized,
@@ -26514,7 +25886,7 @@ mod gen {
             }
             tokens_helper(v, &node.dots.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_variant<'ast, V>(v: &mut V, node: &'ast Variant)
         where
             V: Visit<'ast> + ?Sized,
@@ -26529,21 +25901,21 @@ mod gen {
                 v.visit_expr(&(it).1);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_crate<'ast, V>(v: &mut V, node: &'ast VisCrate)
         where
             V: Visit<'ast> + ?Sized,
         {
             tokens_helper(v, &node.crate_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_public<'ast, V>(v: &mut V, node: &'ast VisPublic)
         where
             V: Visit<'ast> + ?Sized,
         {
             tokens_helper(v, &node.pub_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_restricted<'ast, V>(v: &mut V, node: &'ast VisRestricted)
         where
             V: Visit<'ast> + ?Sized,
@@ -26555,25 +25927,19 @@ mod gen {
             }
             v.visit_path(&*node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_visibility<'ast, V>(v: &mut V, node: &'ast Visibility)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                Visibility::Public(_binding_0) => {
-                    v.visit_vis_public(_binding_0);
-                }
-                Visibility::Crate(_binding_0) => {
-                    v.visit_vis_crate(_binding_0);
-                }
-                Visibility::Restricted(_binding_0) => {
-                    v.visit_vis_restricted(_binding_0);
-                }
+                Visibility::Public(_binding_0) => v.visit_vis_public(_binding_0),
+                Visibility::Crate(_binding_0) => v.visit_vis_crate(_binding_0),
+                Visibility::Restricted(_binding_0) => v.visit_vis_restricted(_binding_0),
                 Visibility::Inherited => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_where_clause<'ast, V>(v: &mut V, node: &'ast WhereClause)
         where
             V: Visit<'ast> + ?Sized,
@@ -26587,440 +25953,436 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_where_predicate<'ast, V>(v: &mut V, node: &'ast WherePredicate)
         where
             V: Visit<'ast> + ?Sized,
         {
             match node {
-                WherePredicate::Type(_binding_0) => {
-                    v.visit_predicate_type(_binding_0);
-                }
+                WherePredicate::Type(_binding_0) => v.visit_predicate_type(_binding_0),
                 WherePredicate::Lifetime(_binding_0) => {
-                    v.visit_predicate_lifetime(_binding_0);
+                    v.visit_predicate_lifetime(_binding_0)
                 }
-                WherePredicate::Eq(_binding_0) => {
-                    v.visit_predicate_eq(_binding_0);
-                }
+                WherePredicate::Eq(_binding_0) => v.visit_predicate_eq(_binding_0),
             }
         }
     }
-    #[cfg(feature = "visit-mut")]
+    #[cfg]
     #[rustfmt::skip]
     pub mod visit_mut {
-        #![allow(unused_variables)]
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #![allow]
+        #[cfg]
         use crate::gen::helper::visit_mut::*;
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[cfg]
         use crate::punctuated::Punctuated;
         use crate::*;
         use proc_macro2::Span;
         pub trait VisitMut {
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_abi_mut(&mut self, i: &mut Abi) {
                 visit_abi_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_angle_bracketed_generic_arguments_mut(
                 &mut self,
                 i: &mut AngleBracketedGenericArguments,
             ) {
                 visit_angle_bracketed_generic_arguments_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_arm_mut(&mut self, i: &mut Arm) {
                 visit_arm_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_attr_style_mut(&mut self, i: &mut AttrStyle) {
                 visit_attr_style_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_attribute_mut(&mut self, i: &mut Attribute) {
                 visit_attribute_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bare_fn_arg_mut(&mut self, i: &mut BareFnArg) {
                 visit_bare_fn_arg_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bin_op_mut(&mut self, i: &mut BinOp) {
                 visit_bin_op_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_binding_mut(&mut self, i: &mut Binding) {
                 visit_binding_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_block_mut(&mut self, i: &mut Block) {
                 visit_block_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_bound_lifetimes_mut(&mut self, i: &mut BoundLifetimes) {
                 visit_bound_lifetimes_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_const_param_mut(&mut self, i: &mut ConstParam) {
                 visit_const_param_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_constraint_mut(&mut self, i: &mut Constraint) {
                 visit_constraint_mut(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_mut(&mut self, i: &mut Data) {
                 visit_data_mut(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_enum_mut(&mut self, i: &mut DataEnum) {
                 visit_data_enum_mut(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_struct_mut(&mut self, i: &mut DataStruct) {
                 visit_data_struct_mut(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_data_union_mut(&mut self, i: &mut DataUnion) {
                 visit_data_union_mut(self, i);
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn visit_derive_input_mut(&mut self, i: &mut DeriveInput) {
                 visit_derive_input_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_mut(&mut self, i: &mut Expr) {
                 visit_expr_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_array_mut(&mut self, i: &mut ExprArray) {
                 visit_expr_array_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_assign_mut(&mut self, i: &mut ExprAssign) {
                 visit_expr_assign_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_assign_op_mut(&mut self, i: &mut ExprAssignOp) {
                 visit_expr_assign_op_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_async_mut(&mut self, i: &mut ExprAsync) {
                 visit_expr_async_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_await_mut(&mut self, i: &mut ExprAwait) {
                 visit_expr_await_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_binary_mut(&mut self, i: &mut ExprBinary) {
                 visit_expr_binary_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_block_mut(&mut self, i: &mut ExprBlock) {
                 visit_expr_block_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_box_mut(&mut self, i: &mut ExprBox) {
                 visit_expr_box_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_break_mut(&mut self, i: &mut ExprBreak) {
                 visit_expr_break_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_call_mut(&mut self, i: &mut ExprCall) {
                 visit_expr_call_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_cast_mut(&mut self, i: &mut ExprCast) {
                 visit_expr_cast_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_closure_mut(&mut self, i: &mut ExprClosure) {
                 visit_expr_closure_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_continue_mut(&mut self, i: &mut ExprContinue) {
                 visit_expr_continue_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_field_mut(&mut self, i: &mut ExprField) {
                 visit_expr_field_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_for_loop_mut(&mut self, i: &mut ExprForLoop) {
                 visit_expr_for_loop_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_group_mut(&mut self, i: &mut ExprGroup) {
                 visit_expr_group_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_if_mut(&mut self, i: &mut ExprIf) {
                 visit_expr_if_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_index_mut(&mut self, i: &mut ExprIndex) {
                 visit_expr_index_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_let_mut(&mut self, i: &mut ExprLet) {
                 visit_expr_let_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_lit_mut(&mut self, i: &mut ExprLit) {
                 visit_expr_lit_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_loop_mut(&mut self, i: &mut ExprLoop) {
                 visit_expr_loop_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_macro_mut(&mut self, i: &mut ExprMacro) {
                 visit_expr_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_match_mut(&mut self, i: &mut ExprMatch) {
                 visit_expr_match_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_method_call_mut(&mut self, i: &mut ExprMethodCall) {
                 visit_expr_method_call_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_paren_mut(&mut self, i: &mut ExprParen) {
                 visit_expr_paren_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_path_mut(&mut self, i: &mut ExprPath) {
                 visit_expr_path_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_range_mut(&mut self, i: &mut ExprRange) {
                 visit_expr_range_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_reference_mut(&mut self, i: &mut ExprReference) {
                 visit_expr_reference_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_repeat_mut(&mut self, i: &mut ExprRepeat) {
                 visit_expr_repeat_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_return_mut(&mut self, i: &mut ExprReturn) {
                 visit_expr_return_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_struct_mut(&mut self, i: &mut ExprStruct) {
                 visit_expr_struct_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_try_mut(&mut self, i: &mut ExprTry) {
                 visit_expr_try_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_try_block_mut(&mut self, i: &mut ExprTryBlock) {
                 visit_expr_try_block_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_tuple_mut(&mut self, i: &mut ExprTuple) {
                 visit_expr_tuple_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_type_mut(&mut self, i: &mut ExprType) {
                 visit_expr_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_expr_unary_mut(&mut self, i: &mut ExprUnary) {
                 visit_expr_unary_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_unsafe_mut(&mut self, i: &mut ExprUnsafe) {
                 visit_expr_unsafe_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_while_mut(&mut self, i: &mut ExprWhile) {
                 visit_expr_while_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_expr_yield_mut(&mut self, i: &mut ExprYield) {
                 visit_expr_yield_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_field_mut(&mut self, i: &mut Field) {
                 visit_field_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_field_pat_mut(&mut self, i: &mut FieldPat) {
                 visit_field_pat_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_field_value_mut(&mut self, i: &mut FieldValue) {
                 visit_field_value_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields_mut(&mut self, i: &mut Fields) {
                 visit_fields_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields_named_mut(&mut self, i: &mut FieldsNamed) {
                 visit_fields_named_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_fields_unnamed_mut(&mut self, i: &mut FieldsUnnamed) {
                 visit_fields_unnamed_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_file_mut(&mut self, i: &mut File) {
                 visit_file_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_fn_arg_mut(&mut self, i: &mut FnArg) {
                 visit_fn_arg_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_mut(&mut self, i: &mut ForeignItem) {
                 visit_foreign_item_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_fn_mut(&mut self, i: &mut ForeignItemFn) {
                 visit_foreign_item_fn_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_macro_mut(&mut self, i: &mut ForeignItemMacro) {
                 visit_foreign_item_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_static_mut(&mut self, i: &mut ForeignItemStatic) {
                 visit_foreign_item_static_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_foreign_item_type_mut(&mut self, i: &mut ForeignItemType) {
                 visit_foreign_item_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generic_argument_mut(&mut self, i: &mut GenericArgument) {
                 visit_generic_argument_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_generic_method_argument_mut(
                 &mut self,
                 i: &mut GenericMethodArgument,
             ) {
                 visit_generic_method_argument_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generic_param_mut(&mut self, i: &mut GenericParam) {
                 visit_generic_param_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_generics_mut(&mut self, i: &mut Generics) {
                 visit_generics_mut(self, i);
             }
             fn visit_ident_mut(&mut self, i: &mut Ident) {
                 visit_ident_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_mut(&mut self, i: &mut ImplItem) {
                 visit_impl_item_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_const_mut(&mut self, i: &mut ImplItemConst) {
                 visit_impl_item_const_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_macro_mut(&mut self, i: &mut ImplItemMacro) {
                 visit_impl_item_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_method_mut(&mut self, i: &mut ImplItemMethod) {
                 visit_impl_item_method_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_impl_item_type_mut(&mut self, i: &mut ImplItemType) {
                 visit_impl_item_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_index_mut(&mut self, i: &mut Index) {
                 visit_index_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_mut(&mut self, i: &mut Item) {
                 visit_item_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_const_mut(&mut self, i: &mut ItemConst) {
                 visit_item_const_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_enum_mut(&mut self, i: &mut ItemEnum) {
                 visit_item_enum_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_extern_crate_mut(&mut self, i: &mut ItemExternCrate) {
                 visit_item_extern_crate_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_fn_mut(&mut self, i: &mut ItemFn) {
                 visit_item_fn_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_foreign_mod_mut(&mut self, i: &mut ItemForeignMod) {
                 visit_item_foreign_mod_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_impl_mut(&mut self, i: &mut ItemImpl) {
                 visit_item_impl_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_macro_mut(&mut self, i: &mut ItemMacro) {
                 visit_item_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_macro2_mut(&mut self, i: &mut ItemMacro2) {
                 visit_item_macro2_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_mod_mut(&mut self, i: &mut ItemMod) {
                 visit_item_mod_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_static_mut(&mut self, i: &mut ItemStatic) {
                 visit_item_static_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_struct_mut(&mut self, i: &mut ItemStruct) {
                 visit_item_struct_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_trait_mut(&mut self, i: &mut ItemTrait) {
                 visit_item_trait_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_trait_alias_mut(&mut self, i: &mut ItemTraitAlias) {
                 visit_item_trait_alias_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_type_mut(&mut self, i: &mut ItemType) {
                 visit_item_type_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_union_mut(&mut self, i: &mut ItemUnion) {
                 visit_item_union_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_item_use_mut(&mut self, i: &mut ItemUse) {
                 visit_item_use_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_label_mut(&mut self, i: &mut Label) {
                 visit_label_mut(self, i);
             }
             fn visit_lifetime_mut(&mut self, i: &mut Lifetime) {
                 visit_lifetime_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_lifetime_def_mut(&mut self, i: &mut LifetimeDef) {
                 visit_lifetime_def_mut(self, i);
             }
@@ -27048,322 +26410,322 @@ mod gen {
             fn visit_lit_str_mut(&mut self, i: &mut LitStr) {
                 visit_lit_str_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_local_mut(&mut self, i: &mut Local) {
                 visit_local_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_macro_mut(&mut self, i: &mut Macro) {
                 visit_macro_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_macro_delimiter_mut(&mut self, i: &mut MacroDelimiter) {
                 visit_macro_delimiter_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_member_mut(&mut self, i: &mut Member) {
                 visit_member_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta_mut(&mut self, i: &mut Meta) {
                 visit_meta_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta_list_mut(&mut self, i: &mut MetaList) {
                 visit_meta_list_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_meta_name_value_mut(&mut self, i: &mut MetaNameValue) {
                 visit_meta_name_value_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_method_turbofish_mut(&mut self, i: &mut MethodTurbofish) {
                 visit_method_turbofish_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_nested_meta_mut(&mut self, i: &mut NestedMeta) {
                 visit_nested_meta_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_parenthesized_generic_arguments_mut(
                 &mut self,
                 i: &mut ParenthesizedGenericArguments,
             ) {
                 visit_parenthesized_generic_arguments_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_mut(&mut self, i: &mut Pat) {
                 visit_pat_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_box_mut(&mut self, i: &mut PatBox) {
                 visit_pat_box_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_ident_mut(&mut self, i: &mut PatIdent) {
                 visit_pat_ident_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_lit_mut(&mut self, i: &mut PatLit) {
                 visit_pat_lit_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_macro_mut(&mut self, i: &mut PatMacro) {
                 visit_pat_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_or_mut(&mut self, i: &mut PatOr) {
                 visit_pat_or_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_path_mut(&mut self, i: &mut PatPath) {
                 visit_pat_path_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_range_mut(&mut self, i: &mut PatRange) {
                 visit_pat_range_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_reference_mut(&mut self, i: &mut PatReference) {
                 visit_pat_reference_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_rest_mut(&mut self, i: &mut PatRest) {
                 visit_pat_rest_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_slice_mut(&mut self, i: &mut PatSlice) {
                 visit_pat_slice_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_struct_mut(&mut self, i: &mut PatStruct) {
                 visit_pat_struct_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_tuple_mut(&mut self, i: &mut PatTuple) {
                 visit_pat_tuple_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_tuple_struct_mut(&mut self, i: &mut PatTupleStruct) {
                 visit_pat_tuple_struct_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_type_mut(&mut self, i: &mut PatType) {
                 visit_pat_type_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_pat_wild_mut(&mut self, i: &mut PatWild) {
                 visit_pat_wild_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path_mut(&mut self, i: &mut Path) {
                 visit_path_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path_arguments_mut(&mut self, i: &mut PathArguments) {
                 visit_path_arguments_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_path_segment_mut(&mut self, i: &mut PathSegment) {
                 visit_path_segment_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_eq_mut(&mut self, i: &mut PredicateEq) {
                 visit_predicate_eq_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_lifetime_mut(&mut self, i: &mut PredicateLifetime) {
                 visit_predicate_lifetime_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_predicate_type_mut(&mut self, i: &mut PredicateType) {
                 visit_predicate_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_qself_mut(&mut self, i: &mut QSelf) {
                 visit_qself_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_range_limits_mut(&mut self, i: &mut RangeLimits) {
                 visit_range_limits_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_receiver_mut(&mut self, i: &mut Receiver) {
                 visit_receiver_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_return_type_mut(&mut self, i: &mut ReturnType) {
                 visit_return_type_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_signature_mut(&mut self, i: &mut Signature) {
                 visit_signature_mut(self, i);
             }
             fn visit_span_mut(&mut self, i: &mut Span) {
                 visit_span_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_stmt_mut(&mut self, i: &mut Stmt) {
                 visit_stmt_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_trait_bound_mut(&mut self, i: &mut TraitBound) {
                 visit_trait_bound_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_trait_bound_modifier_mut(&mut self, i: &mut TraitBoundModifier) {
                 visit_trait_bound_modifier_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_mut(&mut self, i: &mut TraitItem) {
                 visit_trait_item_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_const_mut(&mut self, i: &mut TraitItemConst) {
                 visit_trait_item_const_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_macro_mut(&mut self, i: &mut TraitItemMacro) {
                 visit_trait_item_macro_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_method_mut(&mut self, i: &mut TraitItemMethod) {
                 visit_trait_item_method_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_trait_item_type_mut(&mut self, i: &mut TraitItemType) {
                 visit_trait_item_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_mut(&mut self, i: &mut Type) {
                 visit_type_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_array_mut(&mut self, i: &mut TypeArray) {
                 visit_type_array_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_bare_fn_mut(&mut self, i: &mut TypeBareFn) {
                 visit_type_bare_fn_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_group_mut(&mut self, i: &mut TypeGroup) {
                 visit_type_group_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_impl_trait_mut(&mut self, i: &mut TypeImplTrait) {
                 visit_type_impl_trait_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_infer_mut(&mut self, i: &mut TypeInfer) {
                 visit_type_infer_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_macro_mut(&mut self, i: &mut TypeMacro) {
                 visit_type_macro_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_never_mut(&mut self, i: &mut TypeNever) {
                 visit_type_never_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_param_mut(&mut self, i: &mut TypeParam) {
                 visit_type_param_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_param_bound_mut(&mut self, i: &mut TypeParamBound) {
                 visit_type_param_bound_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_paren_mut(&mut self, i: &mut TypeParen) {
                 visit_type_paren_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_path_mut(&mut self, i: &mut TypePath) {
                 visit_type_path_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_ptr_mut(&mut self, i: &mut TypePtr) {
                 visit_type_ptr_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_reference_mut(&mut self, i: &mut TypeReference) {
                 visit_type_reference_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_slice_mut(&mut self, i: &mut TypeSlice) {
                 visit_type_slice_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_trait_object_mut(&mut self, i: &mut TypeTraitObject) {
                 visit_type_trait_object_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_type_tuple_mut(&mut self, i: &mut TypeTuple) {
                 visit_type_tuple_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_un_op_mut(&mut self, i: &mut UnOp) {
                 visit_un_op_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_glob_mut(&mut self, i: &mut UseGlob) {
                 visit_use_glob_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_group_mut(&mut self, i: &mut UseGroup) {
                 visit_use_group_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_name_mut(&mut self, i: &mut UseName) {
                 visit_use_name_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_path_mut(&mut self, i: &mut UsePath) {
                 visit_use_path_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_rename_mut(&mut self, i: &mut UseRename) {
                 visit_use_rename_mut(self, i);
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn visit_use_tree_mut(&mut self, i: &mut UseTree) {
                 visit_use_tree_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_variadic_mut(&mut self, i: &mut Variadic) {
                 visit_variadic_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_variant_mut(&mut self, i: &mut Variant) {
                 visit_variant_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_crate_mut(&mut self, i: &mut VisCrate) {
                 visit_vis_crate_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_public_mut(&mut self, i: &mut VisPublic) {
                 visit_vis_public_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_vis_restricted_mut(&mut self, i: &mut VisRestricted) {
                 visit_vis_restricted_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_visibility_mut(&mut self, i: &mut Visibility) {
                 visit_visibility_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_where_clause_mut(&mut self, i: &mut WhereClause) {
                 visit_where_clause_mut(self, i);
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn visit_where_predicate_mut(&mut self, i: &mut WherePredicate) {
                 visit_where_predicate_mut(self, i);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_abi_mut<V>(v: &mut V, node: &mut Abi)
         where
             V: VisitMut + ?Sized,
@@ -27373,7 +26735,7 @@ mod gen {
                 v.visit_lit_str_mut(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_angle_bracketed_generic_arguments_mut<V>(
             v: &mut V,
             node: &mut AngleBracketedGenericArguments,
@@ -27394,7 +26756,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.gt_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_arm_mut<V>(v: &mut V, node: &mut Arm)
         where
             V: VisitMut + ?Sized,
@@ -27413,19 +26775,17 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_attr_style_mut<V>(v: &mut V, node: &mut AttrStyle)
         where
             V: VisitMut + ?Sized,
         {
             match node {
                 AttrStyle::Outer => {}
-                AttrStyle::Inner(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
+                AttrStyle::Inner(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_attribute_mut<V>(v: &mut V, node: &mut Attribute)
         where
             V: VisitMut + ?Sized,
@@ -27435,7 +26795,7 @@ mod gen {
             tokens_helper(v, &mut node.bracket_token.span);
             v.visit_path_mut(&mut node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bare_fn_arg_mut<V>(v: &mut V, node: &mut BareFnArg)
         where
             V: VisitMut + ?Sized,
@@ -27449,99 +26809,43 @@ mod gen {
             }
             v.visit_type_mut(&mut node.ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bin_op_mut<V>(v: &mut V, node: &mut BinOp)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                BinOp::Add(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Sub(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Mul(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Div(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Rem(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::And(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Or(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitXor(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitAnd(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitOr(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Shl(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Shr(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Eq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Lt(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Le(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Ne(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Ge(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::Gt(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::AddEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::SubEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::MulEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::DivEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::RemEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitXorEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitAndEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::BitOrEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::ShlEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                BinOp::ShrEq(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
+                BinOp::Add(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Sub(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Mul(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Div(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Rem(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::And(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Or(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitXor(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitAnd(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitOr(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Shl(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Shr(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Eq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Lt(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Le(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Ne(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Ge(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::Gt(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::AddEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::SubEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::MulEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::DivEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::RemEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitXorEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitAndEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::BitOrEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::ShlEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                BinOp::ShrEq(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_binding_mut<V>(v: &mut V, node: &mut Binding)
         where
             V: VisitMut + ?Sized,
@@ -27550,7 +26854,7 @@ mod gen {
             tokens_helper(v, &mut node.eq_token.spans);
             v.visit_type_mut(&mut node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_block_mut<V>(v: &mut V, node: &mut Block)
         where
             V: VisitMut + ?Sized,
@@ -27560,7 +26864,7 @@ mod gen {
                 v.visit_stmt_mut(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_bound_lifetimes_mut<V>(v: &mut V, node: &mut BoundLifetimes)
         where
             V: VisitMut + ?Sized,
@@ -27576,7 +26880,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.gt_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_const_param_mut<V>(v: &mut V, node: &mut ConstParam)
         where
             V: VisitMut + ?Sized,
@@ -27595,7 +26899,7 @@ mod gen {
                 v.visit_expr_mut(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_constraint_mut<V>(v: &mut V, node: &mut Constraint)
         where
             V: VisitMut + ?Sized,
@@ -27610,24 +26914,18 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_mut<V>(v: &mut V, node: &mut Data)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Data::Struct(_binding_0) => {
-                    v.visit_data_struct_mut(_binding_0);
-                }
-                Data::Enum(_binding_0) => {
-                    v.visit_data_enum_mut(_binding_0);
-                }
-                Data::Union(_binding_0) => {
-                    v.visit_data_union_mut(_binding_0);
-                }
+                Data::Struct(_binding_0) => v.visit_data_struct_mut(_binding_0),
+                Data::Enum(_binding_0) => v.visit_data_enum_mut(_binding_0),
+                Data::Union(_binding_0) => v.visit_data_union_mut(_binding_0),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_enum_mut<V>(v: &mut V, node: &mut DataEnum)
         where
             V: VisitMut + ?Sized,
@@ -27642,7 +26940,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_struct_mut<V>(v: &mut V, node: &mut DataStruct)
         where
             V: VisitMut + ?Sized,
@@ -27653,7 +26951,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_data_union_mut<V>(v: &mut V, node: &mut DataUnion)
         where
             V: VisitMut + ?Sized,
@@ -27661,7 +26959,7 @@ mod gen {
             tokens_helper(v, &mut node.union_token.span);
             v.visit_fields_named_mut(&mut node.fields);
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn visit_derive_input_mut<V>(v: &mut V, node: &mut DeriveInput)
         where
             V: VisitMut + ?Sized,
@@ -27674,133 +26972,55 @@ mod gen {
             v.visit_generics_mut(&mut node.generics);
             v.visit_data_mut(&mut node.data);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_mut<V>(v: &mut V, node: &mut Expr)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Expr::Array(_binding_0) => {
-                    v.visit_expr_array_mut(_binding_0);
-                }
-                Expr::Assign(_binding_0) => {
-                    v.visit_expr_assign_mut(_binding_0);
-                }
-                Expr::AssignOp(_binding_0) => {
-                    v.visit_expr_assign_op_mut(_binding_0);
-                }
-                Expr::Async(_binding_0) => {
-                    v.visit_expr_async_mut(_binding_0);
-                }
-                Expr::Await(_binding_0) => {
-                    v.visit_expr_await_mut(_binding_0);
-                }
-                Expr::Binary(_binding_0) => {
-                    v.visit_expr_binary_mut(_binding_0);
-                }
-                Expr::Block(_binding_0) => {
-                    v.visit_expr_block_mut(_binding_0);
-                }
-                Expr::Box(_binding_0) => {
-                    v.visit_expr_box_mut(_binding_0);
-                }
-                Expr::Break(_binding_0) => {
-                    v.visit_expr_break_mut(_binding_0);
-                }
-                Expr::Call(_binding_0) => {
-                    v.visit_expr_call_mut(_binding_0);
-                }
-                Expr::Cast(_binding_0) => {
-                    v.visit_expr_cast_mut(_binding_0);
-                }
-                Expr::Closure(_binding_0) => {
-                    v.visit_expr_closure_mut(_binding_0);
-                }
-                Expr::Continue(_binding_0) => {
-                    v.visit_expr_continue_mut(_binding_0);
-                }
-                Expr::Field(_binding_0) => {
-                    v.visit_expr_field_mut(_binding_0);
-                }
-                Expr::ForLoop(_binding_0) => {
-                    v.visit_expr_for_loop_mut(_binding_0);
-                }
-                Expr::Group(_binding_0) => {
-                    v.visit_expr_group_mut(_binding_0);
-                }
-                Expr::If(_binding_0) => {
-                    v.visit_expr_if_mut(_binding_0);
-                }
-                Expr::Index(_binding_0) => {
-                    v.visit_expr_index_mut(_binding_0);
-                }
-                Expr::Let(_binding_0) => {
-                    v.visit_expr_let_mut(_binding_0);
-                }
-                Expr::Lit(_binding_0) => {
-                    v.visit_expr_lit_mut(_binding_0);
-                }
-                Expr::Loop(_binding_0) => {
-                    v.visit_expr_loop_mut(_binding_0);
-                }
-                Expr::Macro(_binding_0) => {
-                    v.visit_expr_macro_mut(_binding_0);
-                }
-                Expr::Match(_binding_0) => {
-                    v.visit_expr_match_mut(_binding_0);
-                }
-                Expr::MethodCall(_binding_0) => {
-                    v.visit_expr_method_call_mut(_binding_0);
-                }
-                Expr::Paren(_binding_0) => {
-                    v.visit_expr_paren_mut(_binding_0);
-                }
-                Expr::Path(_binding_0) => {
-                    v.visit_expr_path_mut(_binding_0);
-                }
-                Expr::Range(_binding_0) => {
-                    v.visit_expr_range_mut(_binding_0);
-                }
-                Expr::Reference(_binding_0) => {
-                    v.visit_expr_reference_mut(_binding_0);
-                }
-                Expr::Repeat(_binding_0) => {
-                    v.visit_expr_repeat_mut(_binding_0);
-                }
-                Expr::Return(_binding_0) => {
-                    v.visit_expr_return_mut(_binding_0);
-                }
-                Expr::Struct(_binding_0) => {
-                    v.visit_expr_struct_mut(_binding_0);
-                }
-                Expr::Try(_binding_0) => {
-                    v.visit_expr_try_mut(_binding_0);
-                }
-                Expr::TryBlock(_binding_0) => {
-                    v.visit_expr_try_block_mut(_binding_0);
-                }
-                Expr::Tuple(_binding_0) => {
-                    v.visit_expr_tuple_mut(_binding_0);
-                }
-                Expr::Type(_binding_0) => {
-                    v.visit_expr_type_mut(_binding_0);
-                }
-                Expr::Unary(_binding_0) => {
-                    v.visit_expr_unary_mut(_binding_0);
-                }
-                Expr::Unsafe(_binding_0) => {
-                    v.visit_expr_unsafe_mut(_binding_0);
-                }
+                Expr::Array(_binding_0) => v.visit_expr_array_mut(_binding_0),
+                Expr::Assign(_binding_0) => v.visit_expr_assign_mut(_binding_0),
+                Expr::AssignOp(_binding_0) => v.visit_expr_assign_op_mut(_binding_0),
+                Expr::Async(_binding_0) => v.visit_expr_async_mut(_binding_0),
+                Expr::Await(_binding_0) => v.visit_expr_await_mut(_binding_0),
+                Expr::Binary(_binding_0) => v.visit_expr_binary_mut(_binding_0),
+                Expr::Block(_binding_0) => v.visit_expr_block_mut(_binding_0),
+                Expr::Box(_binding_0) => v.visit_expr_box_mut(_binding_0),
+                Expr::Break(_binding_0) => v.visit_expr_break_mut(_binding_0),
+                Expr::Call(_binding_0) => v.visit_expr_call_mut(_binding_0),
+                Expr::Cast(_binding_0) => v.visit_expr_cast_mut(_binding_0),
+                Expr::Closure(_binding_0) => v.visit_expr_closure_mut(_binding_0),
+                Expr::Continue(_binding_0) => v.visit_expr_continue_mut(_binding_0),
+                Expr::Field(_binding_0) => v.visit_expr_field_mut(_binding_0),
+                Expr::ForLoop(_binding_0) => v.visit_expr_for_loop_mut(_binding_0),
+                Expr::Group(_binding_0) => v.visit_expr_group_mut(_binding_0),
+                Expr::If(_binding_0) => v.visit_expr_if_mut(_binding_0),
+                Expr::Index(_binding_0) => v.visit_expr_index_mut(_binding_0),
+                Expr::Let(_binding_0) => v.visit_expr_let_mut(_binding_0),
+                Expr::Lit(_binding_0) => v.visit_expr_lit_mut(_binding_0),
+                Expr::Loop(_binding_0) => v.visit_expr_loop_mut(_binding_0),
+                Expr::Macro(_binding_0) => v.visit_expr_macro_mut(_binding_0),
+                Expr::Match(_binding_0) => v.visit_expr_match_mut(_binding_0),
+                Expr::MethodCall(_binding_0) => v.visit_expr_method_call_mut(_binding_0),
+                Expr::Paren(_binding_0) => v.visit_expr_paren_mut(_binding_0),
+                Expr::Path(_binding_0) => v.visit_expr_path_mut(_binding_0),
+                Expr::Range(_binding_0) => v.visit_expr_range_mut(_binding_0),
+                Expr::Reference(_binding_0) => v.visit_expr_reference_mut(_binding_0),
+                Expr::Repeat(_binding_0) => v.visit_expr_repeat_mut(_binding_0),
+                Expr::Return(_binding_0) => v.visit_expr_return_mut(_binding_0),
+                Expr::Struct(_binding_0) => v.visit_expr_struct_mut(_binding_0),
+                Expr::Try(_binding_0) => v.visit_expr_try_mut(_binding_0),
+                Expr::TryBlock(_binding_0) => v.visit_expr_try_block_mut(_binding_0),
+                Expr::Tuple(_binding_0) => v.visit_expr_tuple_mut(_binding_0),
+                Expr::Type(_binding_0) => v.visit_expr_type_mut(_binding_0),
+                Expr::Unary(_binding_0) => v.visit_expr_unary_mut(_binding_0),
+                Expr::Unsafe(_binding_0) => v.visit_expr_unsafe_mut(_binding_0),
                 Expr::Verbatim(_binding_0) => {}
-                Expr::While(_binding_0) => {
-                    v.visit_expr_while_mut(_binding_0);
-                }
-                Expr::Yield(_binding_0) => {
-                    v.visit_expr_yield_mut(_binding_0);
-                }
+                Expr::While(_binding_0) => v.visit_expr_while_mut(_binding_0),
+                Expr::Yield(_binding_0) => v.visit_expr_yield_mut(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_array_mut<V>(v: &mut V, node: &mut ExprArray)
         where
             V: VisitMut + ?Sized,
@@ -27817,7 +27037,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_assign_mut<V>(v: &mut V, node: &mut ExprAssign)
         where
             V: VisitMut + ?Sized,
@@ -27829,7 +27049,7 @@ mod gen {
             tokens_helper(v, &mut node.eq_token.spans);
             v.visit_expr_mut(&mut *node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_assign_op_mut<V>(v: &mut V, node: &mut ExprAssignOp)
         where
             V: VisitMut + ?Sized,
@@ -27841,7 +27061,7 @@ mod gen {
             v.visit_bin_op_mut(&mut node.op);
             v.visit_expr_mut(&mut *node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_async_mut<V>(v: &mut V, node: &mut ExprAsync)
         where
             V: VisitMut + ?Sized,
@@ -27855,7 +27075,7 @@ mod gen {
             }
             v.visit_block_mut(&mut node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_await_mut<V>(v: &mut V, node: &mut ExprAwait)
         where
             V: VisitMut + ?Sized,
@@ -27867,7 +27087,7 @@ mod gen {
             tokens_helper(v, &mut node.dot_token.spans);
             tokens_helper(v, &mut node.await_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_binary_mut<V>(v: &mut V, node: &mut ExprBinary)
         where
             V: VisitMut + ?Sized,
@@ -27879,7 +27099,7 @@ mod gen {
             v.visit_bin_op_mut(&mut node.op);
             v.visit_expr_mut(&mut *node.right);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_block_mut<V>(v: &mut V, node: &mut ExprBlock)
         where
             V: VisitMut + ?Sized,
@@ -27892,7 +27112,7 @@ mod gen {
             }
             v.visit_block_mut(&mut node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_box_mut<V>(v: &mut V, node: &mut ExprBox)
         where
             V: VisitMut + ?Sized,
@@ -27903,7 +27123,7 @@ mod gen {
             tokens_helper(v, &mut node.box_token.span);
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_break_mut<V>(v: &mut V, node: &mut ExprBreak)
         where
             V: VisitMut + ?Sized,
@@ -27919,7 +27139,7 @@ mod gen {
                 v.visit_expr_mut(&mut **it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_call_mut<V>(v: &mut V, node: &mut ExprCall)
         where
             V: VisitMut + ?Sized,
@@ -27937,7 +27157,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_cast_mut<V>(v: &mut V, node: &mut ExprCast)
         where
             V: VisitMut + ?Sized,
@@ -27949,7 +27169,7 @@ mod gen {
             tokens_helper(v, &mut node.as_token.span);
             v.visit_type_mut(&mut *node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_closure_mut<V>(v: &mut V, node: &mut ExprClosure)
         where
             V: VisitMut + ?Sized,
@@ -27978,7 +27198,7 @@ mod gen {
             v.visit_return_type_mut(&mut node.output);
             v.visit_expr_mut(&mut *node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_continue_mut<V>(v: &mut V, node: &mut ExprContinue)
         where
             V: VisitMut + ?Sized,
@@ -27991,7 +27211,7 @@ mod gen {
                 v.visit_lifetime_mut(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_field_mut<V>(v: &mut V, node: &mut ExprField)
         where
             V: VisitMut + ?Sized,
@@ -28003,7 +27223,7 @@ mod gen {
             tokens_helper(v, &mut node.dot_token.spans);
             v.visit_member_mut(&mut node.member);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_for_loop_mut<V>(v: &mut V, node: &mut ExprForLoop)
         where
             V: VisitMut + ?Sized,
@@ -28020,7 +27240,7 @@ mod gen {
             v.visit_expr_mut(&mut *node.expr);
             v.visit_block_mut(&mut node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_group_mut<V>(v: &mut V, node: &mut ExprGroup)
         where
             V: VisitMut + ?Sized,
@@ -28031,7 +27251,7 @@ mod gen {
             tokens_helper(v, &mut node.group_token.span);
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_if_mut<V>(v: &mut V, node: &mut ExprIf)
         where
             V: VisitMut + ?Sized,
@@ -28047,7 +27267,7 @@ mod gen {
                 v.visit_expr_mut(&mut *(it).1);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_index_mut<V>(v: &mut V, node: &mut ExprIndex)
         where
             V: VisitMut + ?Sized,
@@ -28059,7 +27279,7 @@ mod gen {
             tokens_helper(v, &mut node.bracket_token.span);
             v.visit_expr_mut(&mut *node.index);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_let_mut<V>(v: &mut V, node: &mut ExprLet)
         where
             V: VisitMut + ?Sized,
@@ -28072,7 +27292,7 @@ mod gen {
             tokens_helper(v, &mut node.eq_token.spans);
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_lit_mut<V>(v: &mut V, node: &mut ExprLit)
         where
             V: VisitMut + ?Sized,
@@ -28082,7 +27302,7 @@ mod gen {
             }
             v.visit_lit_mut(&mut node.lit);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_loop_mut<V>(v: &mut V, node: &mut ExprLoop)
         where
             V: VisitMut + ?Sized,
@@ -28096,7 +27316,7 @@ mod gen {
             tokens_helper(v, &mut node.loop_token.span);
             v.visit_block_mut(&mut node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_macro_mut<V>(v: &mut V, node: &mut ExprMacro)
         where
             V: VisitMut + ?Sized,
@@ -28106,7 +27326,7 @@ mod gen {
             }
             v.visit_macro_mut(&mut node.mac);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_match_mut<V>(v: &mut V, node: &mut ExprMatch)
         where
             V: VisitMut + ?Sized,
@@ -28121,7 +27341,7 @@ mod gen {
                 v.visit_arm_mut(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_method_call_mut<V>(v: &mut V, node: &mut ExprMethodCall)
         where
             V: VisitMut + ?Sized,
@@ -28144,7 +27364,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_paren_mut<V>(v: &mut V, node: &mut ExprParen)
         where
             V: VisitMut + ?Sized,
@@ -28155,7 +27375,7 @@ mod gen {
             tokens_helper(v, &mut node.paren_token.span);
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_path_mut<V>(v: &mut V, node: &mut ExprPath)
         where
             V: VisitMut + ?Sized,
@@ -28168,7 +27388,7 @@ mod gen {
             }
             v.visit_path_mut(&mut node.path);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_range_mut<V>(v: &mut V, node: &mut ExprRange)
         where
             V: VisitMut + ?Sized,
@@ -28184,7 +27404,7 @@ mod gen {
                 v.visit_expr_mut(&mut **it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_reference_mut<V>(v: &mut V, node: &mut ExprReference)
         where
             V: VisitMut + ?Sized,
@@ -28198,7 +27418,7 @@ mod gen {
             }
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_repeat_mut<V>(v: &mut V, node: &mut ExprRepeat)
         where
             V: VisitMut + ?Sized,
@@ -28211,7 +27431,7 @@ mod gen {
             tokens_helper(v, &mut node.semi_token.spans);
             v.visit_expr_mut(&mut *node.len);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_return_mut<V>(v: &mut V, node: &mut ExprReturn)
         where
             V: VisitMut + ?Sized,
@@ -28224,7 +27444,7 @@ mod gen {
                 v.visit_expr_mut(&mut **it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_struct_mut<V>(v: &mut V, node: &mut ExprStruct)
         where
             V: VisitMut + ?Sized,
@@ -28248,7 +27468,7 @@ mod gen {
                 v.visit_expr_mut(&mut **it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_try_mut<V>(v: &mut V, node: &mut ExprTry)
         where
             V: VisitMut + ?Sized,
@@ -28259,7 +27479,7 @@ mod gen {
             v.visit_expr_mut(&mut *node.expr);
             tokens_helper(v, &mut node.question_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_try_block_mut<V>(v: &mut V, node: &mut ExprTryBlock)
         where
             V: VisitMut + ?Sized,
@@ -28270,7 +27490,7 @@ mod gen {
             tokens_helper(v, &mut node.try_token.span);
             v.visit_block_mut(&mut node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_tuple_mut<V>(v: &mut V, node: &mut ExprTuple)
         where
             V: VisitMut + ?Sized,
@@ -28287,7 +27507,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_type_mut<V>(v: &mut V, node: &mut ExprType)
         where
             V: VisitMut + ?Sized,
@@ -28299,7 +27519,7 @@ mod gen {
             tokens_helper(v, &mut node.colon_token.spans);
             v.visit_type_mut(&mut *node.ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_expr_unary_mut<V>(v: &mut V, node: &mut ExprUnary)
         where
             V: VisitMut + ?Sized,
@@ -28310,7 +27530,7 @@ mod gen {
             v.visit_un_op_mut(&mut node.op);
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_unsafe_mut<V>(v: &mut V, node: &mut ExprUnsafe)
         where
             V: VisitMut + ?Sized,
@@ -28321,7 +27541,7 @@ mod gen {
             tokens_helper(v, &mut node.unsafe_token.span);
             v.visit_block_mut(&mut node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_while_mut<V>(v: &mut V, node: &mut ExprWhile)
         where
             V: VisitMut + ?Sized,
@@ -28336,7 +27556,7 @@ mod gen {
             v.visit_expr_mut(&mut *node.cond);
             v.visit_block_mut(&mut node.body);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_expr_yield_mut<V>(v: &mut V, node: &mut ExprYield)
         where
             V: VisitMut + ?Sized,
@@ -28349,7 +27569,7 @@ mod gen {
                 v.visit_expr_mut(&mut **it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_field_mut<V>(v: &mut V, node: &mut Field)
         where
             V: VisitMut + ?Sized,
@@ -28366,7 +27586,7 @@ mod gen {
             }
             v.visit_type_mut(&mut node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_field_pat_mut<V>(v: &mut V, node: &mut FieldPat)
         where
             V: VisitMut + ?Sized,
@@ -28380,7 +27600,7 @@ mod gen {
             }
             v.visit_pat_mut(&mut *node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_field_value_mut<V>(v: &mut V, node: &mut FieldValue)
         where
             V: VisitMut + ?Sized,
@@ -28394,22 +27614,18 @@ mod gen {
             }
             v.visit_expr_mut(&mut node.expr);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields_mut<V>(v: &mut V, node: &mut Fields)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Fields::Named(_binding_0) => {
-                    v.visit_fields_named_mut(_binding_0);
-                }
-                Fields::Unnamed(_binding_0) => {
-                    v.visit_fields_unnamed_mut(_binding_0);
-                }
+                Fields::Named(_binding_0) => v.visit_fields_named_mut(_binding_0),
+                Fields::Unnamed(_binding_0) => v.visit_fields_unnamed_mut(_binding_0),
                 Fields::Unit => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields_named_mut<V>(v: &mut V, node: &mut FieldsNamed)
         where
             V: VisitMut + ?Sized,
@@ -28423,7 +27639,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_fields_unnamed_mut<V>(v: &mut V, node: &mut FieldsUnnamed)
         where
             V: VisitMut + ?Sized,
@@ -28437,7 +27653,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_file_mut<V>(v: &mut V, node: &mut File)
         where
             V: VisitMut + ?Sized,
@@ -28449,42 +27665,36 @@ mod gen {
                 v.visit_item_mut(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_fn_arg_mut<V>(v: &mut V, node: &mut FnArg)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                FnArg::Receiver(_binding_0) => {
-                    v.visit_receiver_mut(_binding_0);
-                }
-                FnArg::Typed(_binding_0) => {
-                    v.visit_pat_type_mut(_binding_0);
-                }
+                FnArg::Receiver(_binding_0) => v.visit_receiver_mut(_binding_0),
+                FnArg::Typed(_binding_0) => v.visit_pat_type_mut(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_mut<V>(v: &mut V, node: &mut ForeignItem)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                ForeignItem::Fn(_binding_0) => {
-                    v.visit_foreign_item_fn_mut(_binding_0);
-                }
+                ForeignItem::Fn(_binding_0) => v.visit_foreign_item_fn_mut(_binding_0),
                 ForeignItem::Static(_binding_0) => {
-                    v.visit_foreign_item_static_mut(_binding_0);
+                    v.visit_foreign_item_static_mut(_binding_0)
                 }
                 ForeignItem::Type(_binding_0) => {
-                    v.visit_foreign_item_type_mut(_binding_0);
+                    v.visit_foreign_item_type_mut(_binding_0)
                 }
                 ForeignItem::Macro(_binding_0) => {
-                    v.visit_foreign_item_macro_mut(_binding_0);
+                    v.visit_foreign_item_macro_mut(_binding_0)
                 }
                 ForeignItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_fn_mut<V>(v: &mut V, node: &mut ForeignItemFn)
         where
             V: VisitMut + ?Sized,
@@ -28496,7 +27706,7 @@ mod gen {
             v.visit_signature_mut(&mut node.sig);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_macro_mut<V>(v: &mut V, node: &mut ForeignItemMacro)
         where
             V: VisitMut + ?Sized,
@@ -28509,7 +27719,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_static_mut<V>(v: &mut V, node: &mut ForeignItemStatic)
         where
             V: VisitMut + ?Sized,
@@ -28527,7 +27737,7 @@ mod gen {
             v.visit_type_mut(&mut *node.ty);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_foreign_item_type_mut<V>(v: &mut V, node: &mut ForeignItemType)
         where
             V: VisitMut + ?Sized,
@@ -28540,30 +27750,22 @@ mod gen {
             v.visit_ident_mut(&mut node.ident);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generic_argument_mut<V>(v: &mut V, node: &mut GenericArgument)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                GenericArgument::Lifetime(_binding_0) => {
-                    v.visit_lifetime_mut(_binding_0);
-                }
-                GenericArgument::Type(_binding_0) => {
-                    v.visit_type_mut(_binding_0);
-                }
-                GenericArgument::Binding(_binding_0) => {
-                    v.visit_binding_mut(_binding_0);
-                }
+                GenericArgument::Lifetime(_binding_0) => v.visit_lifetime_mut(_binding_0),
+                GenericArgument::Type(_binding_0) => v.visit_type_mut(_binding_0),
+                GenericArgument::Binding(_binding_0) => v.visit_binding_mut(_binding_0),
                 GenericArgument::Constraint(_binding_0) => {
-                    v.visit_constraint_mut(_binding_0);
+                    v.visit_constraint_mut(_binding_0)
                 }
-                GenericArgument::Const(_binding_0) => {
-                    v.visit_expr_mut(_binding_0);
-                }
+                GenericArgument::Const(_binding_0) => v.visit_expr_mut(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_generic_method_argument_mut<V>(
             v: &mut V,
             node: &mut GenericMethodArgument,
@@ -28572,32 +27774,24 @@ mod gen {
             V: VisitMut + ?Sized,
         {
             match node {
-                GenericMethodArgument::Type(_binding_0) => {
-                    v.visit_type_mut(_binding_0);
-                }
-                GenericMethodArgument::Const(_binding_0) => {
-                    v.visit_expr_mut(_binding_0);
-                }
+                GenericMethodArgument::Type(_binding_0) => v.visit_type_mut(_binding_0),
+                GenericMethodArgument::Const(_binding_0) => v.visit_expr_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generic_param_mut<V>(v: &mut V, node: &mut GenericParam)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                GenericParam::Type(_binding_0) => {
-                    v.visit_type_param_mut(_binding_0);
-                }
+                GenericParam::Type(_binding_0) => v.visit_type_param_mut(_binding_0),
                 GenericParam::Lifetime(_binding_0) => {
-                    v.visit_lifetime_def_mut(_binding_0);
+                    v.visit_lifetime_def_mut(_binding_0)
                 }
-                GenericParam::Const(_binding_0) => {
-                    v.visit_const_param_mut(_binding_0);
-                }
+                GenericParam::Const(_binding_0) => v.visit_const_param_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_generics_mut<V>(v: &mut V, node: &mut Generics)
         where
             V: VisitMut + ?Sized,
@@ -28627,28 +27821,20 @@ mod gen {
             v.visit_span_mut(&mut span);
             node.set_span(span);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_mut<V>(v: &mut V, node: &mut ImplItem)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                ImplItem::Const(_binding_0) => {
-                    v.visit_impl_item_const_mut(_binding_0);
-                }
-                ImplItem::Method(_binding_0) => {
-                    v.visit_impl_item_method_mut(_binding_0);
-                }
-                ImplItem::Type(_binding_0) => {
-                    v.visit_impl_item_type_mut(_binding_0);
-                }
-                ImplItem::Macro(_binding_0) => {
-                    v.visit_impl_item_macro_mut(_binding_0);
-                }
+                ImplItem::Const(_binding_0) => v.visit_impl_item_const_mut(_binding_0),
+                ImplItem::Method(_binding_0) => v.visit_impl_item_method_mut(_binding_0),
+                ImplItem::Type(_binding_0) => v.visit_impl_item_type_mut(_binding_0),
+                ImplItem::Macro(_binding_0) => v.visit_impl_item_macro_mut(_binding_0),
                 ImplItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_const_mut<V>(v: &mut V, node: &mut ImplItemConst)
         where
             V: VisitMut + ?Sized,
@@ -28668,7 +27854,7 @@ mod gen {
             v.visit_expr_mut(&mut node.expr);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_macro_mut<V>(v: &mut V, node: &mut ImplItemMacro)
         where
             V: VisitMut + ?Sized,
@@ -28681,7 +27867,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_method_mut<V>(v: &mut V, node: &mut ImplItemMethod)
         where
             V: VisitMut + ?Sized,
@@ -28696,7 +27882,7 @@ mod gen {
             v.visit_signature_mut(&mut node.sig);
             v.visit_block_mut(&mut node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_impl_item_type_mut<V>(v: &mut V, node: &mut ImplItemType)
         where
             V: VisitMut + ?Sized,
@@ -28715,71 +27901,41 @@ mod gen {
             v.visit_type_mut(&mut node.ty);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_index_mut<V>(v: &mut V, node: &mut Index)
         where
             V: VisitMut + ?Sized,
         {
             v.visit_span_mut(&mut node.span);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_mut<V>(v: &mut V, node: &mut Item)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Item::Const(_binding_0) => {
-                    v.visit_item_const_mut(_binding_0);
-                }
-                Item::Enum(_binding_0) => {
-                    v.visit_item_enum_mut(_binding_0);
-                }
+                Item::Const(_binding_0) => v.visit_item_const_mut(_binding_0),
+                Item::Enum(_binding_0) => v.visit_item_enum_mut(_binding_0),
                 Item::ExternCrate(_binding_0) => {
-                    v.visit_item_extern_crate_mut(_binding_0);
+                    v.visit_item_extern_crate_mut(_binding_0)
                 }
-                Item::Fn(_binding_0) => {
-                    v.visit_item_fn_mut(_binding_0);
-                }
-                Item::ForeignMod(_binding_0) => {
-                    v.visit_item_foreign_mod_mut(_binding_0);
-                }
-                Item::Impl(_binding_0) => {
-                    v.visit_item_impl_mut(_binding_0);
-                }
-                Item::Macro(_binding_0) => {
-                    v.visit_item_macro_mut(_binding_0);
-                }
-                Item::Macro2(_binding_0) => {
-                    v.visit_item_macro2_mut(_binding_0);
-                }
-                Item::Mod(_binding_0) => {
-                    v.visit_item_mod_mut(_binding_0);
-                }
-                Item::Static(_binding_0) => {
-                    v.visit_item_static_mut(_binding_0);
-                }
-                Item::Struct(_binding_0) => {
-                    v.visit_item_struct_mut(_binding_0);
-                }
-                Item::Trait(_binding_0) => {
-                    v.visit_item_trait_mut(_binding_0);
-                }
-                Item::TraitAlias(_binding_0) => {
-                    v.visit_item_trait_alias_mut(_binding_0);
-                }
-                Item::Type(_binding_0) => {
-                    v.visit_item_type_mut(_binding_0);
-                }
-                Item::Union(_binding_0) => {
-                    v.visit_item_union_mut(_binding_0);
-                }
-                Item::Use(_binding_0) => {
-                    v.visit_item_use_mut(_binding_0);
-                }
+                Item::Fn(_binding_0) => v.visit_item_fn_mut(_binding_0),
+                Item::ForeignMod(_binding_0) => v.visit_item_foreign_mod_mut(_binding_0),
+                Item::Impl(_binding_0) => v.visit_item_impl_mut(_binding_0),
+                Item::Macro(_binding_0) => v.visit_item_macro_mut(_binding_0),
+                Item::Macro2(_binding_0) => v.visit_item_macro2_mut(_binding_0),
+                Item::Mod(_binding_0) => v.visit_item_mod_mut(_binding_0),
+                Item::Static(_binding_0) => v.visit_item_static_mut(_binding_0),
+                Item::Struct(_binding_0) => v.visit_item_struct_mut(_binding_0),
+                Item::Trait(_binding_0) => v.visit_item_trait_mut(_binding_0),
+                Item::TraitAlias(_binding_0) => v.visit_item_trait_alias_mut(_binding_0),
+                Item::Type(_binding_0) => v.visit_item_type_mut(_binding_0),
+                Item::Union(_binding_0) => v.visit_item_union_mut(_binding_0),
+                Item::Use(_binding_0) => v.visit_item_use_mut(_binding_0),
                 Item::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_const_mut<V>(v: &mut V, node: &mut ItemConst)
         where
             V: VisitMut + ?Sized,
@@ -28796,7 +27952,7 @@ mod gen {
             v.visit_expr_mut(&mut *node.expr);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_enum_mut<V>(v: &mut V, node: &mut ItemEnum)
         where
             V: VisitMut + ?Sized,
@@ -28817,7 +27973,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_extern_crate_mut<V>(v: &mut V, node: &mut ItemExternCrate)
         where
             V: VisitMut + ?Sized,
@@ -28835,7 +27991,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_fn_mut<V>(v: &mut V, node: &mut ItemFn)
         where
             V: VisitMut + ?Sized,
@@ -28847,7 +28003,7 @@ mod gen {
             v.visit_signature_mut(&mut node.sig);
             v.visit_block_mut(&mut *node.block);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_foreign_mod_mut<V>(v: &mut V, node: &mut ItemForeignMod)
         where
             V: VisitMut + ?Sized,
@@ -28861,7 +28017,7 @@ mod gen {
                 v.visit_foreign_item_mut(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_impl_mut<V>(v: &mut V, node: &mut ItemImpl)
         where
             V: VisitMut + ?Sized,
@@ -28890,7 +28046,7 @@ mod gen {
                 v.visit_impl_item_mut(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_macro_mut<V>(v: &mut V, node: &mut ItemMacro)
         where
             V: VisitMut + ?Sized,
@@ -28906,7 +28062,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_macro2_mut<V>(v: &mut V, node: &mut ItemMacro2)
         where
             V: VisitMut + ?Sized,
@@ -28918,7 +28074,7 @@ mod gen {
             tokens_helper(v, &mut node.macro_token.span);
             v.visit_ident_mut(&mut node.ident);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_mod_mut<V>(v: &mut V, node: &mut ItemMod)
         where
             V: VisitMut + ?Sized,
@@ -28939,7 +28095,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_static_mut<V>(v: &mut V, node: &mut ItemStatic)
         where
             V: VisitMut + ?Sized,
@@ -28959,7 +28115,7 @@ mod gen {
             v.visit_expr_mut(&mut *node.expr);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_struct_mut<V>(v: &mut V, node: &mut ItemStruct)
         where
             V: VisitMut + ?Sized,
@@ -28976,7 +28132,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_trait_mut<V>(v: &mut V, node: &mut ItemTrait)
         where
             V: VisitMut + ?Sized,
@@ -29009,7 +28165,7 @@ mod gen {
                 v.visit_trait_item_mut(it);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_trait_alias_mut<V>(v: &mut V, node: &mut ItemTraitAlias)
         where
             V: VisitMut + ?Sized,
@@ -29031,7 +28187,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_type_mut<V>(v: &mut V, node: &mut ItemType)
         where
             V: VisitMut + ?Sized,
@@ -29047,7 +28203,7 @@ mod gen {
             v.visit_type_mut(&mut *node.ty);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_union_mut<V>(v: &mut V, node: &mut ItemUnion)
         where
             V: VisitMut + ?Sized,
@@ -29061,7 +28217,7 @@ mod gen {
             v.visit_generics_mut(&mut node.generics);
             v.visit_fields_named_mut(&mut node.fields);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_item_use_mut<V>(v: &mut V, node: &mut ItemUse)
         where
             V: VisitMut + ?Sized,
@@ -29077,7 +28233,7 @@ mod gen {
             v.visit_use_tree_mut(&mut node.tree);
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_label_mut<V>(v: &mut V, node: &mut Label)
         where
             V: VisitMut + ?Sized,
@@ -29092,7 +28248,7 @@ mod gen {
             v.visit_span_mut(&mut node.apostrophe);
             v.visit_ident_mut(&mut node.ident);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_lifetime_def_mut<V>(v: &mut V, node: &mut LifetimeDef)
         where
             V: VisitMut + ?Sized,
@@ -29117,27 +28273,13 @@ mod gen {
             V: VisitMut + ?Sized,
         {
             match node {
-                Lit::Str(_binding_0) => {
-                    v.visit_lit_str_mut(_binding_0);
-                }
-                Lit::ByteStr(_binding_0) => {
-                    v.visit_lit_byte_str_mut(_binding_0);
-                }
-                Lit::Byte(_binding_0) => {
-                    v.visit_lit_byte_mut(_binding_0);
-                }
-                Lit::Char(_binding_0) => {
-                    v.visit_lit_char_mut(_binding_0);
-                }
-                Lit::Int(_binding_0) => {
-                    v.visit_lit_int_mut(_binding_0);
-                }
-                Lit::Float(_binding_0) => {
-                    v.visit_lit_float_mut(_binding_0);
-                }
-                Lit::Bool(_binding_0) => {
-                    v.visit_lit_bool_mut(_binding_0);
-                }
+                Lit::Str(_binding_0) => v.visit_lit_str_mut(_binding_0),
+                Lit::ByteStr(_binding_0) => v.visit_lit_byte_str_mut(_binding_0),
+                Lit::Byte(_binding_0) => v.visit_lit_byte_mut(_binding_0),
+                Lit::Char(_binding_0) => v.visit_lit_char_mut(_binding_0),
+                Lit::Int(_binding_0) => v.visit_lit_int_mut(_binding_0),
+                Lit::Float(_binding_0) => v.visit_lit_float_mut(_binding_0),
+                Lit::Bool(_binding_0) => v.visit_lit_bool_mut(_binding_0),
                 Lit::Verbatim(_binding_0) => {}
             }
         }
@@ -29171,7 +28313,7 @@ mod gen {
         where
             V: VisitMut + ?Sized,
         {}
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_local_mut<V>(v: &mut V, node: &mut Local)
         where
             V: VisitMut + ?Sized,
@@ -29187,7 +28329,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_macro_mut<V>(v: &mut V, node: &mut Macro)
         where
             V: VisitMut + ?Sized,
@@ -29196,55 +28338,45 @@ mod gen {
             tokens_helper(v, &mut node.bang_token.spans);
             v.visit_macro_delimiter_mut(&mut node.delimiter);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_macro_delimiter_mut<V>(v: &mut V, node: &mut MacroDelimiter)
         where
             V: VisitMut + ?Sized,
         {
             match node {
                 MacroDelimiter::Paren(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.span);
+                    tokens_helper(v, &mut _binding_0.span)
                 }
                 MacroDelimiter::Brace(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.span);
+                    tokens_helper(v, &mut _binding_0.span)
                 }
                 MacroDelimiter::Bracket(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.span);
+                    tokens_helper(v, &mut _binding_0.span)
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_member_mut<V>(v: &mut V, node: &mut Member)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Member::Named(_binding_0) => {
-                    v.visit_ident_mut(_binding_0);
-                }
-                Member::Unnamed(_binding_0) => {
-                    v.visit_index_mut(_binding_0);
-                }
+                Member::Named(_binding_0) => v.visit_ident_mut(_binding_0),
+                Member::Unnamed(_binding_0) => v.visit_index_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta_mut<V>(v: &mut V, node: &mut Meta)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Meta::Path(_binding_0) => {
-                    v.visit_path_mut(_binding_0);
-                }
-                Meta::List(_binding_0) => {
-                    v.visit_meta_list_mut(_binding_0);
-                }
-                Meta::NameValue(_binding_0) => {
-                    v.visit_meta_name_value_mut(_binding_0);
-                }
+                Meta::Path(_binding_0) => v.visit_path_mut(_binding_0),
+                Meta::List(_binding_0) => v.visit_meta_list_mut(_binding_0),
+                Meta::NameValue(_binding_0) => v.visit_meta_name_value_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta_list_mut<V>(v: &mut V, node: &mut MetaList)
         where
             V: VisitMut + ?Sized,
@@ -29259,7 +28391,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_meta_name_value_mut<V>(v: &mut V, node: &mut MetaNameValue)
         where
             V: VisitMut + ?Sized,
@@ -29268,7 +28400,7 @@ mod gen {
             tokens_helper(v, &mut node.eq_token.spans);
             v.visit_lit_mut(&mut node.lit);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_method_turbofish_mut<V>(v: &mut V, node: &mut MethodTurbofish)
         where
             V: VisitMut + ?Sized,
@@ -29284,21 +28416,17 @@ mod gen {
             }
             tokens_helper(v, &mut node.gt_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_nested_meta_mut<V>(v: &mut V, node: &mut NestedMeta)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                NestedMeta::Meta(_binding_0) => {
-                    v.visit_meta_mut(_binding_0);
-                }
-                NestedMeta::Lit(_binding_0) => {
-                    v.visit_lit_mut(_binding_0);
-                }
+                NestedMeta::Meta(_binding_0) => v.visit_meta_mut(_binding_0),
+                NestedMeta::Lit(_binding_0) => v.visit_lit_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_parenthesized_generic_arguments_mut<V>(
             v: &mut V,
             node: &mut ParenthesizedGenericArguments,
@@ -29316,61 +28444,31 @@ mod gen {
             }
             v.visit_return_type_mut(&mut node.output);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_mut<V>(v: &mut V, node: &mut Pat)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Pat::Box(_binding_0) => {
-                    v.visit_pat_box_mut(_binding_0);
-                }
-                Pat::Ident(_binding_0) => {
-                    v.visit_pat_ident_mut(_binding_0);
-                }
-                Pat::Lit(_binding_0) => {
-                    v.visit_pat_lit_mut(_binding_0);
-                }
-                Pat::Macro(_binding_0) => {
-                    v.visit_pat_macro_mut(_binding_0);
-                }
-                Pat::Or(_binding_0) => {
-                    v.visit_pat_or_mut(_binding_0);
-                }
-                Pat::Path(_binding_0) => {
-                    v.visit_pat_path_mut(_binding_0);
-                }
-                Pat::Range(_binding_0) => {
-                    v.visit_pat_range_mut(_binding_0);
-                }
-                Pat::Reference(_binding_0) => {
-                    v.visit_pat_reference_mut(_binding_0);
-                }
-                Pat::Rest(_binding_0) => {
-                    v.visit_pat_rest_mut(_binding_0);
-                }
-                Pat::Slice(_binding_0) => {
-                    v.visit_pat_slice_mut(_binding_0);
-                }
-                Pat::Struct(_binding_0) => {
-                    v.visit_pat_struct_mut(_binding_0);
-                }
-                Pat::Tuple(_binding_0) => {
-                    v.visit_pat_tuple_mut(_binding_0);
-                }
-                Pat::TupleStruct(_binding_0) => {
-                    v.visit_pat_tuple_struct_mut(_binding_0);
-                }
-                Pat::Type(_binding_0) => {
-                    v.visit_pat_type_mut(_binding_0);
-                }
+                Pat::Box(_binding_0) => v.visit_pat_box_mut(_binding_0),
+                Pat::Ident(_binding_0) => v.visit_pat_ident_mut(_binding_0),
+                Pat::Lit(_binding_0) => v.visit_pat_lit_mut(_binding_0),
+                Pat::Macro(_binding_0) => v.visit_pat_macro_mut(_binding_0),
+                Pat::Or(_binding_0) => v.visit_pat_or_mut(_binding_0),
+                Pat::Path(_binding_0) => v.visit_pat_path_mut(_binding_0),
+                Pat::Range(_binding_0) => v.visit_pat_range_mut(_binding_0),
+                Pat::Reference(_binding_0) => v.visit_pat_reference_mut(_binding_0),
+                Pat::Rest(_binding_0) => v.visit_pat_rest_mut(_binding_0),
+                Pat::Slice(_binding_0) => v.visit_pat_slice_mut(_binding_0),
+                Pat::Struct(_binding_0) => v.visit_pat_struct_mut(_binding_0),
+                Pat::Tuple(_binding_0) => v.visit_pat_tuple_mut(_binding_0),
+                Pat::TupleStruct(_binding_0) => v.visit_pat_tuple_struct_mut(_binding_0),
+                Pat::Type(_binding_0) => v.visit_pat_type_mut(_binding_0),
                 Pat::Verbatim(_binding_0) => {}
-                Pat::Wild(_binding_0) => {
-                    v.visit_pat_wild_mut(_binding_0);
-                }
+                Pat::Wild(_binding_0) => v.visit_pat_wild_mut(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_box_mut<V>(v: &mut V, node: &mut PatBox)
         where
             V: VisitMut + ?Sized,
@@ -29381,7 +28479,7 @@ mod gen {
             tokens_helper(v, &mut node.box_token.span);
             v.visit_pat_mut(&mut *node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_ident_mut<V>(v: &mut V, node: &mut PatIdent)
         where
             V: VisitMut + ?Sized,
@@ -29401,7 +28499,7 @@ mod gen {
                 v.visit_pat_mut(&mut *(it).1);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_lit_mut<V>(v: &mut V, node: &mut PatLit)
         where
             V: VisitMut + ?Sized,
@@ -29411,7 +28509,7 @@ mod gen {
             }
             v.visit_expr_mut(&mut *node.expr);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_macro_mut<V>(v: &mut V, node: &mut PatMacro)
         where
             V: VisitMut + ?Sized,
@@ -29421,7 +28519,7 @@ mod gen {
             }
             v.visit_macro_mut(&mut node.mac);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_or_mut<V>(v: &mut V, node: &mut PatOr)
         where
             V: VisitMut + ?Sized,
@@ -29440,7 +28538,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_path_mut<V>(v: &mut V, node: &mut PatPath)
         where
             V: VisitMut + ?Sized,
@@ -29453,7 +28551,7 @@ mod gen {
             }
             v.visit_path_mut(&mut node.path);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_range_mut<V>(v: &mut V, node: &mut PatRange)
         where
             V: VisitMut + ?Sized,
@@ -29465,7 +28563,7 @@ mod gen {
             v.visit_range_limits_mut(&mut node.limits);
             v.visit_expr_mut(&mut *node.hi);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_reference_mut<V>(v: &mut V, node: &mut PatReference)
         where
             V: VisitMut + ?Sized,
@@ -29479,7 +28577,7 @@ mod gen {
             }
             v.visit_pat_mut(&mut *node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_rest_mut<V>(v: &mut V, node: &mut PatRest)
         where
             V: VisitMut + ?Sized,
@@ -29489,7 +28587,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.dot2_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_slice_mut<V>(v: &mut V, node: &mut PatSlice)
         where
             V: VisitMut + ?Sized,
@@ -29506,7 +28604,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_struct_mut<V>(v: &mut V, node: &mut PatStruct)
         where
             V: VisitMut + ?Sized,
@@ -29527,7 +28625,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_tuple_mut<V>(v: &mut V, node: &mut PatTuple)
         where
             V: VisitMut + ?Sized,
@@ -29544,7 +28642,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_tuple_struct_mut<V>(v: &mut V, node: &mut PatTupleStruct)
         where
             V: VisitMut + ?Sized,
@@ -29555,7 +28653,7 @@ mod gen {
             v.visit_path_mut(&mut node.path);
             v.visit_pat_tuple_mut(&mut node.pat);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_type_mut<V>(v: &mut V, node: &mut PatType)
         where
             V: VisitMut + ?Sized,
@@ -29567,7 +28665,7 @@ mod gen {
             tokens_helper(v, &mut node.colon_token.spans);
             v.visit_type_mut(&mut *node.ty);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_pat_wild_mut<V>(v: &mut V, node: &mut PatWild)
         where
             V: VisitMut + ?Sized,
@@ -29577,7 +28675,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.underscore_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path_mut<V>(v: &mut V, node: &mut Path)
         where
             V: VisitMut + ?Sized,
@@ -29593,7 +28691,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path_arguments_mut<V>(v: &mut V, node: &mut PathArguments)
         where
             V: VisitMut + ?Sized,
@@ -29601,14 +28699,14 @@ mod gen {
             match node {
                 PathArguments::None => {}
                 PathArguments::AngleBracketed(_binding_0) => {
-                    v.visit_angle_bracketed_generic_arguments_mut(_binding_0);
+                    v.visit_angle_bracketed_generic_arguments_mut(_binding_0)
                 }
                 PathArguments::Parenthesized(_binding_0) => {
-                    v.visit_parenthesized_generic_arguments_mut(_binding_0);
+                    v.visit_parenthesized_generic_arguments_mut(_binding_0)
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_path_segment_mut<V>(v: &mut V, node: &mut PathSegment)
         where
             V: VisitMut + ?Sized,
@@ -29616,7 +28714,7 @@ mod gen {
             v.visit_ident_mut(&mut node.ident);
             v.visit_path_arguments_mut(&mut node.arguments);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_eq_mut<V>(v: &mut V, node: &mut PredicateEq)
         where
             V: VisitMut + ?Sized,
@@ -29625,7 +28723,7 @@ mod gen {
             tokens_helper(v, &mut node.eq_token.spans);
             v.visit_type_mut(&mut node.rhs_ty);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_lifetime_mut<V>(v: &mut V, node: &mut PredicateLifetime)
         where
             V: VisitMut + ?Sized,
@@ -29640,7 +28738,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_predicate_type_mut<V>(v: &mut V, node: &mut PredicateType)
         where
             V: VisitMut + ?Sized,
@@ -29658,7 +28756,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_qself_mut<V>(v: &mut V, node: &mut QSelf)
         where
             V: VisitMut + ?Sized,
@@ -29670,21 +28768,21 @@ mod gen {
             }
             tokens_helper(v, &mut node.gt_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_range_limits_mut<V>(v: &mut V, node: &mut RangeLimits)
         where
             V: VisitMut + ?Sized,
         {
             match node {
                 RangeLimits::HalfOpen(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
+                    tokens_helper(v, &mut _binding_0.spans)
                 }
                 RangeLimits::Closed(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
+                    tokens_helper(v, &mut _binding_0.spans)
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_receiver_mut<V>(v: &mut V, node: &mut Receiver)
         where
             V: VisitMut + ?Sized,
@@ -29703,7 +28801,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.self_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_return_type_mut<V>(v: &mut V, node: &mut ReturnType)
         where
             V: VisitMut + ?Sized,
@@ -29716,7 +28814,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_signature_mut<V>(v: &mut V, node: &mut Signature)
         where
             V: VisitMut + ?Sized,
@@ -29753,28 +28851,22 @@ mod gen {
         where
             V: VisitMut + ?Sized,
         {}
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_stmt_mut<V>(v: &mut V, node: &mut Stmt)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Stmt::Local(_binding_0) => {
-                    v.visit_local_mut(_binding_0);
-                }
-                Stmt::Item(_binding_0) => {
-                    v.visit_item_mut(_binding_0);
-                }
-                Stmt::Expr(_binding_0) => {
-                    v.visit_expr_mut(_binding_0);
-                }
+                Stmt::Local(_binding_0) => v.visit_local_mut(_binding_0),
+                Stmt::Item(_binding_0) => v.visit_item_mut(_binding_0),
+                Stmt::Expr(_binding_0) => v.visit_expr_mut(_binding_0),
                 Stmt::Semi(_binding_0, _binding_1) => {
                     v.visit_expr_mut(_binding_0);
                     tokens_helper(v, &mut _binding_1.spans);
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_trait_bound_mut<V>(v: &mut V, node: &mut TraitBound)
         where
             V: VisitMut + ?Sized,
@@ -29788,7 +28880,7 @@ mod gen {
             }
             v.visit_path_mut(&mut node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_trait_bound_modifier_mut<V>(
             v: &mut V,
             node: &mut TraitBoundModifier,
@@ -29799,32 +28891,26 @@ mod gen {
             match node {
                 TraitBoundModifier::None => {}
                 TraitBoundModifier::Maybe(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
+                    tokens_helper(v, &mut _binding_0.spans)
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_mut<V>(v: &mut V, node: &mut TraitItem)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                TraitItem::Const(_binding_0) => {
-                    v.visit_trait_item_const_mut(_binding_0);
-                }
+                TraitItem::Const(_binding_0) => v.visit_trait_item_const_mut(_binding_0),
                 TraitItem::Method(_binding_0) => {
-                    v.visit_trait_item_method_mut(_binding_0);
+                    v.visit_trait_item_method_mut(_binding_0)
                 }
-                TraitItem::Type(_binding_0) => {
-                    v.visit_trait_item_type_mut(_binding_0);
-                }
-                TraitItem::Macro(_binding_0) => {
-                    v.visit_trait_item_macro_mut(_binding_0);
-                }
+                TraitItem::Type(_binding_0) => v.visit_trait_item_type_mut(_binding_0),
+                TraitItem::Macro(_binding_0) => v.visit_trait_item_macro_mut(_binding_0),
                 TraitItem::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_const_mut<V>(v: &mut V, node: &mut TraitItemConst)
         where
             V: VisitMut + ?Sized,
@@ -29842,7 +28928,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_macro_mut<V>(v: &mut V, node: &mut TraitItemMacro)
         where
             V: VisitMut + ?Sized,
@@ -29855,7 +28941,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_method_mut<V>(v: &mut V, node: &mut TraitItemMethod)
         where
             V: VisitMut + ?Sized,
@@ -29871,7 +28957,7 @@ mod gen {
                 tokens_helper(v, &mut it.spans);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_trait_item_type_mut<V>(v: &mut V, node: &mut TraitItemType)
         where
             V: VisitMut + ?Sized,
@@ -29898,58 +28984,32 @@ mod gen {
             }
             tokens_helper(v, &mut node.semi_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_mut<V>(v: &mut V, node: &mut Type)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Type::Array(_binding_0) => {
-                    v.visit_type_array_mut(_binding_0);
-                }
-                Type::BareFn(_binding_0) => {
-                    v.visit_type_bare_fn_mut(_binding_0);
-                }
-                Type::Group(_binding_0) => {
-                    v.visit_type_group_mut(_binding_0);
-                }
-                Type::ImplTrait(_binding_0) => {
-                    v.visit_type_impl_trait_mut(_binding_0);
-                }
-                Type::Infer(_binding_0) => {
-                    v.visit_type_infer_mut(_binding_0);
-                }
-                Type::Macro(_binding_0) => {
-                    v.visit_type_macro_mut(_binding_0);
-                }
-                Type::Never(_binding_0) => {
-                    v.visit_type_never_mut(_binding_0);
-                }
-                Type::Paren(_binding_0) => {
-                    v.visit_type_paren_mut(_binding_0);
-                }
-                Type::Path(_binding_0) => {
-                    v.visit_type_path_mut(_binding_0);
-                }
-                Type::Ptr(_binding_0) => {
-                    v.visit_type_ptr_mut(_binding_0);
-                }
-                Type::Reference(_binding_0) => {
-                    v.visit_type_reference_mut(_binding_0);
-                }
-                Type::Slice(_binding_0) => {
-                    v.visit_type_slice_mut(_binding_0);
-                }
+                Type::Array(_binding_0) => v.visit_type_array_mut(_binding_0),
+                Type::BareFn(_binding_0) => v.visit_type_bare_fn_mut(_binding_0),
+                Type::Group(_binding_0) => v.visit_type_group_mut(_binding_0),
+                Type::ImplTrait(_binding_0) => v.visit_type_impl_trait_mut(_binding_0),
+                Type::Infer(_binding_0) => v.visit_type_infer_mut(_binding_0),
+                Type::Macro(_binding_0) => v.visit_type_macro_mut(_binding_0),
+                Type::Never(_binding_0) => v.visit_type_never_mut(_binding_0),
+                Type::Paren(_binding_0) => v.visit_type_paren_mut(_binding_0),
+                Type::Path(_binding_0) => v.visit_type_path_mut(_binding_0),
+                Type::Ptr(_binding_0) => v.visit_type_ptr_mut(_binding_0),
+                Type::Reference(_binding_0) => v.visit_type_reference_mut(_binding_0),
+                Type::Slice(_binding_0) => v.visit_type_slice_mut(_binding_0),
                 Type::TraitObject(_binding_0) => {
-                    v.visit_type_trait_object_mut(_binding_0);
+                    v.visit_type_trait_object_mut(_binding_0)
                 }
-                Type::Tuple(_binding_0) => {
-                    v.visit_type_tuple_mut(_binding_0);
-                }
+                Type::Tuple(_binding_0) => v.visit_type_tuple_mut(_binding_0),
                 Type::Verbatim(_binding_0) => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_array_mut<V>(v: &mut V, node: &mut TypeArray)
         where
             V: VisitMut + ?Sized,
@@ -29959,7 +29019,7 @@ mod gen {
             tokens_helper(v, &mut node.semi_token.spans);
             v.visit_expr_mut(&mut node.len);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_bare_fn_mut<V>(v: &mut V, node: &mut TypeBareFn)
         where
             V: VisitMut + ?Sized,
@@ -29987,7 +29047,7 @@ mod gen {
             }
             v.visit_return_type_mut(&mut node.output);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_group_mut<V>(v: &mut V, node: &mut TypeGroup)
         where
             V: VisitMut + ?Sized,
@@ -29995,7 +29055,7 @@ mod gen {
             tokens_helper(v, &mut node.group_token.span);
             v.visit_type_mut(&mut *node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_impl_trait_mut<V>(v: &mut V, node: &mut TypeImplTrait)
         where
             V: VisitMut + ?Sized,
@@ -30009,28 +29069,28 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_infer_mut<V>(v: &mut V, node: &mut TypeInfer)
         where
             V: VisitMut + ?Sized,
         {
             tokens_helper(v, &mut node.underscore_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_macro_mut<V>(v: &mut V, node: &mut TypeMacro)
         where
             V: VisitMut + ?Sized,
         {
             v.visit_macro_mut(&mut node.mac);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_never_mut<V>(v: &mut V, node: &mut TypeNever)
         where
             V: VisitMut + ?Sized,
         {
             tokens_helper(v, &mut node.bang_token.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_param_mut<V>(v: &mut V, node: &mut TypeParam)
         where
             V: VisitMut + ?Sized,
@@ -30056,21 +29116,17 @@ mod gen {
                 v.visit_type_mut(it);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_param_bound_mut<V>(v: &mut V, node: &mut TypeParamBound)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                TypeParamBound::Trait(_binding_0) => {
-                    v.visit_trait_bound_mut(_binding_0);
-                }
-                TypeParamBound::Lifetime(_binding_0) => {
-                    v.visit_lifetime_mut(_binding_0);
-                }
+                TypeParamBound::Trait(_binding_0) => v.visit_trait_bound_mut(_binding_0),
+                TypeParamBound::Lifetime(_binding_0) => v.visit_lifetime_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_paren_mut<V>(v: &mut V, node: &mut TypeParen)
         where
             V: VisitMut + ?Sized,
@@ -30078,7 +29134,7 @@ mod gen {
             tokens_helper(v, &mut node.paren_token.span);
             v.visit_type_mut(&mut *node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_path_mut<V>(v: &mut V, node: &mut TypePath)
         where
             V: VisitMut + ?Sized,
@@ -30088,7 +29144,7 @@ mod gen {
             }
             v.visit_path_mut(&mut node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_ptr_mut<V>(v: &mut V, node: &mut TypePtr)
         where
             V: VisitMut + ?Sized,
@@ -30102,7 +29158,7 @@ mod gen {
             }
             v.visit_type_mut(&mut *node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_reference_mut<V>(v: &mut V, node: &mut TypeReference)
         where
             V: VisitMut + ?Sized,
@@ -30116,7 +29172,7 @@ mod gen {
             }
             v.visit_type_mut(&mut *node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_slice_mut<V>(v: &mut V, node: &mut TypeSlice)
         where
             V: VisitMut + ?Sized,
@@ -30124,7 +29180,7 @@ mod gen {
             tokens_helper(v, &mut node.bracket_token.span);
             v.visit_type_mut(&mut *node.elem);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_trait_object_mut<V>(v: &mut V, node: &mut TypeTraitObject)
         where
             V: VisitMut + ?Sized,
@@ -30140,7 +29196,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_type_tuple_mut<V>(v: &mut V, node: &mut TypeTuple)
         where
             V: VisitMut + ?Sized,
@@ -30154,31 +29210,25 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_un_op_mut<V>(v: &mut V, node: &mut UnOp)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                UnOp::Deref(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                UnOp::Not(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
-                UnOp::Neg(_binding_0) => {
-                    tokens_helper(v, &mut _binding_0.spans);
-                }
+                UnOp::Deref(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                UnOp::Not(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
+                UnOp::Neg(_binding_0) => tokens_helper(v, &mut _binding_0.spans),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_glob_mut<V>(v: &mut V, node: &mut UseGlob)
         where
             V: VisitMut + ?Sized,
         {
             tokens_helper(v, &mut node.star_token.spans);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_group_mut<V>(v: &mut V, node: &mut UseGroup)
         where
             V: VisitMut + ?Sized,
@@ -30192,14 +29242,14 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_name_mut<V>(v: &mut V, node: &mut UseName)
         where
             V: VisitMut + ?Sized,
         {
             v.visit_ident_mut(&mut node.ident);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_path_mut<V>(v: &mut V, node: &mut UsePath)
         where
             V: VisitMut + ?Sized,
@@ -30208,7 +29258,7 @@ mod gen {
             tokens_helper(v, &mut node.colon2_token.spans);
             v.visit_use_tree_mut(&mut *node.tree);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_rename_mut<V>(v: &mut V, node: &mut UseRename)
         where
             V: VisitMut + ?Sized,
@@ -30217,30 +29267,20 @@ mod gen {
             tokens_helper(v, &mut node.as_token.span);
             v.visit_ident_mut(&mut node.rename);
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn visit_use_tree_mut<V>(v: &mut V, node: &mut UseTree)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                UseTree::Path(_binding_0) => {
-                    v.visit_use_path_mut(_binding_0);
-                }
-                UseTree::Name(_binding_0) => {
-                    v.visit_use_name_mut(_binding_0);
-                }
-                UseTree::Rename(_binding_0) => {
-                    v.visit_use_rename_mut(_binding_0);
-                }
-                UseTree::Glob(_binding_0) => {
-                    v.visit_use_glob_mut(_binding_0);
-                }
-                UseTree::Group(_binding_0) => {
-                    v.visit_use_group_mut(_binding_0);
-                }
+                UseTree::Path(_binding_0) => v.visit_use_path_mut(_binding_0),
+                UseTree::Name(_binding_0) => v.visit_use_name_mut(_binding_0),
+                UseTree::Rename(_binding_0) => v.visit_use_rename_mut(_binding_0),
+                UseTree::Glob(_binding_0) => v.visit_use_glob_mut(_binding_0),
+                UseTree::Group(_binding_0) => v.visit_use_group_mut(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_variadic_mut<V>(v: &mut V, node: &mut Variadic)
         where
             V: VisitMut + ?Sized,
@@ -30250,7 +29290,7 @@ mod gen {
             }
             tokens_helper(v, &mut node.dots.spans);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_variant_mut<V>(v: &mut V, node: &mut Variant)
         where
             V: VisitMut + ?Sized,
@@ -30265,21 +29305,21 @@ mod gen {
                 v.visit_expr_mut(&mut (it).1);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_crate_mut<V>(v: &mut V, node: &mut VisCrate)
         where
             V: VisitMut + ?Sized,
         {
             tokens_helper(v, &mut node.crate_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_public_mut<V>(v: &mut V, node: &mut VisPublic)
         where
             V: VisitMut + ?Sized,
         {
             tokens_helper(v, &mut node.pub_token.span);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_vis_restricted_mut<V>(v: &mut V, node: &mut VisRestricted)
         where
             V: VisitMut + ?Sized,
@@ -30291,25 +29331,21 @@ mod gen {
             }
             v.visit_path_mut(&mut *node.path);
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_visibility_mut<V>(v: &mut V, node: &mut Visibility)
         where
             V: VisitMut + ?Sized,
         {
             match node {
-                Visibility::Public(_binding_0) => {
-                    v.visit_vis_public_mut(_binding_0);
-                }
-                Visibility::Crate(_binding_0) => {
-                    v.visit_vis_crate_mut(_binding_0);
-                }
+                Visibility::Public(_binding_0) => v.visit_vis_public_mut(_binding_0),
+                Visibility::Crate(_binding_0) => v.visit_vis_crate_mut(_binding_0),
                 Visibility::Restricted(_binding_0) => {
-                    v.visit_vis_restricted_mut(_binding_0);
+                    v.visit_vis_restricted_mut(_binding_0)
                 }
                 Visibility::Inherited => {}
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_where_clause_mut<V>(v: &mut V, node: &mut WhereClause)
         where
             V: VisitMut + ?Sized,
@@ -30323,447 +29359,445 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn visit_where_predicate_mut<V>(v: &mut V, node: &mut WherePredicate)
         where
             V: VisitMut + ?Sized,
         {
             match node {
                 WherePredicate::Type(_binding_0) => {
-                    v.visit_predicate_type_mut(_binding_0);
+                    v.visit_predicate_type_mut(_binding_0)
                 }
                 WherePredicate::Lifetime(_binding_0) => {
-                    v.visit_predicate_lifetime_mut(_binding_0);
+                    v.visit_predicate_lifetime_mut(_binding_0)
                 }
-                WherePredicate::Eq(_binding_0) => {
-                    v.visit_predicate_eq_mut(_binding_0);
-                }
+                WherePredicate::Eq(_binding_0) => v.visit_predicate_eq_mut(_binding_0),
             }
         }
     }
-    #[cfg(feature = "fold")]
+    #[cfg]
     #[rustfmt::skip]
     pub mod fold {
-        #![allow(unreachable_code, unused_variables)]
-        #![allow(clippy::match_wildcard_for_single_variants)]
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #![allow]
+        #![allow]
+        #[cfg]
         use crate::gen::helper::fold::*;
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[cfg]
         use crate::token::{Brace, Bracket, Group, Paren};
         use crate::*;
         use proc_macro2::Span;
         pub trait Fold {
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_abi(&mut self, i: Abi) -> Abi {
                 fold_abi(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_angle_bracketed_generic_arguments(
                 &mut self,
                 i: AngleBracketedGenericArguments,
             ) -> AngleBracketedGenericArguments {
                 fold_angle_bracketed_generic_arguments(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_arm(&mut self, i: Arm) -> Arm {
                 fold_arm(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_attr_style(&mut self, i: AttrStyle) -> AttrStyle {
                 fold_attr_style(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_attribute(&mut self, i: Attribute) -> Attribute {
                 fold_attribute(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_bare_fn_arg(&mut self, i: BareFnArg) -> BareFnArg {
                 fold_bare_fn_arg(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_bin_op(&mut self, i: BinOp) -> BinOp {
                 fold_bin_op(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_binding(&mut self, i: Binding) -> Binding {
                 fold_binding(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_block(&mut self, i: Block) -> Block {
                 fold_block(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_bound_lifetimes(&mut self, i: BoundLifetimes) -> BoundLifetimes {
                 fold_bound_lifetimes(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_const_param(&mut self, i: ConstParam) -> ConstParam {
                 fold_const_param(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_constraint(&mut self, i: Constraint) -> Constraint {
                 fold_constraint(self, i)
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn fold_data(&mut self, i: Data) -> Data {
                 fold_data(self, i)
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn fold_data_enum(&mut self, i: DataEnum) -> DataEnum {
                 fold_data_enum(self, i)
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn fold_data_struct(&mut self, i: DataStruct) -> DataStruct {
                 fold_data_struct(self, i)
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn fold_data_union(&mut self, i: DataUnion) -> DataUnion {
                 fold_data_union(self, i)
             }
-            #[cfg(feature = "derive")]
+            #[cfg]
             fn fold_derive_input(&mut self, i: DeriveInput) -> DeriveInput {
                 fold_derive_input(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr(&mut self, i: Expr) -> Expr {
                 fold_expr(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_array(&mut self, i: ExprArray) -> ExprArray {
                 fold_expr_array(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_assign(&mut self, i: ExprAssign) -> ExprAssign {
                 fold_expr_assign(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_assign_op(&mut self, i: ExprAssignOp) -> ExprAssignOp {
                 fold_expr_assign_op(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_async(&mut self, i: ExprAsync) -> ExprAsync {
                 fold_expr_async(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_await(&mut self, i: ExprAwait) -> ExprAwait {
                 fold_expr_await(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_binary(&mut self, i: ExprBinary) -> ExprBinary {
                 fold_expr_binary(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_block(&mut self, i: ExprBlock) -> ExprBlock {
                 fold_expr_block(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_box(&mut self, i: ExprBox) -> ExprBox {
                 fold_expr_box(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_break(&mut self, i: ExprBreak) -> ExprBreak {
                 fold_expr_break(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_call(&mut self, i: ExprCall) -> ExprCall {
                 fold_expr_call(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_cast(&mut self, i: ExprCast) -> ExprCast {
                 fold_expr_cast(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_closure(&mut self, i: ExprClosure) -> ExprClosure {
                 fold_expr_closure(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_continue(&mut self, i: ExprContinue) -> ExprContinue {
                 fold_expr_continue(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_field(&mut self, i: ExprField) -> ExprField {
                 fold_expr_field(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_for_loop(&mut self, i: ExprForLoop) -> ExprForLoop {
                 fold_expr_for_loop(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_group(&mut self, i: ExprGroup) -> ExprGroup {
                 fold_expr_group(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_if(&mut self, i: ExprIf) -> ExprIf {
                 fold_expr_if(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_index(&mut self, i: ExprIndex) -> ExprIndex {
                 fold_expr_index(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_let(&mut self, i: ExprLet) -> ExprLet {
                 fold_expr_let(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_lit(&mut self, i: ExprLit) -> ExprLit {
                 fold_expr_lit(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_loop(&mut self, i: ExprLoop) -> ExprLoop {
                 fold_expr_loop(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_macro(&mut self, i: ExprMacro) -> ExprMacro {
                 fold_expr_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_match(&mut self, i: ExprMatch) -> ExprMatch {
                 fold_expr_match(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_method_call(&mut self, i: ExprMethodCall) -> ExprMethodCall {
                 fold_expr_method_call(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_paren(&mut self, i: ExprParen) -> ExprParen {
                 fold_expr_paren(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_path(&mut self, i: ExprPath) -> ExprPath {
                 fold_expr_path(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_range(&mut self, i: ExprRange) -> ExprRange {
                 fold_expr_range(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_reference(&mut self, i: ExprReference) -> ExprReference {
                 fold_expr_reference(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_repeat(&mut self, i: ExprRepeat) -> ExprRepeat {
                 fold_expr_repeat(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_return(&mut self, i: ExprReturn) -> ExprReturn {
                 fold_expr_return(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_struct(&mut self, i: ExprStruct) -> ExprStruct {
                 fold_expr_struct(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_try(&mut self, i: ExprTry) -> ExprTry {
                 fold_expr_try(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_try_block(&mut self, i: ExprTryBlock) -> ExprTryBlock {
                 fold_expr_try_block(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_tuple(&mut self, i: ExprTuple) -> ExprTuple {
                 fold_expr_tuple(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_type(&mut self, i: ExprType) -> ExprType {
                 fold_expr_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_expr_unary(&mut self, i: ExprUnary) -> ExprUnary {
                 fold_expr_unary(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_unsafe(&mut self, i: ExprUnsafe) -> ExprUnsafe {
                 fold_expr_unsafe(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_while(&mut self, i: ExprWhile) -> ExprWhile {
                 fold_expr_while(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_expr_yield(&mut self, i: ExprYield) -> ExprYield {
                 fold_expr_yield(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_field(&mut self, i: Field) -> Field {
                 fold_field(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_field_pat(&mut self, i: FieldPat) -> FieldPat {
                 fold_field_pat(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_field_value(&mut self, i: FieldValue) -> FieldValue {
                 fold_field_value(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_fields(&mut self, i: Fields) -> Fields {
                 fold_fields(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_fields_named(&mut self, i: FieldsNamed) -> FieldsNamed {
                 fold_fields_named(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_fields_unnamed(&mut self, i: FieldsUnnamed) -> FieldsUnnamed {
                 fold_fields_unnamed(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_file(&mut self, i: File) -> File {
                 fold_file(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_fn_arg(&mut self, i: FnArg) -> FnArg {
                 fold_fn_arg(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_foreign_item(&mut self, i: ForeignItem) -> ForeignItem {
                 fold_foreign_item(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_foreign_item_fn(&mut self, i: ForeignItemFn) -> ForeignItemFn {
                 fold_foreign_item_fn(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_foreign_item_macro(
                 &mut self,
                 i: ForeignItemMacro,
             ) -> ForeignItemMacro {
                 fold_foreign_item_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_foreign_item_static(
                 &mut self,
                 i: ForeignItemStatic,
             ) -> ForeignItemStatic {
                 fold_foreign_item_static(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_foreign_item_type(&mut self, i: ForeignItemType) -> ForeignItemType {
                 fold_foreign_item_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_generic_argument(&mut self, i: GenericArgument) -> GenericArgument {
                 fold_generic_argument(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_generic_method_argument(
                 &mut self,
                 i: GenericMethodArgument,
             ) -> GenericMethodArgument {
                 fold_generic_method_argument(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_generic_param(&mut self, i: GenericParam) -> GenericParam {
                 fold_generic_param(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_generics(&mut self, i: Generics) -> Generics {
                 fold_generics(self, i)
             }
             fn fold_ident(&mut self, i: Ident) -> Ident {
                 fold_ident(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_impl_item(&mut self, i: ImplItem) -> ImplItem {
                 fold_impl_item(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_impl_item_const(&mut self, i: ImplItemConst) -> ImplItemConst {
                 fold_impl_item_const(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_impl_item_macro(&mut self, i: ImplItemMacro) -> ImplItemMacro {
                 fold_impl_item_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_impl_item_method(&mut self, i: ImplItemMethod) -> ImplItemMethod {
                 fold_impl_item_method(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_impl_item_type(&mut self, i: ImplItemType) -> ImplItemType {
                 fold_impl_item_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_index(&mut self, i: Index) -> Index {
                 fold_index(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item(&mut self, i: Item) -> Item {
                 fold_item(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_const(&mut self, i: ItemConst) -> ItemConst {
                 fold_item_const(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_enum(&mut self, i: ItemEnum) -> ItemEnum {
                 fold_item_enum(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_extern_crate(&mut self, i: ItemExternCrate) -> ItemExternCrate {
                 fold_item_extern_crate(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_fn(&mut self, i: ItemFn) -> ItemFn {
                 fold_item_fn(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_foreign_mod(&mut self, i: ItemForeignMod) -> ItemForeignMod {
                 fold_item_foreign_mod(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_impl(&mut self, i: ItemImpl) -> ItemImpl {
                 fold_item_impl(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_macro(&mut self, i: ItemMacro) -> ItemMacro {
                 fold_item_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_macro2(&mut self, i: ItemMacro2) -> ItemMacro2 {
                 fold_item_macro2(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_mod(&mut self, i: ItemMod) -> ItemMod {
                 fold_item_mod(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_static(&mut self, i: ItemStatic) -> ItemStatic {
                 fold_item_static(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_struct(&mut self, i: ItemStruct) -> ItemStruct {
                 fold_item_struct(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_trait(&mut self, i: ItemTrait) -> ItemTrait {
                 fold_item_trait(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_trait_alias(&mut self, i: ItemTraitAlias) -> ItemTraitAlias {
                 fold_item_trait_alias(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_type(&mut self, i: ItemType) -> ItemType {
                 fold_item_type(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_union(&mut self, i: ItemUnion) -> ItemUnion {
                 fold_item_union(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_item_use(&mut self, i: ItemUse) -> ItemUse {
                 fold_item_use(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_label(&mut self, i: Label) -> Label {
                 fold_label(self, i)
             }
             fn fold_lifetime(&mut self, i: Lifetime) -> Lifetime {
                 fold_lifetime(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_lifetime_def(&mut self, i: LifetimeDef) -> LifetimeDef {
                 fold_lifetime_def(self, i)
             }
@@ -30791,328 +29825,328 @@ mod gen {
             fn fold_lit_str(&mut self, i: LitStr) -> LitStr {
                 fold_lit_str(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_local(&mut self, i: Local) -> Local {
                 fold_local(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_macro(&mut self, i: Macro) -> Macro {
                 fold_macro(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_macro_delimiter(&mut self, i: MacroDelimiter) -> MacroDelimiter {
                 fold_macro_delimiter(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_member(&mut self, i: Member) -> Member {
                 fold_member(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_meta(&mut self, i: Meta) -> Meta {
                 fold_meta(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_meta_list(&mut self, i: MetaList) -> MetaList {
                 fold_meta_list(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_meta_name_value(&mut self, i: MetaNameValue) -> MetaNameValue {
                 fold_meta_name_value(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_method_turbofish(&mut self, i: MethodTurbofish) -> MethodTurbofish {
                 fold_method_turbofish(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_nested_meta(&mut self, i: NestedMeta) -> NestedMeta {
                 fold_nested_meta(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_parenthesized_generic_arguments(
                 &mut self,
                 i: ParenthesizedGenericArguments,
             ) -> ParenthesizedGenericArguments {
                 fold_parenthesized_generic_arguments(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat(&mut self, i: Pat) -> Pat {
                 fold_pat(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_box(&mut self, i: PatBox) -> PatBox {
                 fold_pat_box(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_ident(&mut self, i: PatIdent) -> PatIdent {
                 fold_pat_ident(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_lit(&mut self, i: PatLit) -> PatLit {
                 fold_pat_lit(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_macro(&mut self, i: PatMacro) -> PatMacro {
                 fold_pat_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_or(&mut self, i: PatOr) -> PatOr {
                 fold_pat_or(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_path(&mut self, i: PatPath) -> PatPath {
                 fold_pat_path(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_range(&mut self, i: PatRange) -> PatRange {
                 fold_pat_range(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_reference(&mut self, i: PatReference) -> PatReference {
                 fold_pat_reference(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_rest(&mut self, i: PatRest) -> PatRest {
                 fold_pat_rest(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_slice(&mut self, i: PatSlice) -> PatSlice {
                 fold_pat_slice(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_struct(&mut self, i: PatStruct) -> PatStruct {
                 fold_pat_struct(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_tuple(&mut self, i: PatTuple) -> PatTuple {
                 fold_pat_tuple(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_tuple_struct(&mut self, i: PatTupleStruct) -> PatTupleStruct {
                 fold_pat_tuple_struct(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_type(&mut self, i: PatType) -> PatType {
                 fold_pat_type(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_pat_wild(&mut self, i: PatWild) -> PatWild {
                 fold_pat_wild(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_path(&mut self, i: Path) -> Path {
                 fold_path(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_path_arguments(&mut self, i: PathArguments) -> PathArguments {
                 fold_path_arguments(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_path_segment(&mut self, i: PathSegment) -> PathSegment {
                 fold_path_segment(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_predicate_eq(&mut self, i: PredicateEq) -> PredicateEq {
                 fold_predicate_eq(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_predicate_lifetime(
                 &mut self,
                 i: PredicateLifetime,
             ) -> PredicateLifetime {
                 fold_predicate_lifetime(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_predicate_type(&mut self, i: PredicateType) -> PredicateType {
                 fold_predicate_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_qself(&mut self, i: QSelf) -> QSelf {
                 fold_qself(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_range_limits(&mut self, i: RangeLimits) -> RangeLimits {
                 fold_range_limits(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_receiver(&mut self, i: Receiver) -> Receiver {
                 fold_receiver(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_return_type(&mut self, i: ReturnType) -> ReturnType {
                 fold_return_type(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_signature(&mut self, i: Signature) -> Signature {
                 fold_signature(self, i)
             }
             fn fold_span(&mut self, i: Span) -> Span {
                 fold_span(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_stmt(&mut self, i: Stmt) -> Stmt {
                 fold_stmt(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_trait_bound(&mut self, i: TraitBound) -> TraitBound {
                 fold_trait_bound(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_trait_bound_modifier(
                 &mut self,
                 i: TraitBoundModifier,
             ) -> TraitBoundModifier {
                 fold_trait_bound_modifier(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_trait_item(&mut self, i: TraitItem) -> TraitItem {
                 fold_trait_item(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_trait_item_const(&mut self, i: TraitItemConst) -> TraitItemConst {
                 fold_trait_item_const(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_trait_item_macro(&mut self, i: TraitItemMacro) -> TraitItemMacro {
                 fold_trait_item_macro(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_trait_item_method(&mut self, i: TraitItemMethod) -> TraitItemMethod {
                 fold_trait_item_method(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_trait_item_type(&mut self, i: TraitItemType) -> TraitItemType {
                 fold_trait_item_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type(&mut self, i: Type) -> Type {
                 fold_type(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_array(&mut self, i: TypeArray) -> TypeArray {
                 fold_type_array(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_bare_fn(&mut self, i: TypeBareFn) -> TypeBareFn {
                 fold_type_bare_fn(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_group(&mut self, i: TypeGroup) -> TypeGroup {
                 fold_type_group(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_impl_trait(&mut self, i: TypeImplTrait) -> TypeImplTrait {
                 fold_type_impl_trait(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_infer(&mut self, i: TypeInfer) -> TypeInfer {
                 fold_type_infer(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_macro(&mut self, i: TypeMacro) -> TypeMacro {
                 fold_type_macro(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_never(&mut self, i: TypeNever) -> TypeNever {
                 fold_type_never(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_param(&mut self, i: TypeParam) -> TypeParam {
                 fold_type_param(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_param_bound(&mut self, i: TypeParamBound) -> TypeParamBound {
                 fold_type_param_bound(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_paren(&mut self, i: TypeParen) -> TypeParen {
                 fold_type_paren(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_path(&mut self, i: TypePath) -> TypePath {
                 fold_type_path(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_ptr(&mut self, i: TypePtr) -> TypePtr {
                 fold_type_ptr(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_reference(&mut self, i: TypeReference) -> TypeReference {
                 fold_type_reference(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_slice(&mut self, i: TypeSlice) -> TypeSlice {
                 fold_type_slice(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_trait_object(&mut self, i: TypeTraitObject) -> TypeTraitObject {
                 fold_type_trait_object(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_type_tuple(&mut self, i: TypeTuple) -> TypeTuple {
                 fold_type_tuple(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_un_op(&mut self, i: UnOp) -> UnOp {
                 fold_un_op(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_glob(&mut self, i: UseGlob) -> UseGlob {
                 fold_use_glob(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_group(&mut self, i: UseGroup) -> UseGroup {
                 fold_use_group(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_name(&mut self, i: UseName) -> UseName {
                 fold_use_name(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_path(&mut self, i: UsePath) -> UsePath {
                 fold_use_path(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_rename(&mut self, i: UseRename) -> UseRename {
                 fold_use_rename(self, i)
             }
-            #[cfg(feature = "full")]
+            #[cfg]
             fn fold_use_tree(&mut self, i: UseTree) -> UseTree {
                 fold_use_tree(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_variadic(&mut self, i: Variadic) -> Variadic {
                 fold_variadic(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_variant(&mut self, i: Variant) -> Variant {
                 fold_variant(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_vis_crate(&mut self, i: VisCrate) -> VisCrate {
                 fold_vis_crate(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_vis_public(&mut self, i: VisPublic) -> VisPublic {
                 fold_vis_public(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_vis_restricted(&mut self, i: VisRestricted) -> VisRestricted {
                 fold_vis_restricted(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_visibility(&mut self, i: Visibility) -> Visibility {
                 fold_visibility(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_where_clause(&mut self, i: WhereClause) -> WhereClause {
                 fold_where_clause(self, i)
             }
-            #[cfg(any(feature = "derive", feature = "full"))]
+            #[cfg]
             fn fold_where_predicate(&mut self, i: WherePredicate) -> WherePredicate {
                 fold_where_predicate(self, i)
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_abi<F>(f: &mut F, node: Abi) -> Abi
         where
             F: Fold + ?Sized,
@@ -31124,7 +30158,7 @@ mod gen {
                 name: (node.name).map(|it| f.fold_lit_str(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_angle_bracketed_generic_arguments<F>(
             f: &mut F,
             node: AngleBracketedGenericArguments,
@@ -31140,7 +30174,7 @@ mod gen {
                 gt_token: crate::token::Gt(tokens_helper(f, &node.gt_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_arm<F>(f: &mut F, node: Arm) -> Arm
         where
             F: Fold + ?Sized,
@@ -31161,7 +30195,7 @@ mod gen {
                     .map(|it| crate::token::Comma(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_attr_style<F>(f: &mut F, node: AttrStyle) -> AttrStyle
         where
             F: Fold + ?Sized,
@@ -31175,7 +30209,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_attribute<F>(f: &mut F, node: Attribute) -> Attribute
         where
             F: Fold + ?Sized,
@@ -31190,7 +30224,7 @@ mod gen {
                 tokens: node.tokens,
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_bare_fn_arg<F>(f: &mut F, node: BareFnArg) -> BareFnArg
         where
             F: Fold + ?Sized,
@@ -31205,7 +30239,7 @@ mod gen {
                 ty: f.fold_type(node.ty),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_bin_op<F>(f: &mut F, node: BinOp) -> BinOp
         where
             F: Fold + ?Sized,
@@ -31319,7 +30353,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_binding<F>(f: &mut F, node: Binding) -> Binding
         where
             F: Fold + ?Sized,
@@ -31330,7 +30364,7 @@ mod gen {
                 ty: f.fold_type(node.ty),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_block<F>(f: &mut F, node: Block) -> Block
         where
             F: Fold + ?Sized,
@@ -31340,7 +30374,7 @@ mod gen {
                 stmts: FoldHelper::lift(node.stmts, |it| f.fold_stmt(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_bound_lifetimes<F>(f: &mut F, node: BoundLifetimes) -> BoundLifetimes
         where
             F: Fold + ?Sized,
@@ -31355,7 +30389,7 @@ mod gen {
                 gt_token: crate::token::Gt(tokens_helper(f, &node.gt_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_const_param<F>(f: &mut F, node: ConstParam) -> ConstParam
         where
             F: Fold + ?Sized,
@@ -31375,7 +30409,7 @@ mod gen {
                 default: (node.default).map(|it| f.fold_expr(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_constraint<F>(f: &mut F, node: Constraint) -> Constraint
         where
             F: Fold + ?Sized,
@@ -31388,7 +30422,7 @@ mod gen {
                 bounds: FoldHelper::lift(node.bounds, |it| f.fold_type_param_bound(it)),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn fold_data<F>(f: &mut F, node: Data) -> Data
         where
             F: Fold + ?Sized,
@@ -31399,7 +30433,7 @@ mod gen {
                 Data::Union(_binding_0) => Data::Union(f.fold_data_union(_binding_0)),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn fold_data_enum<F>(f: &mut F, node: DataEnum) -> DataEnum
         where
             F: Fold + ?Sized,
@@ -31410,7 +30444,7 @@ mod gen {
                 variants: FoldHelper::lift(node.variants, |it| f.fold_variant(it)),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn fold_data_struct<F>(f: &mut F, node: DataStruct) -> DataStruct
         where
             F: Fold + ?Sized,
@@ -31424,7 +30458,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn fold_data_union<F>(f: &mut F, node: DataUnion) -> DataUnion
         where
             F: Fold + ?Sized,
@@ -31436,7 +30470,7 @@ mod gen {
                 fields: f.fold_fields_named(node.fields),
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         pub fn fold_derive_input<F>(f: &mut F, node: DeriveInput) -> DeriveInput
         where
             F: Fold + ?Sized,
@@ -31449,7 +30483,7 @@ mod gen {
                 data: f.fold_data(node.data),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr<F>(f: &mut F, node: Expr) -> Expr
         where
             F: Fold + ?Sized,
@@ -31511,7 +30545,7 @@ mod gen {
                 Expr::Yield(_binding_0) => Expr::Yield(f.fold_expr_yield(_binding_0)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_array<F>(f: &mut F, node: ExprArray) -> ExprArray
         where
             F: Fold + ?Sized,
@@ -31522,7 +30556,7 @@ mod gen {
                 elems: FoldHelper::lift(node.elems, |it| f.fold_expr(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_assign<F>(f: &mut F, node: ExprAssign) -> ExprAssign
         where
             F: Fold + ?Sized,
@@ -31534,7 +30568,7 @@ mod gen {
                 right: Box::new(f.fold_expr(*node.right)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_assign_op<F>(f: &mut F, node: ExprAssignOp) -> ExprAssignOp
         where
             F: Fold + ?Sized,
@@ -31546,7 +30580,7 @@ mod gen {
                 right: Box::new(f.fold_expr(*node.right)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_async<F>(f: &mut F, node: ExprAsync) -> ExprAsync
         where
             F: Fold + ?Sized,
@@ -31561,7 +30595,7 @@ mod gen {
                 block: f.fold_block(node.block),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_await<F>(f: &mut F, node: ExprAwait) -> ExprAwait
         where
             F: Fold + ?Sized,
@@ -31575,7 +30609,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_binary<F>(f: &mut F, node: ExprBinary) -> ExprBinary
         where
             F: Fold + ?Sized,
@@ -31587,7 +30621,7 @@ mod gen {
                 right: Box::new(f.fold_expr(*node.right)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_block<F>(f: &mut F, node: ExprBlock) -> ExprBlock
         where
             F: Fold + ?Sized,
@@ -31598,7 +30632,7 @@ mod gen {
                 block: f.fold_block(node.block),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_box<F>(f: &mut F, node: ExprBox) -> ExprBox
         where
             F: Fold + ?Sized,
@@ -31609,7 +30643,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_break<F>(f: &mut F, node: ExprBreak) -> ExprBreak
         where
             F: Fold + ?Sized,
@@ -31623,7 +30657,7 @@ mod gen {
                 expr: (node.expr).map(|it| Box::new(f.fold_expr(*it))),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_call<F>(f: &mut F, node: ExprCall) -> ExprCall
         where
             F: Fold + ?Sized,
@@ -31635,7 +30669,7 @@ mod gen {
                 args: FoldHelper::lift(node.args, |it| f.fold_expr(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_cast<F>(f: &mut F, node: ExprCast) -> ExprCast
         where
             F: Fold + ?Sized,
@@ -31647,7 +30681,7 @@ mod gen {
                 ty: Box::new(f.fold_type(*node.ty)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_closure<F>(f: &mut F, node: ExprClosure) -> ExprClosure
         where
             F: Fold + ?Sized,
@@ -31667,7 +30701,7 @@ mod gen {
                 body: Box::new(f.fold_expr(*node.body)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_continue<F>(f: &mut F, node: ExprContinue) -> ExprContinue
         where
             F: Fold + ?Sized,
@@ -31680,7 +30714,7 @@ mod gen {
                 label: (node.label).map(|it| f.fold_lifetime(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_field<F>(f: &mut F, node: ExprField) -> ExprField
         where
             F: Fold + ?Sized,
@@ -31692,7 +30726,7 @@ mod gen {
                 member: f.fold_member(node.member),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_for_loop<F>(f: &mut F, node: ExprForLoop) -> ExprForLoop
         where
             F: Fold + ?Sized,
@@ -31707,7 +30741,7 @@ mod gen {
                 body: f.fold_block(node.body),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_group<F>(f: &mut F, node: ExprGroup) -> ExprGroup
         where
             F: Fold + ?Sized,
@@ -31718,7 +30752,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_if<F>(f: &mut F, node: ExprIf) -> ExprIf
         where
             F: Fold + ?Sized,
@@ -31735,7 +30769,7 @@ mod gen {
                     )),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_index<F>(f: &mut F, node: ExprIndex) -> ExprIndex
         where
             F: Fold + ?Sized,
@@ -31747,7 +30781,7 @@ mod gen {
                 index: Box::new(f.fold_expr(*node.index)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_let<F>(f: &mut F, node: ExprLet) -> ExprLet
         where
             F: Fold + ?Sized,
@@ -31760,7 +30794,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_lit<F>(f: &mut F, node: ExprLit) -> ExprLit
         where
             F: Fold + ?Sized,
@@ -31770,7 +30804,7 @@ mod gen {
                 lit: f.fold_lit(node.lit),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_loop<F>(f: &mut F, node: ExprLoop) -> ExprLoop
         where
             F: Fold + ?Sized,
@@ -31782,7 +30816,7 @@ mod gen {
                 body: f.fold_block(node.body),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_macro<F>(f: &mut F, node: ExprMacro) -> ExprMacro
         where
             F: Fold + ?Sized,
@@ -31792,7 +30826,7 @@ mod gen {
                 mac: f.fold_macro(node.mac),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_match<F>(f: &mut F, node: ExprMatch) -> ExprMatch
         where
             F: Fold + ?Sized,
@@ -31807,7 +30841,7 @@ mod gen {
                 arms: FoldHelper::lift(node.arms, |it| f.fold_arm(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_method_call<F>(
             f: &mut F,
             node: ExprMethodCall,
@@ -31825,7 +30859,7 @@ mod gen {
                 args: FoldHelper::lift(node.args, |it| f.fold_expr(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_paren<F>(f: &mut F, node: ExprParen) -> ExprParen
         where
             F: Fold + ?Sized,
@@ -31836,7 +30870,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_path<F>(f: &mut F, node: ExprPath) -> ExprPath
         where
             F: Fold + ?Sized,
@@ -31847,7 +30881,7 @@ mod gen {
                 path: f.fold_path(node.path),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_range<F>(f: &mut F, node: ExprRange) -> ExprRange
         where
             F: Fold + ?Sized,
@@ -31859,7 +30893,7 @@ mod gen {
                 to: (node.to).map(|it| Box::new(f.fold_expr(*it))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_reference<F>(f: &mut F, node: ExprReference) -> ExprReference
         where
             F: Fold + ?Sized,
@@ -31873,7 +30907,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_repeat<F>(f: &mut F, node: ExprRepeat) -> ExprRepeat
         where
             F: Fold + ?Sized,
@@ -31886,7 +30920,7 @@ mod gen {
                 len: Box::new(f.fold_expr(*node.len)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_return<F>(f: &mut F, node: ExprReturn) -> ExprReturn
         where
             F: Fold + ?Sized,
@@ -31899,7 +30933,7 @@ mod gen {
                 expr: (node.expr).map(|it| Box::new(f.fold_expr(*it))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_struct<F>(f: &mut F, node: ExprStruct) -> ExprStruct
         where
             F: Fold + ?Sized,
@@ -31914,7 +30948,7 @@ mod gen {
                 rest: (node.rest).map(|it| Box::new(f.fold_expr(*it))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_try<F>(f: &mut F, node: ExprTry) -> ExprTry
         where
             F: Fold + ?Sized,
@@ -31927,7 +30961,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_try_block<F>(f: &mut F, node: ExprTryBlock) -> ExprTryBlock
         where
             F: Fold + ?Sized,
@@ -31938,7 +30972,7 @@ mod gen {
                 block: f.fold_block(node.block),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_tuple<F>(f: &mut F, node: ExprTuple) -> ExprTuple
         where
             F: Fold + ?Sized,
@@ -31949,7 +30983,7 @@ mod gen {
                 elems: FoldHelper::lift(node.elems, |it| f.fold_expr(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_type<F>(f: &mut F, node: ExprType) -> ExprType
         where
             F: Fold + ?Sized,
@@ -31963,7 +30997,7 @@ mod gen {
                 ty: Box::new(f.fold_type(*node.ty)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_expr_unary<F>(f: &mut F, node: ExprUnary) -> ExprUnary
         where
             F: Fold + ?Sized,
@@ -31974,7 +31008,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_unsafe<F>(f: &mut F, node: ExprUnsafe) -> ExprUnsafe
         where
             F: Fold + ?Sized,
@@ -31987,7 +31021,7 @@ mod gen {
                 block: f.fold_block(node.block),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_while<F>(f: &mut F, node: ExprWhile) -> ExprWhile
         where
             F: Fold + ?Sized,
@@ -32002,7 +31036,7 @@ mod gen {
                 body: f.fold_block(node.body),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_expr_yield<F>(f: &mut F, node: ExprYield) -> ExprYield
         where
             F: Fold + ?Sized,
@@ -32015,7 +31049,7 @@ mod gen {
                 expr: (node.expr).map(|it| Box::new(f.fold_expr(*it))),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_field<F>(f: &mut F, node: Field) -> Field
         where
             F: Fold + ?Sized,
@@ -32029,7 +31063,7 @@ mod gen {
                 ty: f.fold_type(node.ty),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_field_pat<F>(f: &mut F, node: FieldPat) -> FieldPat
         where
             F: Fold + ?Sized,
@@ -32042,7 +31076,7 @@ mod gen {
                 pat: Box::new(f.fold_pat(*node.pat)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_field_value<F>(f: &mut F, node: FieldValue) -> FieldValue
         where
             F: Fold + ?Sized,
@@ -32055,7 +31089,7 @@ mod gen {
                 expr: f.fold_expr(node.expr),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_fields<F>(f: &mut F, node: Fields) -> Fields
         where
             F: Fold + ?Sized,
@@ -32070,7 +31104,7 @@ mod gen {
                 Fields::Unit => Fields::Unit,
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_fields_named<F>(f: &mut F, node: FieldsNamed) -> FieldsNamed
         where
             F: Fold + ?Sized,
@@ -32080,7 +31114,7 @@ mod gen {
                 named: FoldHelper::lift(node.named, |it| f.fold_field(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_fields_unnamed<F>(f: &mut F, node: FieldsUnnamed) -> FieldsUnnamed
         where
             F: Fold + ?Sized,
@@ -32090,7 +31124,7 @@ mod gen {
                 unnamed: FoldHelper::lift(node.unnamed, |it| f.fold_field(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_file<F>(f: &mut F, node: File) -> File
         where
             F: Fold + ?Sized,
@@ -32101,7 +31135,7 @@ mod gen {
                 items: FoldHelper::lift(node.items, |it| f.fold_item(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_fn_arg<F>(f: &mut F, node: FnArg) -> FnArg
         where
             F: Fold + ?Sized,
@@ -32113,7 +31147,7 @@ mod gen {
                 FnArg::Typed(_binding_0) => FnArg::Typed(f.fold_pat_type(_binding_0)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_foreign_item<F>(f: &mut F, node: ForeignItem) -> ForeignItem
         where
             F: Fold + ?Sized,
@@ -32134,7 +31168,7 @@ mod gen {
                 ForeignItem::Verbatim(_binding_0) => ForeignItem::Verbatim(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_foreign_item_fn<F>(f: &mut F, node: ForeignItemFn) -> ForeignItemFn
         where
             F: Fold + ?Sized,
@@ -32146,7 +31180,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_foreign_item_macro<F>(
             f: &mut F,
             node: ForeignItemMacro,
@@ -32161,7 +31195,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_foreign_item_static<F>(
             f: &mut F,
             node: ForeignItemStatic,
@@ -32185,7 +31219,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_foreign_item_type<F>(
             f: &mut F,
             node: ForeignItemType,
@@ -32201,7 +31235,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_generic_argument<F>(
             f: &mut F,
             node: GenericArgument,
@@ -32227,7 +31261,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_generic_method_argument<F>(
             f: &mut F,
             node: GenericMethodArgument,
@@ -32244,7 +31278,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_generic_param<F>(f: &mut F, node: GenericParam) -> GenericParam
         where
             F: Fold + ?Sized,
@@ -32261,7 +31295,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_generics<F>(f: &mut F, node: Generics) -> Generics
         where
             F: Fold + ?Sized,
@@ -32284,7 +31318,7 @@ mod gen {
             node.set_span(span);
             node
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_impl_item<F>(f: &mut F, node: ImplItem) -> ImplItem
         where
             F: Fold + ?Sized,
@@ -32305,7 +31339,7 @@ mod gen {
                 ImplItem::Verbatim(_binding_0) => ImplItem::Verbatim(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_impl_item_const<F>(f: &mut F, node: ImplItemConst) -> ImplItemConst
         where
             F: Fold + ?Sized,
@@ -32328,7 +31362,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_impl_item_macro<F>(f: &mut F, node: ImplItemMacro) -> ImplItemMacro
         where
             F: Fold + ?Sized,
@@ -32340,7 +31374,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_impl_item_method<F>(
             f: &mut F,
             node: ImplItemMethod,
@@ -32357,7 +31391,7 @@ mod gen {
                 block: f.fold_block(node.block),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_impl_item_type<F>(f: &mut F, node: ImplItemType) -> ImplItemType
         where
             F: Fold + ?Sized,
@@ -32375,7 +31409,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_index<F>(f: &mut F, node: Index) -> Index
         where
             F: Fold + ?Sized,
@@ -32385,7 +31419,7 @@ mod gen {
                 span: f.fold_span(node.span),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item<F>(f: &mut F, node: Item) -> Item
         where
             F: Fold + ?Sized,
@@ -32416,7 +31450,7 @@ mod gen {
                 Item::Verbatim(_binding_0) => Item::Verbatim(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_const<F>(f: &mut F, node: ItemConst) -> ItemConst
         where
             F: Fold + ?Sized,
@@ -32437,7 +31471,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_enum<F>(f: &mut F, node: ItemEnum) -> ItemEnum
         where
             F: Fold + ?Sized,
@@ -32452,7 +31486,7 @@ mod gen {
                 variants: FoldHelper::lift(node.variants, |it| f.fold_variant(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_extern_crate<F>(
             f: &mut F,
             node: ItemExternCrate,
@@ -32478,7 +31512,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_fn<F>(f: &mut F, node: ItemFn) -> ItemFn
         where
             F: Fold + ?Sized,
@@ -32490,7 +31524,7 @@ mod gen {
                 block: Box::new(f.fold_block(*node.block)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_foreign_mod<F>(
             f: &mut F,
             node: ItemForeignMod,
@@ -32505,7 +31539,7 @@ mod gen {
                 items: FoldHelper::lift(node.items, |it| f.fold_foreign_item(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_impl<F>(f: &mut F, node: ItemImpl) -> ItemImpl
         where
             F: Fold + ?Sized,
@@ -32530,7 +31564,7 @@ mod gen {
                 items: FoldHelper::lift(node.items, |it| f.fold_impl_item(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_macro<F>(f: &mut F, node: ItemMacro) -> ItemMacro
         where
             F: Fold + ?Sized,
@@ -32543,7 +31577,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_macro2<F>(f: &mut F, node: ItemMacro2) -> ItemMacro2
         where
             F: Fold + ?Sized,
@@ -32558,7 +31592,7 @@ mod gen {
                 rules: node.rules,
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_mod<F>(f: &mut F, node: ItemMod) -> ItemMod
         where
             F: Fold + ?Sized,
@@ -32577,7 +31611,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_static<F>(f: &mut F, node: ItemStatic) -> ItemStatic
         where
             F: Fold + ?Sized,
@@ -32600,7 +31634,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_struct<F>(f: &mut F, node: ItemStruct) -> ItemStruct
         where
             F: Fold + ?Sized,
@@ -32618,7 +31652,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_trait<F>(f: &mut F, node: ItemTrait) -> ItemTrait
         where
             F: Fold + ?Sized,
@@ -32645,7 +31679,7 @@ mod gen {
                 items: FoldHelper::lift(node.items, |it| f.fold_trait_item(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_trait_alias<F>(
             f: &mut F,
             node: ItemTraitAlias,
@@ -32666,7 +31700,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_type<F>(f: &mut F, node: ItemType) -> ItemType
         where
             F: Fold + ?Sized,
@@ -32682,7 +31716,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_union<F>(f: &mut F, node: ItemUnion) -> ItemUnion
         where
             F: Fold + ?Sized,
@@ -32698,7 +31732,7 @@ mod gen {
                 fields: f.fold_fields_named(node.fields),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_item_use<F>(f: &mut F, node: ItemUse) -> ItemUse
         where
             F: Fold + ?Sized,
@@ -32713,7 +31747,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_label<F>(f: &mut F, node: Label) -> Label
         where
             F: Fold + ?Sized,
@@ -32734,7 +31768,7 @@ mod gen {
                 ident: f.fold_ident(node.ident),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_lifetime_def<F>(f: &mut F, node: LifetimeDef) -> LifetimeDef
         where
             F: Fold + ?Sized,
@@ -32825,7 +31859,7 @@ mod gen {
             node.set_span(span);
             node
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_local<F>(f: &mut F, node: Local) -> Local
         where
             F: Fold + ?Sized,
@@ -32842,7 +31876,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_macro<F>(f: &mut F, node: Macro) -> Macro
         where
             F: Fold + ?Sized,
@@ -32854,7 +31888,7 @@ mod gen {
                 tokens: node.tokens,
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_macro_delimiter<F>(f: &mut F, node: MacroDelimiter) -> MacroDelimiter
         where
             F: Fold + ?Sized,
@@ -32871,7 +31905,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_member<F>(f: &mut F, node: Member) -> Member
         where
             F: Fold + ?Sized,
@@ -32881,7 +31915,7 @@ mod gen {
                 Member::Unnamed(_binding_0) => Member::Unnamed(f.fold_index(_binding_0)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_meta<F>(f: &mut F, node: Meta) -> Meta
         where
             F: Fold + ?Sized,
@@ -32894,7 +31928,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_meta_list<F>(f: &mut F, node: MetaList) -> MetaList
         where
             F: Fold + ?Sized,
@@ -32905,7 +31939,7 @@ mod gen {
                 nested: FoldHelper::lift(node.nested, |it| f.fold_nested_meta(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_meta_name_value<F>(f: &mut F, node: MetaNameValue) -> MetaNameValue
         where
             F: Fold + ?Sized,
@@ -32916,7 +31950,7 @@ mod gen {
                 lit: f.fold_lit(node.lit),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_method_turbofish<F>(
             f: &mut F,
             node: MethodTurbofish,
@@ -32936,7 +31970,7 @@ mod gen {
                 gt_token: crate::token::Gt(tokens_helper(f, &node.gt_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_nested_meta<F>(f: &mut F, node: NestedMeta) -> NestedMeta
         where
             F: Fold + ?Sized,
@@ -32946,7 +31980,7 @@ mod gen {
                 NestedMeta::Lit(_binding_0) => NestedMeta::Lit(f.fold_lit(_binding_0)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_parenthesized_generic_arguments<F>(
             f: &mut F,
             node: ParenthesizedGenericArguments,
@@ -32960,7 +31994,7 @@ mod gen {
                 output: f.fold_return_type(node.output),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat<F>(f: &mut F, node: Pat) -> Pat
         where
             F: Fold + ?Sized,
@@ -32988,7 +32022,7 @@ mod gen {
                 Pat::Wild(_binding_0) => Pat::Wild(f.fold_pat_wild(_binding_0)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_box<F>(f: &mut F, node: PatBox) -> PatBox
         where
             F: Fold + ?Sized,
@@ -32999,7 +32033,7 @@ mod gen {
                 pat: Box::new(f.fold_pat(*node.pat)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_ident<F>(f: &mut F, node: PatIdent) -> PatIdent
         where
             F: Fold + ?Sized,
@@ -33018,7 +32052,7 @@ mod gen {
                     )),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_lit<F>(f: &mut F, node: PatLit) -> PatLit
         where
             F: Fold + ?Sized,
@@ -33028,7 +32062,7 @@ mod gen {
                 expr: Box::new(f.fold_expr(*node.expr)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_macro<F>(f: &mut F, node: PatMacro) -> PatMacro
         where
             F: Fold + ?Sized,
@@ -33038,7 +32072,7 @@ mod gen {
                 mac: f.fold_macro(node.mac),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_or<F>(f: &mut F, node: PatOr) -> PatOr
         where
             F: Fold + ?Sized,
@@ -33050,7 +32084,7 @@ mod gen {
                 cases: FoldHelper::lift(node.cases, |it| f.fold_pat(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_path<F>(f: &mut F, node: PatPath) -> PatPath
         where
             F: Fold + ?Sized,
@@ -33061,7 +32095,7 @@ mod gen {
                 path: f.fold_path(node.path),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_range<F>(f: &mut F, node: PatRange) -> PatRange
         where
             F: Fold + ?Sized,
@@ -33073,7 +32107,7 @@ mod gen {
                 hi: Box::new(f.fold_expr(*node.hi)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_reference<F>(f: &mut F, node: PatReference) -> PatReference
         where
             F: Fold + ?Sized,
@@ -33086,7 +32120,7 @@ mod gen {
                 pat: Box::new(f.fold_pat(*node.pat)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_rest<F>(f: &mut F, node: PatRest) -> PatRest
         where
             F: Fold + ?Sized,
@@ -33096,7 +32130,7 @@ mod gen {
                 dot2_token: crate::token::Dot2(tokens_helper(f, &node.dot2_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_slice<F>(f: &mut F, node: PatSlice) -> PatSlice
         where
             F: Fold + ?Sized,
@@ -33107,7 +32141,7 @@ mod gen {
                 elems: FoldHelper::lift(node.elems, |it| f.fold_pat(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_struct<F>(f: &mut F, node: PatStruct) -> PatStruct
         where
             F: Fold + ?Sized,
@@ -33121,7 +32155,7 @@ mod gen {
                     .map(|it| crate::token::Dot2(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_tuple<F>(f: &mut F, node: PatTuple) -> PatTuple
         where
             F: Fold + ?Sized,
@@ -33132,7 +32166,7 @@ mod gen {
                 elems: FoldHelper::lift(node.elems, |it| f.fold_pat(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_tuple_struct<F>(
             f: &mut F,
             node: PatTupleStruct,
@@ -33146,7 +32180,7 @@ mod gen {
                 pat: f.fold_pat_tuple(node.pat),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_type<F>(f: &mut F, node: PatType) -> PatType
         where
             F: Fold + ?Sized,
@@ -33160,7 +32194,7 @@ mod gen {
                 ty: Box::new(f.fold_type(*node.ty)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_pat_wild<F>(f: &mut F, node: PatWild) -> PatWild
         where
             F: Fold + ?Sized,
@@ -33172,7 +32206,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_path<F>(f: &mut F, node: Path) -> Path
         where
             F: Fold + ?Sized,
@@ -33183,7 +32217,7 @@ mod gen {
                 segments: FoldHelper::lift(node.segments, |it| f.fold_path_segment(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_path_arguments<F>(f: &mut F, node: PathArguments) -> PathArguments
         where
             F: Fold + ?Sized,
@@ -33202,7 +32236,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_path_segment<F>(f: &mut F, node: PathSegment) -> PathSegment
         where
             F: Fold + ?Sized,
@@ -33212,7 +32246,7 @@ mod gen {
                 arguments: f.fold_path_arguments(node.arguments),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_predicate_eq<F>(f: &mut F, node: PredicateEq) -> PredicateEq
         where
             F: Fold + ?Sized,
@@ -33223,7 +32257,7 @@ mod gen {
                 rhs_ty: f.fold_type(node.rhs_ty),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_predicate_lifetime<F>(
             f: &mut F,
             node: PredicateLifetime,
@@ -33239,7 +32273,7 @@ mod gen {
                 bounds: FoldHelper::lift(node.bounds, |it| f.fold_lifetime(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_predicate_type<F>(f: &mut F, node: PredicateType) -> PredicateType
         where
             F: Fold + ?Sized,
@@ -33253,7 +32287,7 @@ mod gen {
                 bounds: FoldHelper::lift(node.bounds, |it| f.fold_type_param_bound(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_qself<F>(f: &mut F, node: QSelf) -> QSelf
         where
             F: Fold + ?Sized,
@@ -33267,7 +32301,7 @@ mod gen {
                 gt_token: crate::token::Gt(tokens_helper(f, &node.gt_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_range_limits<F>(f: &mut F, node: RangeLimits) -> RangeLimits
         where
             F: Fold + ?Sized,
@@ -33285,7 +32319,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_receiver<F>(f: &mut F, node: Receiver) -> Receiver
         where
             F: Fold + ?Sized,
@@ -33304,7 +32338,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_return_type<F>(f: &mut F, node: ReturnType) -> ReturnType
         where
             F: Fold + ?Sized,
@@ -33319,7 +32353,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_signature<F>(f: &mut F, node: Signature) -> Signature
         where
             F: Fold + ?Sized,
@@ -33347,7 +32381,7 @@ mod gen {
         {
             node
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_stmt<F>(f: &mut F, node: Stmt) -> Stmt
         where
             F: Fold + ?Sized,
@@ -33364,7 +32398,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_trait_bound<F>(f: &mut F, node: TraitBound) -> TraitBound
         where
             F: Fold + ?Sized,
@@ -33377,7 +32411,7 @@ mod gen {
                 path: f.fold_path(node.path),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_trait_bound_modifier<F>(
             f: &mut F,
             node: TraitBoundModifier,
@@ -33394,7 +32428,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_trait_item<F>(f: &mut F, node: TraitItem) -> TraitItem
         where
             F: Fold + ?Sized,
@@ -33415,7 +32449,7 @@ mod gen {
                 TraitItem::Verbatim(_binding_0) => TraitItem::Verbatim(_binding_0),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_trait_item_const<F>(
             f: &mut F,
             node: TraitItemConst,
@@ -33441,7 +32475,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_trait_item_macro<F>(
             f: &mut F,
             node: TraitItemMacro,
@@ -33456,7 +32490,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_trait_item_method<F>(
             f: &mut F,
             node: TraitItemMethod,
@@ -33472,7 +32506,7 @@ mod gen {
                     .map(|it| crate::token::Semi(tokens_helper(f, &it.spans))),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_trait_item_type<F>(f: &mut F, node: TraitItemType) -> TraitItemType
         where
             F: Fold + ?Sized,
@@ -33493,7 +32527,7 @@ mod gen {
                 semi_token: crate::token::Semi(tokens_helper(f, &node.semi_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type<F>(f: &mut F, node: Type) -> Type
         where
             F: Fold + ?Sized,
@@ -33522,7 +32556,7 @@ mod gen {
                 Type::Verbatim(_binding_0) => Type::Verbatim(_binding_0),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_array<F>(f: &mut F, node: TypeArray) -> TypeArray
         where
             F: Fold + ?Sized,
@@ -33534,7 +32568,7 @@ mod gen {
                 len: f.fold_expr(node.len),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_bare_fn<F>(f: &mut F, node: TypeBareFn) -> TypeBareFn
         where
             F: Fold + ?Sized,
@@ -33551,7 +32585,7 @@ mod gen {
                 output: f.fold_return_type(node.output),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_group<F>(f: &mut F, node: TypeGroup) -> TypeGroup
         where
             F: Fold + ?Sized,
@@ -33561,7 +32595,7 @@ mod gen {
                 elem: Box::new(f.fold_type(*node.elem)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_impl_trait<F>(f: &mut F, node: TypeImplTrait) -> TypeImplTrait
         where
             F: Fold + ?Sized,
@@ -33571,7 +32605,7 @@ mod gen {
                 bounds: FoldHelper::lift(node.bounds, |it| f.fold_type_param_bound(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_infer<F>(f: &mut F, node: TypeInfer) -> TypeInfer
         where
             F: Fold + ?Sized,
@@ -33582,7 +32616,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_macro<F>(f: &mut F, node: TypeMacro) -> TypeMacro
         where
             F: Fold + ?Sized,
@@ -33591,7 +32625,7 @@ mod gen {
                 mac: f.fold_macro(node.mac),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_never<F>(f: &mut F, node: TypeNever) -> TypeNever
         where
             F: Fold + ?Sized,
@@ -33600,7 +32634,7 @@ mod gen {
                 bang_token: crate::token::Bang(tokens_helper(f, &node.bang_token.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_param<F>(f: &mut F, node: TypeParam) -> TypeParam
         where
             F: Fold + ?Sized,
@@ -33616,7 +32650,7 @@ mod gen {
                 default: (node.default).map(|it| f.fold_type(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_param_bound<F>(
             f: &mut F,
             node: TypeParamBound,
@@ -33633,7 +32667,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_paren<F>(f: &mut F, node: TypeParen) -> TypeParen
         where
             F: Fold + ?Sized,
@@ -33643,7 +32677,7 @@ mod gen {
                 elem: Box::new(f.fold_type(*node.elem)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_path<F>(f: &mut F, node: TypePath) -> TypePath
         where
             F: Fold + ?Sized,
@@ -33653,7 +32687,7 @@ mod gen {
                 path: f.fold_path(node.path),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_ptr<F>(f: &mut F, node: TypePtr) -> TypePtr
         where
             F: Fold + ?Sized,
@@ -33667,7 +32701,7 @@ mod gen {
                 elem: Box::new(f.fold_type(*node.elem)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_reference<F>(f: &mut F, node: TypeReference) -> TypeReference
         where
             F: Fold + ?Sized,
@@ -33680,7 +32714,7 @@ mod gen {
                 elem: Box::new(f.fold_type(*node.elem)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_slice<F>(f: &mut F, node: TypeSlice) -> TypeSlice
         where
             F: Fold + ?Sized,
@@ -33690,7 +32724,7 @@ mod gen {
                 elem: Box::new(f.fold_type(*node.elem)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_trait_object<F>(
             f: &mut F,
             node: TypeTraitObject,
@@ -33704,7 +32738,7 @@ mod gen {
                 bounds: FoldHelper::lift(node.bounds, |it| f.fold_type_param_bound(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_type_tuple<F>(f: &mut F, node: TypeTuple) -> TypeTuple
         where
             F: Fold + ?Sized,
@@ -33714,7 +32748,7 @@ mod gen {
                 elems: FoldHelper::lift(node.elems, |it| f.fold_type(it)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_un_op<F>(f: &mut F, node: UnOp) -> UnOp
         where
             F: Fold + ?Sized,
@@ -33731,7 +32765,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_glob<F>(f: &mut F, node: UseGlob) -> UseGlob
         where
             F: Fold + ?Sized,
@@ -33740,7 +32774,7 @@ mod gen {
                 star_token: crate::token::Star(tokens_helper(f, &node.star_token.spans)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_group<F>(f: &mut F, node: UseGroup) -> UseGroup
         where
             F: Fold + ?Sized,
@@ -33750,7 +32784,7 @@ mod gen {
                 items: FoldHelper::lift(node.items, |it| f.fold_use_tree(it)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_name<F>(f: &mut F, node: UseName) -> UseName
         where
             F: Fold + ?Sized,
@@ -33759,7 +32793,7 @@ mod gen {
                 ident: f.fold_ident(node.ident),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_path<F>(f: &mut F, node: UsePath) -> UsePath
         where
             F: Fold + ?Sized,
@@ -33772,7 +32806,7 @@ mod gen {
                 tree: Box::new(f.fold_use_tree(*node.tree)),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_rename<F>(f: &mut F, node: UseRename) -> UseRename
         where
             F: Fold + ?Sized,
@@ -33783,7 +32817,7 @@ mod gen {
                 rename: f.fold_ident(node.rename),
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         pub fn fold_use_tree<F>(f: &mut F, node: UseTree) -> UseTree
         where
             F: Fold + ?Sized,
@@ -33800,7 +32834,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_variadic<F>(f: &mut F, node: Variadic) -> Variadic
         where
             F: Fold + ?Sized,
@@ -33810,7 +32844,7 @@ mod gen {
                 dots: crate::token::Dot3(tokens_helper(f, &node.dots.spans)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_variant<F>(f: &mut F, node: Variant) -> Variant
         where
             F: Fold + ?Sized,
@@ -33826,7 +32860,7 @@ mod gen {
                     )),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_vis_crate<F>(f: &mut F, node: VisCrate) -> VisCrate
         where
             F: Fold + ?Sized,
@@ -33837,7 +32871,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_vis_public<F>(f: &mut F, node: VisPublic) -> VisPublic
         where
             F: Fold + ?Sized,
@@ -33846,7 +32880,7 @@ mod gen {
                 pub_token: crate::token::Pub(tokens_helper(f, &node.pub_token.span)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_vis_restricted<F>(f: &mut F, node: VisRestricted) -> VisRestricted
         where
             F: Fold + ?Sized,
@@ -33859,7 +32893,7 @@ mod gen {
                 path: Box::new(f.fold_path(*node.path)),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_visibility<F>(f: &mut F, node: Visibility) -> Visibility
         where
             F: Fold + ?Sized,
@@ -33877,7 +32911,7 @@ mod gen {
                 Visibility::Inherited => Visibility::Inherited,
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_where_clause<F>(f: &mut F, node: WhereClause) -> WhereClause
         where
             F: Fold + ?Sized,
@@ -33892,7 +32926,7 @@ mod gen {
                 ),
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         pub fn fold_where_predicate<F>(f: &mut F, node: WherePredicate) -> WherePredicate
         where
             F: Fold + ?Sized,
@@ -33910,12 +32944,12 @@ mod gen {
             }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     #[rustfmt::skip]
     mod clone {
-        #![allow(clippy::clone_on_copy, clippy::expl_impl_clone_on_copy)]
+        #![allow]
         use crate::*;
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Abi {
             fn clone(&self) -> Self {
                 Abi {
@@ -33924,7 +32958,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for AngleBracketedGenericArguments {
             fn clone(&self) -> Self {
                 AngleBracketedGenericArguments {
@@ -33935,7 +32969,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Arm {
             fn clone(&self) -> Self {
                 Arm {
@@ -33948,15 +32982,15 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Copy for AttrStyle {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for AttrStyle {
             fn clone(&self) -> Self {
                 *self
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Attribute {
             fn clone(&self) -> Self {
                 Attribute {
@@ -33968,7 +33002,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for BareFnArg {
             fn clone(&self) -> Self {
                 BareFnArg {
@@ -33978,15 +33012,15 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Copy for BinOp {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for BinOp {
             fn clone(&self) -> Self {
                 *self
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Binding {
             fn clone(&self) -> Self {
                 Binding {
@@ -33996,7 +33030,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Block {
             fn clone(&self) -> Self {
                 Block {
@@ -34005,7 +33039,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for BoundLifetimes {
             fn clone(&self) -> Self {
                 BoundLifetimes {
@@ -34016,7 +33050,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ConstParam {
             fn clone(&self) -> Self {
                 ConstParam {
@@ -34030,7 +33064,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Constraint {
             fn clone(&self) -> Self {
                 Constraint {
@@ -34040,7 +33074,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Clone for Data {
             fn clone(&self) -> Self {
                 match self {
@@ -34050,7 +33084,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Clone for DataEnum {
             fn clone(&self) -> Self {
                 DataEnum {
@@ -34060,7 +33094,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Clone for DataStruct {
             fn clone(&self) -> Self {
                 DataStruct {
@@ -34070,7 +33104,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Clone for DataUnion {
             fn clone(&self) -> Self {
                 DataUnion {
@@ -34079,7 +33113,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Clone for DeriveInput {
             fn clone(&self) -> Self {
                 DeriveInput {
@@ -34091,84 +33125,84 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Expr {
             fn clone(&self) -> Self {
                 match self {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Array(v0) => Expr::Array(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Assign(v0) => Expr::Assign(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::AssignOp(v0) => Expr::AssignOp(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Async(v0) => Expr::Async(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Await(v0) => Expr::Await(v0.clone()),
                     Expr::Binary(v0) => Expr::Binary(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Block(v0) => Expr::Block(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Box(v0) => Expr::Box(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Break(v0) => Expr::Break(v0.clone()),
                     Expr::Call(v0) => Expr::Call(v0.clone()),
                     Expr::Cast(v0) => Expr::Cast(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Closure(v0) => Expr::Closure(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Continue(v0) => Expr::Continue(v0.clone()),
                     Expr::Field(v0) => Expr::Field(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::ForLoop(v0) => Expr::ForLoop(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Group(v0) => Expr::Group(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::If(v0) => Expr::If(v0.clone()),
                     Expr::Index(v0) => Expr::Index(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Let(v0) => Expr::Let(v0.clone()),
                     Expr::Lit(v0) => Expr::Lit(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Loop(v0) => Expr::Loop(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Macro(v0) => Expr::Macro(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Match(v0) => Expr::Match(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::MethodCall(v0) => Expr::MethodCall(v0.clone()),
                     Expr::Paren(v0) => Expr::Paren(v0.clone()),
                     Expr::Path(v0) => Expr::Path(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Range(v0) => Expr::Range(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Reference(v0) => Expr::Reference(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Repeat(v0) => Expr::Repeat(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Return(v0) => Expr::Return(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Struct(v0) => Expr::Struct(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Try(v0) => Expr::Try(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::TryBlock(v0) => Expr::TryBlock(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Tuple(v0) => Expr::Tuple(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Type(v0) => Expr::Type(v0.clone()),
                     Expr::Unary(v0) => Expr::Unary(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Unsafe(v0) => Expr::Unsafe(v0.clone()),
                     Expr::Verbatim(v0) => Expr::Verbatim(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::While(v0) => Expr::While(v0.clone()),
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Yield(v0) => Expr::Yield(v0.clone()),
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprArray {
             fn clone(&self) -> Self {
                 ExprArray {
@@ -34178,7 +33212,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprAssign {
             fn clone(&self) -> Self {
                 ExprAssign {
@@ -34189,7 +33223,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprAssignOp {
             fn clone(&self) -> Self {
                 ExprAssignOp {
@@ -34200,7 +33234,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprAsync {
             fn clone(&self) -> Self {
                 ExprAsync {
@@ -34211,7 +33245,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprAwait {
             fn clone(&self) -> Self {
                 ExprAwait {
@@ -34222,7 +33256,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprBinary {
             fn clone(&self) -> Self {
                 ExprBinary {
@@ -34233,7 +33267,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprBlock {
             fn clone(&self) -> Self {
                 ExprBlock {
@@ -34243,7 +33277,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprBox {
             fn clone(&self) -> Self {
                 ExprBox {
@@ -34253,7 +33287,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprBreak {
             fn clone(&self) -> Self {
                 ExprBreak {
@@ -34264,7 +33298,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprCall {
             fn clone(&self) -> Self {
                 ExprCall {
@@ -34275,7 +33309,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprCast {
             fn clone(&self) -> Self {
                 ExprCast {
@@ -34286,7 +33320,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprClosure {
             fn clone(&self) -> Self {
                 ExprClosure {
@@ -34302,7 +33336,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprContinue {
             fn clone(&self) -> Self {
                 ExprContinue {
@@ -34312,7 +33346,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprField {
             fn clone(&self) -> Self {
                 ExprField {
@@ -34323,7 +33357,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprForLoop {
             fn clone(&self) -> Self {
                 ExprForLoop {
@@ -34337,7 +33371,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprGroup {
             fn clone(&self) -> Self {
                 ExprGroup {
@@ -34347,7 +33381,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprIf {
             fn clone(&self) -> Self {
                 ExprIf {
@@ -34359,7 +33393,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprIndex {
             fn clone(&self) -> Self {
                 ExprIndex {
@@ -34370,7 +33404,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprLet {
             fn clone(&self) -> Self {
                 ExprLet {
@@ -34382,7 +33416,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprLit {
             fn clone(&self) -> Self {
                 ExprLit {
@@ -34391,7 +33425,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprLoop {
             fn clone(&self) -> Self {
                 ExprLoop {
@@ -34402,7 +33436,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprMacro {
             fn clone(&self) -> Self {
                 ExprMacro {
@@ -34411,7 +33445,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprMatch {
             fn clone(&self) -> Self {
                 ExprMatch {
@@ -34423,7 +33457,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprMethodCall {
             fn clone(&self) -> Self {
                 ExprMethodCall {
@@ -34437,7 +33471,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprParen {
             fn clone(&self) -> Self {
                 ExprParen {
@@ -34447,7 +33481,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprPath {
             fn clone(&self) -> Self {
                 ExprPath {
@@ -34457,7 +33491,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprRange {
             fn clone(&self) -> Self {
                 ExprRange {
@@ -34468,7 +33502,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprReference {
             fn clone(&self) -> Self {
                 ExprReference {
@@ -34480,7 +33514,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprRepeat {
             fn clone(&self) -> Self {
                 ExprRepeat {
@@ -34492,7 +33526,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprReturn {
             fn clone(&self) -> Self {
                 ExprReturn {
@@ -34502,7 +33536,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprStruct {
             fn clone(&self) -> Self {
                 ExprStruct {
@@ -34515,7 +33549,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprTry {
             fn clone(&self) -> Self {
                 ExprTry {
@@ -34525,7 +33559,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprTryBlock {
             fn clone(&self) -> Self {
                 ExprTryBlock {
@@ -34535,7 +33569,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprTuple {
             fn clone(&self) -> Self {
                 ExprTuple {
@@ -34545,7 +33579,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprType {
             fn clone(&self) -> Self {
                 ExprType {
@@ -34556,7 +33590,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ExprUnary {
             fn clone(&self) -> Self {
                 ExprUnary {
@@ -34566,7 +33600,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprUnsafe {
             fn clone(&self) -> Self {
                 ExprUnsafe {
@@ -34576,7 +33610,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprWhile {
             fn clone(&self) -> Self {
                 ExprWhile {
@@ -34588,7 +33622,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ExprYield {
             fn clone(&self) -> Self {
                 ExprYield {
@@ -34598,7 +33632,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Field {
             fn clone(&self) -> Self {
                 Field {
@@ -34610,7 +33644,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for FieldPat {
             fn clone(&self) -> Self {
                 FieldPat {
@@ -34621,7 +33655,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for FieldValue {
             fn clone(&self) -> Self {
                 FieldValue {
@@ -34632,7 +33666,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Fields {
             fn clone(&self) -> Self {
                 match self {
@@ -34642,7 +33676,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for FieldsNamed {
             fn clone(&self) -> Self {
                 FieldsNamed {
@@ -34651,7 +33685,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for FieldsUnnamed {
             fn clone(&self) -> Self {
                 FieldsUnnamed {
@@ -34660,7 +33694,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for File {
             fn clone(&self) -> Self {
                 File {
@@ -34670,7 +33704,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for FnArg {
             fn clone(&self) -> Self {
                 match self {
@@ -34679,7 +33713,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ForeignItem {
             fn clone(&self) -> Self {
                 match self {
@@ -34691,7 +33725,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ForeignItemFn {
             fn clone(&self) -> Self {
                 ForeignItemFn {
@@ -34702,7 +33736,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ForeignItemMacro {
             fn clone(&self) -> Self {
                 ForeignItemMacro {
@@ -34712,7 +33746,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ForeignItemStatic {
             fn clone(&self) -> Self {
                 ForeignItemStatic {
@@ -34727,7 +33761,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ForeignItemType {
             fn clone(&self) -> Self {
                 ForeignItemType {
@@ -34739,7 +33773,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for GenericArgument {
             fn clone(&self) -> Self {
                 match self {
@@ -34755,7 +33789,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for GenericMethodArgument {
             fn clone(&self) -> Self {
                 match self {
@@ -34768,7 +33802,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for GenericParam {
             fn clone(&self) -> Self {
                 match self {
@@ -34778,7 +33812,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Generics {
             fn clone(&self) -> Self {
                 Generics {
@@ -34789,7 +33823,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ImplItem {
             fn clone(&self) -> Self {
                 match self {
@@ -34801,7 +33835,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ImplItemConst {
             fn clone(&self) -> Self {
                 ImplItemConst {
@@ -34818,7 +33852,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ImplItemMacro {
             fn clone(&self) -> Self {
                 ImplItemMacro {
@@ -34828,7 +33862,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ImplItemMethod {
             fn clone(&self) -> Self {
                 ImplItemMethod {
@@ -34840,7 +33874,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ImplItemType {
             fn clone(&self) -> Self {
                 ImplItemType {
@@ -34856,7 +33890,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Index {
             fn clone(&self) -> Self {
                 Index {
@@ -34865,7 +33899,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Item {
             fn clone(&self) -> Self {
                 match self {
@@ -34889,7 +33923,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemConst {
             fn clone(&self) -> Self {
                 ItemConst {
@@ -34905,7 +33939,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemEnum {
             fn clone(&self) -> Self {
                 ItemEnum {
@@ -34919,7 +33953,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemExternCrate {
             fn clone(&self) -> Self {
                 ItemExternCrate {
@@ -34933,7 +33967,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemFn {
             fn clone(&self) -> Self {
                 ItemFn {
@@ -34944,7 +33978,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemForeignMod {
             fn clone(&self) -> Self {
                 ItemForeignMod {
@@ -34955,7 +33989,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemImpl {
             fn clone(&self) -> Self {
                 ItemImpl {
@@ -34971,7 +34005,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemMacro {
             fn clone(&self) -> Self {
                 ItemMacro {
@@ -34982,7 +34016,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemMacro2 {
             fn clone(&self) -> Self {
                 ItemMacro2 {
@@ -34994,7 +34028,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemMod {
             fn clone(&self) -> Self {
                 ItemMod {
@@ -35007,7 +34041,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemStatic {
             fn clone(&self) -> Self {
                 ItemStatic {
@@ -35024,7 +34058,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemStruct {
             fn clone(&self) -> Self {
                 ItemStruct {
@@ -35038,7 +34072,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemTrait {
             fn clone(&self) -> Self {
                 ItemTrait {
@@ -35056,7 +34090,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemTraitAlias {
             fn clone(&self) -> Self {
                 ItemTraitAlias {
@@ -35071,7 +34105,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemType {
             fn clone(&self) -> Self {
                 ItemType {
@@ -35086,7 +34120,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemUnion {
             fn clone(&self) -> Self {
                 ItemUnion {
@@ -35099,7 +34133,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for ItemUse {
             fn clone(&self) -> Self {
                 ItemUse {
@@ -35112,7 +34146,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Label {
             fn clone(&self) -> Self {
                 Label {
@@ -35121,7 +34155,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for LifetimeDef {
             fn clone(&self) -> Self {
                 LifetimeDef {
@@ -35154,7 +34188,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Local {
             fn clone(&self) -> Self {
                 Local {
@@ -35166,7 +34200,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Macro {
             fn clone(&self) -> Self {
                 Macro {
@@ -35177,7 +34211,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for MacroDelimiter {
             fn clone(&self) -> Self {
                 match self {
@@ -35187,7 +34221,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Member {
             fn clone(&self) -> Self {
                 match self {
@@ -35196,7 +34230,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Meta {
             fn clone(&self) -> Self {
                 match self {
@@ -35206,7 +34240,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for MetaList {
             fn clone(&self) -> Self {
                 MetaList {
@@ -35216,7 +34250,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for MetaNameValue {
             fn clone(&self) -> Self {
                 MetaNameValue {
@@ -35226,7 +34260,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for MethodTurbofish {
             fn clone(&self) -> Self {
                 MethodTurbofish {
@@ -35237,7 +34271,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for NestedMeta {
             fn clone(&self) -> Self {
                 match self {
@@ -35246,7 +34280,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ParenthesizedGenericArguments {
             fn clone(&self) -> Self {
                 ParenthesizedGenericArguments {
@@ -35256,7 +34290,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Pat {
             fn clone(&self) -> Self {
                 match self {
@@ -35279,7 +34313,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatBox {
             fn clone(&self) -> Self {
                 PatBox {
@@ -35289,7 +34323,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatIdent {
             fn clone(&self) -> Self {
                 PatIdent {
@@ -35301,7 +34335,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatLit {
             fn clone(&self) -> Self {
                 PatLit {
@@ -35310,7 +34344,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatMacro {
             fn clone(&self) -> Self {
                 PatMacro {
@@ -35319,7 +34353,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatOr {
             fn clone(&self) -> Self {
                 PatOr {
@@ -35329,7 +34363,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatPath {
             fn clone(&self) -> Self {
                 PatPath {
@@ -35339,7 +34373,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatRange {
             fn clone(&self) -> Self {
                 PatRange {
@@ -35350,7 +34384,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatReference {
             fn clone(&self) -> Self {
                 PatReference {
@@ -35361,7 +34395,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatRest {
             fn clone(&self) -> Self {
                 PatRest {
@@ -35370,7 +34404,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatSlice {
             fn clone(&self) -> Self {
                 PatSlice {
@@ -35380,7 +34414,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatStruct {
             fn clone(&self) -> Self {
                 PatStruct {
@@ -35392,7 +34426,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatTuple {
             fn clone(&self) -> Self {
                 PatTuple {
@@ -35402,7 +34436,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatTupleStruct {
             fn clone(&self) -> Self {
                 PatTupleStruct {
@@ -35412,7 +34446,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatType {
             fn clone(&self) -> Self {
                 PatType {
@@ -35423,7 +34457,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for PatWild {
             fn clone(&self) -> Self {
                 PatWild {
@@ -35432,7 +34466,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Path {
             fn clone(&self) -> Self {
                 Path {
@@ -35441,7 +34475,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for PathArguments {
             fn clone(&self) -> Self {
                 match self {
@@ -35455,7 +34489,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for PathSegment {
             fn clone(&self) -> Self {
                 PathSegment {
@@ -35464,7 +34498,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for PredicateEq {
             fn clone(&self) -> Self {
                 PredicateEq {
@@ -35474,7 +34508,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for PredicateLifetime {
             fn clone(&self) -> Self {
                 PredicateLifetime {
@@ -35484,7 +34518,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for PredicateType {
             fn clone(&self) -> Self {
                 PredicateType {
@@ -35495,7 +34529,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for QSelf {
             fn clone(&self) -> Self {
                 QSelf {
@@ -35507,15 +34541,15 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Copy for RangeLimits {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for RangeLimits {
             fn clone(&self) -> Self {
                 *self
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Receiver {
             fn clone(&self) -> Self {
                 Receiver {
@@ -35526,7 +34560,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for ReturnType {
             fn clone(&self) -> Self {
                 match self {
@@ -35535,7 +34569,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Signature {
             fn clone(&self) -> Self {
                 Signature {
@@ -35553,7 +34587,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for Stmt {
             fn clone(&self) -> Self {
                 match self {
@@ -35564,7 +34598,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TraitBound {
             fn clone(&self) -> Self {
                 TraitBound {
@@ -35575,15 +34609,15 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Copy for TraitBoundModifier {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TraitBoundModifier {
             fn clone(&self) -> Self {
                 *self
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for TraitItem {
             fn clone(&self) -> Self {
                 match self {
@@ -35595,7 +34629,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for TraitItemConst {
             fn clone(&self) -> Self {
                 TraitItemConst {
@@ -35609,7 +34643,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for TraitItemMacro {
             fn clone(&self) -> Self {
                 TraitItemMacro {
@@ -35619,7 +34653,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for TraitItemMethod {
             fn clone(&self) -> Self {
                 TraitItemMethod {
@@ -35630,7 +34664,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for TraitItemType {
             fn clone(&self) -> Self {
                 TraitItemType {
@@ -35645,7 +34679,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Type {
             fn clone(&self) -> Self {
                 match self {
@@ -35667,7 +34701,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeArray {
             fn clone(&self) -> Self {
                 TypeArray {
@@ -35678,7 +34712,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeBareFn {
             fn clone(&self) -> Self {
                 TypeBareFn {
@@ -35693,7 +34727,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeGroup {
             fn clone(&self) -> Self {
                 TypeGroup {
@@ -35702,7 +34736,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeImplTrait {
             fn clone(&self) -> Self {
                 TypeImplTrait {
@@ -35711,7 +34745,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeInfer {
             fn clone(&self) -> Self {
                 TypeInfer {
@@ -35719,13 +34753,13 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeMacro {
             fn clone(&self) -> Self {
                 TypeMacro { mac: self.mac.clone() }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeNever {
             fn clone(&self) -> Self {
                 TypeNever {
@@ -35733,7 +34767,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeParam {
             fn clone(&self) -> Self {
                 TypeParam {
@@ -35746,7 +34780,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeParamBound {
             fn clone(&self) -> Self {
                 match self {
@@ -35755,7 +34789,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeParen {
             fn clone(&self) -> Self {
                 TypeParen {
@@ -35764,7 +34798,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypePath {
             fn clone(&self) -> Self {
                 TypePath {
@@ -35773,7 +34807,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypePtr {
             fn clone(&self) -> Self {
                 TypePtr {
@@ -35784,7 +34818,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeReference {
             fn clone(&self) -> Self {
                 TypeReference {
@@ -35795,7 +34829,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeSlice {
             fn clone(&self) -> Self {
                 TypeSlice {
@@ -35804,7 +34838,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeTraitObject {
             fn clone(&self) -> Self {
                 TypeTraitObject {
@@ -35813,7 +34847,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for TypeTuple {
             fn clone(&self) -> Self {
                 TypeTuple {
@@ -35822,15 +34856,15 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Copy for UnOp {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for UnOp {
             fn clone(&self) -> Self {
                 *self
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UseGlob {
             fn clone(&self) -> Self {
                 UseGlob {
@@ -35838,7 +34872,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UseGroup {
             fn clone(&self) -> Self {
                 UseGroup {
@@ -35847,7 +34881,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UseName {
             fn clone(&self) -> Self {
                 UseName {
@@ -35855,7 +34889,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UsePath {
             fn clone(&self) -> Self {
                 UsePath {
@@ -35865,7 +34899,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UseRename {
             fn clone(&self) -> Self {
                 UseRename {
@@ -35875,7 +34909,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Clone for UseTree {
             fn clone(&self) -> Self {
                 match self {
@@ -35887,7 +34921,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Variadic {
             fn clone(&self) -> Self {
                 Variadic {
@@ -35896,7 +34930,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Variant {
             fn clone(&self) -> Self {
                 Variant {
@@ -35907,7 +34941,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for VisCrate {
             fn clone(&self) -> Self {
                 VisCrate {
@@ -35915,7 +34949,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for VisPublic {
             fn clone(&self) -> Self {
                 VisPublic {
@@ -35923,7 +34957,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for VisRestricted {
             fn clone(&self) -> Self {
                 VisRestricted {
@@ -35934,7 +34968,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for Visibility {
             fn clone(&self) -> Self {
                 match self {
@@ -35945,7 +34979,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for WhereClause {
             fn clone(&self) -> Self {
                 WhereClause {
@@ -35954,7 +34988,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Clone for WherePredicate {
             fn clone(&self) -> Self {
                 match self {
@@ -35965,31 +34999,31 @@ mod gen {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     #[rustfmt::skip]
     mod eq {
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         use crate::tt::TokenStreamHelper;
         use crate::*;
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Abi {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Abi {
             fn eq(&self, other: &Self) -> bool {
                 self.name == other.name
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for AngleBracketedGenericArguments {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for AngleBracketedGenericArguments {
             fn eq(&self, other: &Self) -> bool {
                 self.colon2_token == other.colon2_token && self.args == other.args
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Arm {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Arm {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.pat == other.pat
@@ -35997,9 +35031,9 @@ mod gen {
                     && self.comma == other.comma
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for AttrStyle {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for AttrStyle {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36009,9 +35043,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Attribute {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Attribute {
             fn eq(&self, other: &Self) -> bool {
                 self.style == other.style && self.path == other.path
@@ -36019,18 +35053,18 @@ mod gen {
                         == TokenStreamHelper(&other.tokens)
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for BareFnArg {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for BareFnArg {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.name == other.name
                     && self.ty == other.ty
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for BinOp {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for BinOp {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36066,33 +35100,33 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Binding {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Binding {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Block {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Block {
             fn eq(&self, other: &Self) -> bool {
                 self.stmts == other.stmts
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for BoundLifetimes {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for BoundLifetimes {
             fn eq(&self, other: &Self) -> bool {
                 self.lifetimes == other.lifetimes
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ConstParam {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ConstParam {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
@@ -36100,17 +35134,17 @@ mod gen {
                     && self.default == other.default
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Constraint {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Constraint {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident && self.bounds == other.bounds
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Eq for Data {}
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl PartialEq for Data {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36121,33 +35155,33 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Eq for DataEnum {}
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl PartialEq for DataEnum {
             fn eq(&self, other: &Self) -> bool {
                 self.variants == other.variants
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Eq for DataStruct {}
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl PartialEq for DataStruct {
             fn eq(&self, other: &Self) -> bool {
                 self.fields == other.fields && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Eq for DataUnion {}
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl PartialEq for DataUnion {
             fn eq(&self, other: &Self) -> bool {
                 self.fields == other.fields
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Eq for DeriveInput {}
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl PartialEq for DeriveInput {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36155,189 +35189,189 @@ mod gen {
                     && self.data == other.data
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Expr {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Expr {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Array(self0), Expr::Array(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Assign(self0), Expr::Assign(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::AssignOp(self0), Expr::AssignOp(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Async(self0), Expr::Async(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Await(self0), Expr::Await(other0)) => self0 == other0,
                     (Expr::Binary(self0), Expr::Binary(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Block(self0), Expr::Block(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Box(self0), Expr::Box(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Break(self0), Expr::Break(other0)) => self0 == other0,
                     (Expr::Call(self0), Expr::Call(other0)) => self0 == other0,
                     (Expr::Cast(self0), Expr::Cast(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Closure(self0), Expr::Closure(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Continue(self0), Expr::Continue(other0)) => self0 == other0,
                     (Expr::Field(self0), Expr::Field(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::ForLoop(self0), Expr::ForLoop(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Group(self0), Expr::Group(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::If(self0), Expr::If(other0)) => self0 == other0,
                     (Expr::Index(self0), Expr::Index(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Let(self0), Expr::Let(other0)) => self0 == other0,
                     (Expr::Lit(self0), Expr::Lit(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Loop(self0), Expr::Loop(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Macro(self0), Expr::Macro(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Match(self0), Expr::Match(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::MethodCall(self0), Expr::MethodCall(other0)) => {
                         self0 == other0
                     }
                     (Expr::Paren(self0), Expr::Paren(other0)) => self0 == other0,
                     (Expr::Path(self0), Expr::Path(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Range(self0), Expr::Range(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Reference(self0), Expr::Reference(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Repeat(self0), Expr::Repeat(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Return(self0), Expr::Return(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Struct(self0), Expr::Struct(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Try(self0), Expr::Try(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::TryBlock(self0), Expr::TryBlock(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Tuple(self0), Expr::Tuple(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Type(self0), Expr::Type(other0)) => self0 == other0,
                     (Expr::Unary(self0), Expr::Unary(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Unsafe(self0), Expr::Unsafe(other0)) => self0 == other0,
                     (Expr::Verbatim(self0), Expr::Verbatim(other0)) => {
                         TokenStreamHelper(self0) == TokenStreamHelper(other0)
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::While(self0), Expr::While(other0)) => self0 == other0,
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     (Expr::Yield(self0), Expr::Yield(other0)) => self0 == other0,
                     _ => false,
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprArray {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprArray {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.elems == other.elems
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprAssign {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprAssign {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.left == other.left
                     && self.right == other.right
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprAssignOp {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprAssignOp {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.left == other.left
                     && self.op == other.op && self.right == other.right
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprAsync {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprAsync {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.capture == other.capture
                     && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprAwait {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprAwait {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.base == other.base
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprBinary {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprBinary {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.left == other.left
                     && self.op == other.op && self.right == other.right
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprBlock {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprBlock {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
                     && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprBox {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprBox {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprBreak {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprBreak {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
                     && self.expr == other.expr
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprCall {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprCall {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.func == other.func
                     && self.args == other.args
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprCast {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprCast {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
                     && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprClosure {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprClosure {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.movability == other.movability
@@ -36346,26 +35380,26 @@ mod gen {
                     && self.body == other.body
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprContinue {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprContinue {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprField {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprField {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.base == other.base
                     && self.member == other.member
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprForLoop {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprForLoop {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
@@ -36373,17 +35407,17 @@ mod gen {
                     && self.body == other.body
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprGroup {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprGroup {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprIf {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprIf {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.cond == other.cond
@@ -36391,61 +35425,61 @@ mod gen {
                     && self.else_branch == other.else_branch
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprIndex {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprIndex {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
                     && self.index == other.index
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprLet {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprLet {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.pat == other.pat
                     && self.expr == other.expr
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprLit {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprLit {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.lit == other.lit
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprLoop {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprLoop {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
                     && self.body == other.body
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mac == other.mac
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprMatch {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprMatch {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
                     && self.arms == other.arms
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprMethodCall {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprMethodCall {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.receiver == other.receiver
@@ -36453,61 +35487,61 @@ mod gen {
                     && self.args == other.args
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprParen {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprParen {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprPath {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprPath {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.qself == other.qself
                     && self.path == other.path
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprRange {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprRange {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.from == other.from
                     && self.limits == other.limits && self.to == other.to
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprReference {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprReference {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mutability == other.mutability
                     && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprRepeat {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprRepeat {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
                     && self.len == other.len
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprReturn {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprReturn {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprStruct {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprStruct {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.path == other.path
@@ -36515,76 +35549,76 @@ mod gen {
                     && self.rest == other.rest
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprTry {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprTry {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprTryBlock {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprTryBlock {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprTuple {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprTuple {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.elems == other.elems
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
                     && self.ty == other.ty
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ExprUnary {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ExprUnary {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.op == other.op
                     && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprUnsafe {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprUnsafe {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprWhile {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprWhile {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.label == other.label
                     && self.cond == other.cond && self.body == other.body
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ExprYield {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ExprYield {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Field {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Field {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36592,27 +35626,27 @@ mod gen {
                     && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for FieldPat {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for FieldPat {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.member == other.member
                     && self.colon_token == other.colon_token && self.pat == other.pat
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for FieldValue {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for FieldValue {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.member == other.member
                     && self.colon_token == other.colon_token && self.expr == other.expr
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Fields {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Fields {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36623,34 +35657,34 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for FieldsNamed {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for FieldsNamed {
             fn eq(&self, other: &Self) -> bool {
                 self.named == other.named
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for FieldsUnnamed {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for FieldsUnnamed {
             fn eq(&self, other: &Self) -> bool {
                 self.unnamed == other.unnamed
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for File {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for File {
             fn eq(&self, other: &Self) -> bool {
                 self.shebang == other.shebang && self.attrs == other.attrs
                     && self.items == other.items
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for FnArg {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for FnArg {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36660,9 +35694,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ForeignItem {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ForeignItem {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36683,27 +35717,27 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ForeignItemFn {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ForeignItemFn {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
                     && self.sig == other.sig
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ForeignItemMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ForeignItemMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mac == other.mac
                     && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ForeignItemStatic {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ForeignItemStatic {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36711,18 +35745,18 @@ mod gen {
                     && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ForeignItemType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ForeignItemType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
                     && self.ident == other.ident
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for GenericArgument {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for GenericArgument {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36748,9 +35782,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for GenericMethodArgument {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for GenericMethodArgument {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36766,9 +35800,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for GenericParam {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for GenericParam {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36785,9 +35819,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Generics {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Generics {
             fn eq(&self, other: &Self) -> bool {
                 self.lt_token == other.lt_token && self.params == other.params
@@ -36795,9 +35829,9 @@ mod gen {
                     && self.where_clause == other.where_clause
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ImplItem {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ImplItem {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36814,9 +35848,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ImplItemConst {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ImplItemConst {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36824,18 +35858,18 @@ mod gen {
                     && self.ty == other.ty && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ImplItemMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ImplItemMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mac == other.mac
                     && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ImplItemMethod {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ImplItemMethod {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36843,9 +35877,9 @@ mod gen {
                     && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ImplItemType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ImplItemType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36853,9 +35887,9 @@ mod gen {
                     && self.generics == other.generics && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Item {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Item {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -36888,9 +35922,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemConst {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemConst {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36898,9 +35932,9 @@ mod gen {
                     && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemEnum {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemEnum {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36908,36 +35942,36 @@ mod gen {
                     && self.variants == other.variants
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemExternCrate {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemExternCrate {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
                     && self.ident == other.ident && self.rename == other.rename
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemFn {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemFn {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
                     && self.sig == other.sig && self.block == other.block
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemForeignMod {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemForeignMod {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.abi == other.abi
                     && self.items == other.items
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemImpl {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemImpl {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.defaultness == other.defaultness
@@ -36946,18 +35980,18 @@ mod gen {
                     && self.items == other.items
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
                     && self.mac == other.mac && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemMacro2 {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemMacro2 {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36965,9 +35999,9 @@ mod gen {
                     && TokenStreamHelper(&self.rules) == TokenStreamHelper(&other.rules)
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemMod {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemMod {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36975,9 +36009,9 @@ mod gen {
                     && self.semi == other.semi
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemStatic {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemStatic {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36985,9 +36019,9 @@ mod gen {
                     && self.ty == other.ty && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemStruct {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemStruct {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -36995,9 +36029,9 @@ mod gen {
                     && self.fields == other.fields && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemTrait {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemTrait {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -37008,9 +36042,9 @@ mod gen {
                     && self.supertraits == other.supertraits && self.items == other.items
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemTraitAlias {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemTraitAlias {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -37018,9 +36052,9 @@ mod gen {
                     && self.bounds == other.bounds
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -37028,9 +36062,9 @@ mod gen {
                     && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemUnion {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemUnion {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -37038,9 +36072,9 @@ mod gen {
                     && self.fields == other.fields
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for ItemUse {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for ItemUse {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.vis == other.vis
@@ -37048,17 +36082,17 @@ mod gen {
                     && self.tree == other.tree
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Label {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Label {
             fn eq(&self, other: &Self) -> bool {
                 self.name == other.name
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for LifetimeDef {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for LifetimeDef {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.lifetime == other.lifetime
@@ -37096,18 +36130,18 @@ mod gen {
         impl Eq for LitFloat {}
         impl Eq for LitInt {}
         impl Eq for LitStr {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Local {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Local {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.pat == other.pat
                     && self.init == other.init
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Macro {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Macro {
             fn eq(&self, other: &Self) -> bool {
                 self.path == other.path && self.delimiter == other.delimiter
@@ -37115,9 +36149,9 @@ mod gen {
                         == TokenStreamHelper(&other.tokens)
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for MacroDelimiter {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for MacroDelimiter {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37128,9 +36162,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Meta {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Meta {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37141,33 +36175,33 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for MetaList {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for MetaList {
             fn eq(&self, other: &Self) -> bool {
                 self.path == other.path && self.nested == other.nested
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for MetaNameValue {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for MetaNameValue {
             fn eq(&self, other: &Self) -> bool {
                 self.path == other.path && self.lit == other.lit
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for MethodTurbofish {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for MethodTurbofish {
             fn eq(&self, other: &Self) -> bool {
                 self.args == other.args
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for NestedMeta {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for NestedMeta {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37179,17 +36213,17 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ParenthesizedGenericArguments {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ParenthesizedGenericArguments {
             fn eq(&self, other: &Self) -> bool {
                 self.inputs == other.inputs && self.output == other.output
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Pat {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Pat {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37217,17 +36251,17 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatBox {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatBox {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.pat == other.pat
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatIdent {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatIdent {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.by_ref == other.by_ref
@@ -37235,128 +36269,128 @@ mod gen {
                     && self.subpat == other.subpat
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatLit {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatLit {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.expr == other.expr
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mac == other.mac
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatOr {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatOr {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.leading_vert == other.leading_vert
                     && self.cases == other.cases
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatPath {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatPath {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.qself == other.qself
                     && self.path == other.path
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatRange {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatRange {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.lo == other.lo
                     && self.limits == other.limits && self.hi == other.hi
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatReference {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatReference {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mutability == other.mutability
                     && self.pat == other.pat
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatRest {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatRest {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatSlice {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatSlice {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.elems == other.elems
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatStruct {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatStruct {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.path == other.path
                     && self.fields == other.fields && self.dot2_token == other.dot2_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatTuple {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatTuple {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.elems == other.elems
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatTupleStruct {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatTupleStruct {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.path == other.path
                     && self.pat == other.pat
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.pat == other.pat && self.ty == other.ty
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for PatWild {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for PatWild {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Path {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Path {
             fn eq(&self, other: &Self) -> bool {
                 self.leading_colon == other.leading_colon
                     && self.segments == other.segments
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for PathArguments {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for PathArguments {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37373,51 +36407,51 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for PathSegment {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for PathSegment {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident && self.arguments == other.arguments
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for PredicateEq {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for PredicateEq {
             fn eq(&self, other: &Self) -> bool {
                 self.lhs_ty == other.lhs_ty && self.rhs_ty == other.rhs_ty
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for PredicateLifetime {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for PredicateLifetime {
             fn eq(&self, other: &Self) -> bool {
                 self.lifetime == other.lifetime && self.bounds == other.bounds
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for PredicateType {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for PredicateType {
             fn eq(&self, other: &Self) -> bool {
                 self.lifetimes == other.lifetimes && self.bounded_ty == other.bounded_ty
                     && self.bounds == other.bounds
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for QSelf {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for QSelf {
             fn eq(&self, other: &Self) -> bool {
                 self.ty == other.ty && self.position == other.position
                     && self.as_token == other.as_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for RangeLimits {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for RangeLimits {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37427,18 +36461,18 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Receiver {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Receiver {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.reference == other.reference
                     && self.mutability == other.mutability
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for ReturnType {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for ReturnType {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37450,9 +36484,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Signature {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Signature {
             fn eq(&self, other: &Self) -> bool {
                 self.constness == other.constness && self.asyncness == other.asyncness
@@ -37462,9 +36496,9 @@ mod gen {
                     && self.output == other.output
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for Stmt {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for Stmt {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37476,18 +36510,18 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TraitBound {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TraitBound {
             fn eq(&self, other: &Self) -> bool {
                 self.paren_token == other.paren_token && self.modifier == other.modifier
                     && self.lifetimes == other.lifetimes && self.path == other.path
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TraitBoundModifier {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TraitBoundModifier {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37497,9 +36531,9 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for TraitItem {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for TraitItem {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37520,27 +36554,27 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for TraitItemConst {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for TraitItemConst {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
                     && self.ty == other.ty && self.default == other.default
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for TraitItemMacro {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for TraitItemMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.mac == other.mac
                     && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for TraitItemMethod {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for TraitItemMethod {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.sig == other.sig
@@ -37548,9 +36582,9 @@ mod gen {
                     && self.semi_token == other.semi_token
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for TraitItemType {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for TraitItemType {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
@@ -37559,9 +36593,9 @@ mod gen {
                     && self.bounds == other.bounds && self.default == other.default
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Type {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Type {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37588,17 +36622,17 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeArray {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeArray {
             fn eq(&self, other: &Self) -> bool {
                 self.elem == other.elem && self.len == other.len
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeBareFn {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeBareFn {
             fn eq(&self, other: &Self) -> bool {
                 self.lifetimes == other.lifetimes && self.unsafety == other.unsafety
@@ -37606,49 +36640,49 @@ mod gen {
                     && self.variadic == other.variadic && self.output == other.output
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeGroup {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeGroup {
             fn eq(&self, other: &Self) -> bool {
                 self.elem == other.elem
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeImplTrait {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeImplTrait {
             fn eq(&self, other: &Self) -> bool {
                 self.bounds == other.bounds
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeInfer {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeInfer {
             fn eq(&self, _other: &Self) -> bool {
                 true
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeMacro {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeMacro {
             fn eq(&self, other: &Self) -> bool {
                 self.mac == other.mac
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeNever {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeNever {
             fn eq(&self, _other: &Self) -> bool {
                 true
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeParam {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeParam {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
@@ -37657,9 +36691,9 @@ mod gen {
                     && self.default == other.default
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeParamBound {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeParamBound {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37674,67 +36708,67 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeParen {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeParen {
             fn eq(&self, other: &Self) -> bool {
                 self.elem == other.elem
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypePath {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypePath {
             fn eq(&self, other: &Self) -> bool {
                 self.qself == other.qself && self.path == other.path
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypePtr {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypePtr {
             fn eq(&self, other: &Self) -> bool {
                 self.const_token == other.const_token
                     && self.mutability == other.mutability && self.elem == other.elem
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeReference {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeReference {
             fn eq(&self, other: &Self) -> bool {
                 self.lifetime == other.lifetime && self.mutability == other.mutability
                     && self.elem == other.elem
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeSlice {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeSlice {
             fn eq(&self, other: &Self) -> bool {
                 self.elem == other.elem
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeTraitObject {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeTraitObject {
             fn eq(&self, other: &Self) -> bool {
                 self.dyn_token == other.dyn_token && self.bounds == other.bounds
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for TypeTuple {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for TypeTuple {
             fn eq(&self, other: &Self) -> bool {
                 self.elems == other.elems
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for UnOp {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for UnOp {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37745,49 +36779,49 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UseGlob {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UseGlob {
             fn eq(&self, _other: &Self) -> bool {
                 true
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UseGroup {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UseGroup {
             fn eq(&self, other: &Self) -> bool {
                 self.items == other.items
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UseName {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UseName {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UsePath {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UsePath {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident && self.tree == other.tree
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UseRename {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UseRename {
             fn eq(&self, other: &Self) -> bool {
                 self.ident == other.ident && self.rename == other.rename
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Eq for UseTree {}
-        #[cfg(feature = "full")]
+        #[cfg]
         impl PartialEq for UseTree {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37800,17 +36834,17 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Variadic {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Variadic {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Variant {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Variant {
             fn eq(&self, other: &Self) -> bool {
                 self.attrs == other.attrs && self.ident == other.ident
@@ -37818,33 +36852,33 @@ mod gen {
                     && self.discriminant == other.discriminant
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for VisCrate {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for VisCrate {
             fn eq(&self, _other: &Self) -> bool {
                 true
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for VisPublic {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for VisPublic {
             fn eq(&self, _other: &Self) -> bool {
                 true
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for VisRestricted {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for VisRestricted {
             fn eq(&self, other: &Self) -> bool {
                 self.in_token == other.in_token && self.path == other.path
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for Visibility {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for Visibility {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37862,17 +36896,17 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for WhereClause {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for WhereClause {
             fn eq(&self, other: &Self) -> bool {
                 self.predicates == other.predicates
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Eq for WherePredicate {}
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl PartialEq for WherePredicate {
             fn eq(&self, other: &Self) -> bool {
                 match (self, other) {
@@ -37891,14 +36925,14 @@ mod gen {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     #[rustfmt::skip]
     mod hash {
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         use crate::tt::TokenStreamHelper;
         use crate::*;
         use std::hash::{Hash, Hasher};
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Abi {
             fn hash<H>(&self, state: &mut H)
             where
@@ -37907,7 +36941,7 @@ mod gen {
                 self.name.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for AngleBracketedGenericArguments {
             fn hash<H>(&self, state: &mut H)
             where
@@ -37917,7 +36951,7 @@ mod gen {
                 self.args.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Arm {
             fn hash<H>(&self, state: &mut H)
             where
@@ -37930,23 +36964,19 @@ mod gen {
                 self.comma.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for AttrStyle {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    AttrStyle::Outer => {
-                        state.write_u8(0u8);
-                    }
-                    AttrStyle::Inner(_) => {
-                        state.write_u8(1u8);
-                    }
+                    AttrStyle::Outer => state.write_u8(0u8),
+                    AttrStyle::Inner(_) => state.write_u8(1u8),
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Attribute {
             fn hash<H>(&self, state: &mut H)
             where
@@ -37957,7 +36987,7 @@ mod gen {
                 TokenStreamHelper(&self.tokens).hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for BareFnArg {
             fn hash<H>(&self, state: &mut H)
             where
@@ -37968,101 +36998,45 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for BinOp {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    BinOp::Add(_) => {
-                        state.write_u8(0u8);
-                    }
-                    BinOp::Sub(_) => {
-                        state.write_u8(1u8);
-                    }
-                    BinOp::Mul(_) => {
-                        state.write_u8(2u8);
-                    }
-                    BinOp::Div(_) => {
-                        state.write_u8(3u8);
-                    }
-                    BinOp::Rem(_) => {
-                        state.write_u8(4u8);
-                    }
-                    BinOp::And(_) => {
-                        state.write_u8(5u8);
-                    }
-                    BinOp::Or(_) => {
-                        state.write_u8(6u8);
-                    }
-                    BinOp::BitXor(_) => {
-                        state.write_u8(7u8);
-                    }
-                    BinOp::BitAnd(_) => {
-                        state.write_u8(8u8);
-                    }
-                    BinOp::BitOr(_) => {
-                        state.write_u8(9u8);
-                    }
-                    BinOp::Shl(_) => {
-                        state.write_u8(10u8);
-                    }
-                    BinOp::Shr(_) => {
-                        state.write_u8(11u8);
-                    }
-                    BinOp::Eq(_) => {
-                        state.write_u8(12u8);
-                    }
-                    BinOp::Lt(_) => {
-                        state.write_u8(13u8);
-                    }
-                    BinOp::Le(_) => {
-                        state.write_u8(14u8);
-                    }
-                    BinOp::Ne(_) => {
-                        state.write_u8(15u8);
-                    }
-                    BinOp::Ge(_) => {
-                        state.write_u8(16u8);
-                    }
-                    BinOp::Gt(_) => {
-                        state.write_u8(17u8);
-                    }
-                    BinOp::AddEq(_) => {
-                        state.write_u8(18u8);
-                    }
-                    BinOp::SubEq(_) => {
-                        state.write_u8(19u8);
-                    }
-                    BinOp::MulEq(_) => {
-                        state.write_u8(20u8);
-                    }
-                    BinOp::DivEq(_) => {
-                        state.write_u8(21u8);
-                    }
-                    BinOp::RemEq(_) => {
-                        state.write_u8(22u8);
-                    }
-                    BinOp::BitXorEq(_) => {
-                        state.write_u8(23u8);
-                    }
-                    BinOp::BitAndEq(_) => {
-                        state.write_u8(24u8);
-                    }
-                    BinOp::BitOrEq(_) => {
-                        state.write_u8(25u8);
-                    }
-                    BinOp::ShlEq(_) => {
-                        state.write_u8(26u8);
-                    }
-                    BinOp::ShrEq(_) => {
-                        state.write_u8(27u8);
-                    }
+                    BinOp::Add(_) => state.write_u8(0u8),
+                    BinOp::Sub(_) => state.write_u8(1u8),
+                    BinOp::Mul(_) => state.write_u8(2u8),
+                    BinOp::Div(_) => state.write_u8(3u8),
+                    BinOp::Rem(_) => state.write_u8(4u8),
+                    BinOp::And(_) => state.write_u8(5u8),
+                    BinOp::Or(_) => state.write_u8(6u8),
+                    BinOp::BitXor(_) => state.write_u8(7u8),
+                    BinOp::BitAnd(_) => state.write_u8(8u8),
+                    BinOp::BitOr(_) => state.write_u8(9u8),
+                    BinOp::Shl(_) => state.write_u8(10u8),
+                    BinOp::Shr(_) => state.write_u8(11u8),
+                    BinOp::Eq(_) => state.write_u8(12u8),
+                    BinOp::Lt(_) => state.write_u8(13u8),
+                    BinOp::Le(_) => state.write_u8(14u8),
+                    BinOp::Ne(_) => state.write_u8(15u8),
+                    BinOp::Ge(_) => state.write_u8(16u8),
+                    BinOp::Gt(_) => state.write_u8(17u8),
+                    BinOp::AddEq(_) => state.write_u8(18u8),
+                    BinOp::SubEq(_) => state.write_u8(19u8),
+                    BinOp::MulEq(_) => state.write_u8(20u8),
+                    BinOp::DivEq(_) => state.write_u8(21u8),
+                    BinOp::RemEq(_) => state.write_u8(22u8),
+                    BinOp::BitXorEq(_) => state.write_u8(23u8),
+                    BinOp::BitAndEq(_) => state.write_u8(24u8),
+                    BinOp::BitOrEq(_) => state.write_u8(25u8),
+                    BinOp::ShlEq(_) => state.write_u8(26u8),
+                    BinOp::ShrEq(_) => state.write_u8(27u8),
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Binding {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38072,7 +37046,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Block {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38081,7 +37055,7 @@ mod gen {
                 self.stmts.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for BoundLifetimes {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38090,7 +37064,7 @@ mod gen {
                 self.lifetimes.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ConstParam {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38103,7 +37077,7 @@ mod gen {
                 self.default.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Constraint {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38113,7 +37087,7 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Hash for Data {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38135,7 +37109,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Hash for DataEnum {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38144,7 +37118,7 @@ mod gen {
                 self.variants.hash(state);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Hash for DataStruct {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38154,7 +37128,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Hash for DataUnion {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38163,7 +37137,7 @@ mod gen {
                 self.fields.hash(state);
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Hash for DeriveInput {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38176,34 +37150,34 @@ mod gen {
                 self.data.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Expr {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Array(v0) => {
                         state.write_u8(0u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Assign(v0) => {
                         state.write_u8(1u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::AssignOp(v0) => {
                         state.write_u8(2u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Async(v0) => {
                         state.write_u8(3u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Await(v0) => {
                         state.write_u8(4u8);
                         v0.hash(state);
@@ -38212,17 +37186,17 @@ mod gen {
                         state.write_u8(5u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Block(v0) => {
                         state.write_u8(6u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Box(v0) => {
                         state.write_u8(7u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Break(v0) => {
                         state.write_u8(8u8);
                         v0.hash(state);
@@ -38235,12 +37209,12 @@ mod gen {
                         state.write_u8(10u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Closure(v0) => {
                         state.write_u8(11u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Continue(v0) => {
                         state.write_u8(12u8);
                         v0.hash(state);
@@ -38249,17 +37223,17 @@ mod gen {
                         state.write_u8(13u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::ForLoop(v0) => {
                         state.write_u8(14u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Group(v0) => {
                         state.write_u8(15u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::If(v0) => {
                         state.write_u8(16u8);
                         v0.hash(state);
@@ -38268,7 +37242,7 @@ mod gen {
                         state.write_u8(17u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Let(v0) => {
                         state.write_u8(18u8);
                         v0.hash(state);
@@ -38277,22 +37251,22 @@ mod gen {
                         state.write_u8(19u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Loop(v0) => {
                         state.write_u8(20u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Macro(v0) => {
                         state.write_u8(21u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Match(v0) => {
                         state.write_u8(22u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::MethodCall(v0) => {
                         state.write_u8(23u8);
                         v0.hash(state);
@@ -38305,47 +37279,47 @@ mod gen {
                         state.write_u8(25u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Range(v0) => {
                         state.write_u8(26u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Reference(v0) => {
                         state.write_u8(27u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Repeat(v0) => {
                         state.write_u8(28u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Return(v0) => {
                         state.write_u8(29u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Struct(v0) => {
                         state.write_u8(30u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Try(v0) => {
                         state.write_u8(31u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::TryBlock(v0) => {
                         state.write_u8(32u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Tuple(v0) => {
                         state.write_u8(33u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Type(v0) => {
                         state.write_u8(34u8);
                         v0.hash(state);
@@ -38354,7 +37328,7 @@ mod gen {
                         state.write_u8(35u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Unsafe(v0) => {
                         state.write_u8(36u8);
                         v0.hash(state);
@@ -38363,12 +37337,12 @@ mod gen {
                         state.write_u8(37u8);
                         TokenStreamHelper(v0).hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::While(v0) => {
                         state.write_u8(38u8);
                         v0.hash(state);
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Yield(v0) => {
                         state.write_u8(39u8);
                         v0.hash(state);
@@ -38376,7 +37350,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprArray {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38386,7 +37360,7 @@ mod gen {
                 self.elems.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprAssign {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38397,7 +37371,7 @@ mod gen {
                 self.right.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprAssignOp {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38409,7 +37383,7 @@ mod gen {
                 self.right.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprAsync {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38420,7 +37394,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprAwait {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38430,7 +37404,7 @@ mod gen {
                 self.base.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprBinary {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38442,7 +37416,7 @@ mod gen {
                 self.right.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprBlock {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38453,7 +37427,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprBox {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38463,7 +37437,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprBreak {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38474,7 +37448,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprCall {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38485,7 +37459,7 @@ mod gen {
                 self.args.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprCast {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38496,7 +37470,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprClosure {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38511,7 +37485,7 @@ mod gen {
                 self.body.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprContinue {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38521,7 +37495,7 @@ mod gen {
                 self.label.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprField {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38532,7 +37506,7 @@ mod gen {
                 self.member.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprForLoop {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38545,7 +37519,7 @@ mod gen {
                 self.body.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprGroup {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38555,7 +37529,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprIf {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38567,7 +37541,7 @@ mod gen {
                 self.else_branch.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprIndex {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38578,7 +37552,7 @@ mod gen {
                 self.index.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprLet {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38589,7 +37563,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprLit {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38599,7 +37573,7 @@ mod gen {
                 self.lit.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprLoop {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38610,7 +37584,7 @@ mod gen {
                 self.body.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38620,7 +37594,7 @@ mod gen {
                 self.mac.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprMatch {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38631,7 +37605,7 @@ mod gen {
                 self.arms.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprMethodCall {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38644,7 +37618,7 @@ mod gen {
                 self.args.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprParen {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38654,7 +37628,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprPath {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38665,7 +37639,7 @@ mod gen {
                 self.path.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprRange {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38677,7 +37651,7 @@ mod gen {
                 self.to.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprReference {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38688,7 +37662,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprRepeat {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38699,7 +37673,7 @@ mod gen {
                 self.len.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprReturn {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38709,7 +37683,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprStruct {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38722,7 +37696,7 @@ mod gen {
                 self.rest.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprTry {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38732,7 +37706,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprTryBlock {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38742,7 +37716,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprTuple {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38752,7 +37726,7 @@ mod gen {
                 self.elems.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38763,7 +37737,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ExprUnary {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38774,7 +37748,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprUnsafe {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38784,7 +37758,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprWhile {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38796,7 +37770,7 @@ mod gen {
                 self.body.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ExprYield {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38806,7 +37780,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Field {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38819,7 +37793,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for FieldPat {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38831,7 +37805,7 @@ mod gen {
                 self.pat.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for FieldValue {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38843,7 +37817,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Fields {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38858,13 +37832,11 @@ mod gen {
                         state.write_u8(1u8);
                         v0.hash(state);
                     }
-                    Fields::Unit => {
-                        state.write_u8(2u8);
-                    }
+                    Fields::Unit => state.write_u8(2u8),
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for FieldsNamed {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38873,7 +37845,7 @@ mod gen {
                 self.named.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for FieldsUnnamed {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38882,7 +37854,7 @@ mod gen {
                 self.unnamed.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for File {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38893,7 +37865,7 @@ mod gen {
                 self.items.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for FnArg {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38911,7 +37883,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ForeignItem {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38941,7 +37913,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ForeignItemFn {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38952,7 +37924,7 @@ mod gen {
                 self.sig.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ForeignItemMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38963,7 +37935,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ForeignItemStatic {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38976,7 +37948,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ForeignItemType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -38987,7 +37959,7 @@ mod gen {
                 self.ident.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for GenericArgument {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39017,7 +37989,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for GenericMethodArgument {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39035,7 +38007,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for GenericParam {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39057,7 +38029,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Generics {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39069,7 +38041,7 @@ mod gen {
                 self.where_clause.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ImplItem {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39099,7 +38071,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ImplItemConst {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39113,7 +38085,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ImplItemMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39124,7 +38096,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ImplItemMethod {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39137,7 +38109,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ImplItemType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39151,7 +38123,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Item {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39229,7 +38201,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemConst {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39242,7 +38214,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemEnum {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39255,7 +38227,7 @@ mod gen {
                 self.variants.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemExternCrate {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39267,7 +38239,7 @@ mod gen {
                 self.rename.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemFn {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39279,7 +38251,7 @@ mod gen {
                 self.block.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemForeignMod {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39290,7 +38262,7 @@ mod gen {
                 self.items.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemImpl {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39305,7 +38277,7 @@ mod gen {
                 self.items.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39317,7 +38289,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemMacro2 {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39329,7 +38301,7 @@ mod gen {
                 TokenStreamHelper(&self.rules).hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemMod {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39342,7 +38314,7 @@ mod gen {
                 self.semi.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemStatic {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39356,7 +38328,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemStruct {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39370,7 +38342,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemTrait {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39387,7 +38359,7 @@ mod gen {
                 self.items.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemTraitAlias {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39400,7 +38372,7 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39413,7 +38385,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemUnion {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39426,7 +38398,7 @@ mod gen {
                 self.fields.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for ItemUse {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39438,7 +38410,7 @@ mod gen {
                 self.tree.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Label {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39447,7 +38419,7 @@ mod gen {
                 self.name.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for LifetimeDef {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39508,7 +38480,7 @@ mod gen {
                 self.value.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Local {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39519,7 +38491,7 @@ mod gen {
                 self.init.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Macro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39530,26 +38502,20 @@ mod gen {
                 TokenStreamHelper(&self.tokens).hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for MacroDelimiter {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    MacroDelimiter::Paren(_) => {
-                        state.write_u8(0u8);
-                    }
-                    MacroDelimiter::Brace(_) => {
-                        state.write_u8(1u8);
-                    }
-                    MacroDelimiter::Bracket(_) => {
-                        state.write_u8(2u8);
-                    }
+                    MacroDelimiter::Paren(_) => state.write_u8(0u8),
+                    MacroDelimiter::Brace(_) => state.write_u8(1u8),
+                    MacroDelimiter::Bracket(_) => state.write_u8(2u8),
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Meta {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39571,7 +38537,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for MetaList {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39581,7 +38547,7 @@ mod gen {
                 self.nested.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for MetaNameValue {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39591,7 +38557,7 @@ mod gen {
                 self.lit.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for MethodTurbofish {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39600,7 +38566,7 @@ mod gen {
                 self.args.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for NestedMeta {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39618,7 +38584,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ParenthesizedGenericArguments {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39628,7 +38594,7 @@ mod gen {
                 self.output.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Pat {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39702,7 +38668,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatBox {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39712,7 +38678,7 @@ mod gen {
                 self.pat.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatIdent {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39725,7 +38691,7 @@ mod gen {
                 self.subpat.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatLit {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39735,7 +38701,7 @@ mod gen {
                 self.expr.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39745,7 +38711,7 @@ mod gen {
                 self.mac.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatOr {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39756,7 +38722,7 @@ mod gen {
                 self.cases.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatPath {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39767,7 +38733,7 @@ mod gen {
                 self.path.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatRange {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39779,7 +38745,7 @@ mod gen {
                 self.hi.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatReference {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39790,7 +38756,7 @@ mod gen {
                 self.pat.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatRest {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39799,7 +38765,7 @@ mod gen {
                 self.attrs.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatSlice {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39809,7 +38775,7 @@ mod gen {
                 self.elems.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatStruct {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39821,7 +38787,7 @@ mod gen {
                 self.dot2_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatTuple {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39831,7 +38797,7 @@ mod gen {
                 self.elems.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatTupleStruct {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39842,7 +38808,7 @@ mod gen {
                 self.pat.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39853,7 +38819,7 @@ mod gen {
                 self.ty.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for PatWild {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39862,7 +38828,7 @@ mod gen {
                 self.attrs.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Path {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39872,16 +38838,14 @@ mod gen {
                 self.segments.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for PathArguments {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    PathArguments::None => {
-                        state.write_u8(0u8);
-                    }
+                    PathArguments::None => state.write_u8(0u8),
                     PathArguments::AngleBracketed(v0) => {
                         state.write_u8(1u8);
                         v0.hash(state);
@@ -39893,7 +38857,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for PathSegment {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39903,7 +38867,7 @@ mod gen {
                 self.arguments.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for PredicateEq {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39913,7 +38877,7 @@ mod gen {
                 self.rhs_ty.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for PredicateLifetime {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39923,7 +38887,7 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for PredicateType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39934,7 +38898,7 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for QSelf {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39945,23 +38909,19 @@ mod gen {
                 self.as_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for RangeLimits {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    RangeLimits::HalfOpen(_) => {
-                        state.write_u8(0u8);
-                    }
-                    RangeLimits::Closed(_) => {
-                        state.write_u8(1u8);
-                    }
+                    RangeLimits::HalfOpen(_) => state.write_u8(0u8),
+                    RangeLimits::Closed(_) => state.write_u8(1u8),
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Receiver {
             fn hash<H>(&self, state: &mut H)
             where
@@ -39972,16 +38932,14 @@ mod gen {
                 self.mutability.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for ReturnType {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    ReturnType::Default => {
-                        state.write_u8(0u8);
-                    }
+                    ReturnType::Default => state.write_u8(0u8),
                     ReturnType::Type(_, v1) => {
                         state.write_u8(1u8);
                         v1.hash(state);
@@ -39989,7 +38947,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Signature {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40006,7 +38964,7 @@ mod gen {
                 self.output.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for Stmt {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40032,7 +38990,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TraitBound {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40044,23 +39002,19 @@ mod gen {
                 self.path.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TraitBoundModifier {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    TraitBoundModifier::None => {
-                        state.write_u8(0u8);
-                    }
-                    TraitBoundModifier::Maybe(_) => {
-                        state.write_u8(1u8);
-                    }
+                    TraitBoundModifier::None => state.write_u8(0u8),
+                    TraitBoundModifier::Maybe(_) => state.write_u8(1u8),
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for TraitItem {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40090,7 +39044,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for TraitItemConst {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40102,7 +39056,7 @@ mod gen {
                 self.default.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for TraitItemMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40113,7 +39067,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for TraitItemMethod {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40125,7 +39079,7 @@ mod gen {
                 self.semi_token.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for TraitItemType {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40139,7 +39093,7 @@ mod gen {
                 self.default.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Type {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40209,7 +39163,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeArray {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40219,7 +39173,7 @@ mod gen {
                 self.len.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeBareFn {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40233,7 +39187,7 @@ mod gen {
                 self.output.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeGroup {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40242,7 +39196,7 @@ mod gen {
                 self.elem.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeImplTrait {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40251,14 +39205,14 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeInfer {
             fn hash<H>(&self, _state: &mut H)
             where
                 H: Hasher,
             {}
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeMacro {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40267,14 +39221,14 @@ mod gen {
                 self.mac.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeNever {
             fn hash<H>(&self, _state: &mut H)
             where
                 H: Hasher,
             {}
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeParam {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40288,7 +39242,7 @@ mod gen {
                 self.default.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeParamBound {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40306,7 +39260,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeParen {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40315,7 +39269,7 @@ mod gen {
                 self.elem.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypePath {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40325,7 +39279,7 @@ mod gen {
                 self.path.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypePtr {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40336,7 +39290,7 @@ mod gen {
                 self.elem.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeReference {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40347,7 +39301,7 @@ mod gen {
                 self.elem.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeSlice {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40356,7 +39310,7 @@ mod gen {
                 self.elem.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeTraitObject {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40366,7 +39320,7 @@ mod gen {
                 self.bounds.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for TypeTuple {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40375,33 +39329,27 @@ mod gen {
                 self.elems.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for UnOp {
             fn hash<H>(&self, state: &mut H)
             where
                 H: Hasher,
             {
                 match self {
-                    UnOp::Deref(_) => {
-                        state.write_u8(0u8);
-                    }
-                    UnOp::Not(_) => {
-                        state.write_u8(1u8);
-                    }
-                    UnOp::Neg(_) => {
-                        state.write_u8(2u8);
-                    }
+                    UnOp::Deref(_) => state.write_u8(0u8),
+                    UnOp::Not(_) => state.write_u8(1u8),
+                    UnOp::Neg(_) => state.write_u8(2u8),
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UseGlob {
             fn hash<H>(&self, _state: &mut H)
             where
                 H: Hasher,
             {}
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UseGroup {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40410,7 +39358,7 @@ mod gen {
                 self.items.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UseName {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40419,7 +39367,7 @@ mod gen {
                 self.ident.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UsePath {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40429,7 +39377,7 @@ mod gen {
                 self.tree.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UseRename {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40439,7 +39387,7 @@ mod gen {
                 self.rename.hash(state);
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Hash for UseTree {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40469,7 +39417,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Variadic {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40478,7 +39426,7 @@ mod gen {
                 self.attrs.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Variant {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40490,21 +39438,21 @@ mod gen {
                 self.discriminant.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for VisCrate {
             fn hash<H>(&self, _state: &mut H)
             where
                 H: Hasher,
             {}
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for VisPublic {
             fn hash<H>(&self, _state: &mut H)
             where
                 H: Hasher,
             {}
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for VisRestricted {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40514,7 +39462,7 @@ mod gen {
                 self.path.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for Visibility {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40533,13 +39481,11 @@ mod gen {
                         state.write_u8(2u8);
                         v0.hash(state);
                     }
-                    Visibility::Inherited => {
-                        state.write_u8(3u8);
-                    }
+                    Visibility::Inherited => state.write_u8(3u8),
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for WhereClause {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40548,7 +39494,7 @@ mod gen {
                 self.predicates.hash(state);
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Hash for WherePredicate {
             fn hash<H>(&self, state: &mut H)
             where
@@ -40571,12 +39517,12 @@ mod gen {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     #[rustfmt::skip]
     mod debug {
         use crate::*;
         use std::fmt::{self, Debug};
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Abi {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Abi");
@@ -40585,7 +39531,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for AngleBracketedGenericArguments {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter
@@ -40597,7 +39543,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Arm {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Arm");
@@ -40610,7 +39556,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for AttrStyle {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -40623,7 +39569,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Attribute {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Attribute");
@@ -40635,7 +39581,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for BareFnArg {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("BareFnArg");
@@ -40645,7 +39591,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for BinOp {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -40792,7 +39738,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Binding {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Binding");
@@ -40802,7 +39748,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Block {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Block");
@@ -40811,7 +39757,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for BoundLifetimes {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("BoundLifetimes");
@@ -40822,7 +39768,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ConstParam {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ConstParam");
@@ -40836,7 +39782,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Constraint {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Constraint");
@@ -40846,7 +39792,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Debug for Data {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -40868,7 +39814,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Debug for DataEnum {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("DataEnum");
@@ -40878,7 +39824,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Debug for DataStruct {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("DataStruct");
@@ -40888,7 +39834,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Debug for DataUnion {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("DataUnion");
@@ -40897,7 +39843,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "derive")]
+        #[cfg]
         impl Debug for DeriveInput {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("DeriveInput");
@@ -40909,35 +39855,35 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Expr {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Array(v0) => {
                         let mut formatter = formatter.debug_tuple("Array");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Assign(v0) => {
                         let mut formatter = formatter.debug_tuple("Assign");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::AssignOp(v0) => {
                         let mut formatter = formatter.debug_tuple("AssignOp");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Async(v0) => {
                         let mut formatter = formatter.debug_tuple("Async");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Await(v0) => {
                         let mut formatter = formatter.debug_tuple("Await");
                         formatter.field(v0);
@@ -40948,19 +39894,19 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Block(v0) => {
                         let mut formatter = formatter.debug_tuple("Block");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Box(v0) => {
                         let mut formatter = formatter.debug_tuple("Box");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Break(v0) => {
                         let mut formatter = formatter.debug_tuple("Break");
                         formatter.field(v0);
@@ -40976,13 +39922,13 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Closure(v0) => {
                         let mut formatter = formatter.debug_tuple("Closure");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Continue(v0) => {
                         let mut formatter = formatter.debug_tuple("Continue");
                         formatter.field(v0);
@@ -40993,19 +39939,19 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::ForLoop(v0) => {
                         let mut formatter = formatter.debug_tuple("ForLoop");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Group(v0) => {
                         let mut formatter = formatter.debug_tuple("Group");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::If(v0) => {
                         let mut formatter = formatter.debug_tuple("If");
                         formatter.field(v0);
@@ -41016,7 +39962,7 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Let(v0) => {
                         let mut formatter = formatter.debug_tuple("Let");
                         formatter.field(v0);
@@ -41027,25 +39973,25 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Loop(v0) => {
                         let mut formatter = formatter.debug_tuple("Loop");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Macro(v0) => {
                         let mut formatter = formatter.debug_tuple("Macro");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Match(v0) => {
                         let mut formatter = formatter.debug_tuple("Match");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::MethodCall(v0) => {
                         let mut formatter = formatter.debug_tuple("MethodCall");
                         formatter.field(v0);
@@ -41061,55 +40007,55 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Range(v0) => {
                         let mut formatter = formatter.debug_tuple("Range");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Reference(v0) => {
                         let mut formatter = formatter.debug_tuple("Reference");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Repeat(v0) => {
                         let mut formatter = formatter.debug_tuple("Repeat");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Return(v0) => {
                         let mut formatter = formatter.debug_tuple("Return");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Struct(v0) => {
                         let mut formatter = formatter.debug_tuple("Struct");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Try(v0) => {
                         let mut formatter = formatter.debug_tuple("Try");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::TryBlock(v0) => {
                         let mut formatter = formatter.debug_tuple("TryBlock");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Tuple(v0) => {
                         let mut formatter = formatter.debug_tuple("Tuple");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Type(v0) => {
                         let mut formatter = formatter.debug_tuple("Type");
                         formatter.field(v0);
@@ -41120,7 +40066,7 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Unsafe(v0) => {
                         let mut formatter = formatter.debug_tuple("Unsafe");
                         formatter.field(v0);
@@ -41131,13 +40077,13 @@ mod gen {
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::While(v0) => {
                         let mut formatter = formatter.debug_tuple("While");
                         formatter.field(v0);
                         formatter.finish()
                     }
-                    #[cfg(feature = "full")]
+                    #[cfg]
                     Expr::Yield(v0) => {
                         let mut formatter = formatter.debug_tuple("Yield");
                         formatter.field(v0);
@@ -41146,7 +40092,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprArray {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprArray");
@@ -41156,7 +40102,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprAssign {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprAssign");
@@ -41167,7 +40113,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprAssignOp {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprAssignOp");
@@ -41178,7 +40124,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprAsync {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprAsync");
@@ -41189,7 +40135,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprAwait {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprAwait");
@@ -41200,7 +40146,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprBinary {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprBinary");
@@ -41211,7 +40157,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprBlock {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprBlock");
@@ -41221,7 +40167,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprBox {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprBox");
@@ -41231,7 +40177,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprBreak {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprBreak");
@@ -41242,7 +40188,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprCall {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprCall");
@@ -41253,7 +40199,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprCast {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprCast");
@@ -41264,7 +40210,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprClosure {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprClosure");
@@ -41280,7 +40226,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprContinue {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprContinue");
@@ -41290,7 +40236,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprField {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprField");
@@ -41301,7 +40247,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprForLoop {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprForLoop");
@@ -41315,7 +40261,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprGroup {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprGroup");
@@ -41325,7 +40271,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprIf {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprIf");
@@ -41337,7 +40283,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprIndex {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprIndex");
@@ -41348,7 +40294,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprLet {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprLet");
@@ -41360,7 +40306,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprLit {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprLit");
@@ -41369,7 +40315,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprLoop {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprLoop");
@@ -41380,7 +40326,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprMacro");
@@ -41389,7 +40335,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprMatch {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprMatch");
@@ -41401,7 +40347,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprMethodCall {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprMethodCall");
@@ -41415,7 +40361,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprParen {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprParen");
@@ -41425,7 +40371,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprPath {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprPath");
@@ -41435,7 +40381,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprRange {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprRange");
@@ -41446,7 +40392,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprReference {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprReference");
@@ -41458,7 +40404,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprRepeat {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprRepeat");
@@ -41470,7 +40416,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprReturn {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprReturn");
@@ -41480,7 +40426,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprStruct {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprStruct");
@@ -41493,7 +40439,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprTry {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprTry");
@@ -41503,7 +40449,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprTryBlock {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprTryBlock");
@@ -41513,7 +40459,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprTuple {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprTuple");
@@ -41523,7 +40469,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprType");
@@ -41534,7 +40480,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ExprUnary {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprUnary");
@@ -41544,7 +40490,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprUnsafe {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprUnsafe");
@@ -41554,7 +40500,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprWhile {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprWhile");
@@ -41566,7 +40512,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ExprYield {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ExprYield");
@@ -41576,7 +40522,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Field {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Field");
@@ -41588,7 +40534,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for FieldPat {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("FieldPat");
@@ -41599,7 +40545,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for FieldValue {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("FieldValue");
@@ -41610,7 +40556,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Fields {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41628,7 +40574,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for FieldsNamed {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("FieldsNamed");
@@ -41637,7 +40583,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for FieldsUnnamed {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("FieldsUnnamed");
@@ -41646,7 +40592,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for File {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("File");
@@ -41656,7 +40602,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for FnArg {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41673,7 +40619,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ForeignItem {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41705,7 +40651,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ForeignItemFn {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ForeignItemFn");
@@ -41716,7 +40662,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ForeignItemMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ForeignItemMacro");
@@ -41726,7 +40672,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ForeignItemStatic {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ForeignItemStatic");
@@ -41741,7 +40687,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ForeignItemType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ForeignItemType");
@@ -41753,7 +40699,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for GenericArgument {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41785,7 +40731,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for GenericMethodArgument {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41802,7 +40748,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for GenericParam {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41824,7 +40770,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Generics {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Generics");
@@ -41835,7 +40781,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ImplItem {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -41867,7 +40813,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ImplItemConst {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ImplItemConst");
@@ -41884,7 +40830,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ImplItemMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ImplItemMacro");
@@ -41894,7 +40840,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ImplItemMethod {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ImplItemMethod");
@@ -41906,7 +40852,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ImplItemType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ImplItemType");
@@ -41922,7 +40868,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Index {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Index");
@@ -41931,7 +40877,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Item {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42023,7 +40969,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemConst {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemConst");
@@ -42039,7 +40985,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemEnum {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemEnum");
@@ -42053,7 +40999,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemExternCrate {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemExternCrate");
@@ -42067,7 +41013,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemFn {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemFn");
@@ -42078,7 +41024,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemForeignMod {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemForeignMod");
@@ -42089,7 +41035,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemImpl {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemImpl");
@@ -42105,7 +41051,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemMacro");
@@ -42116,7 +41062,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemMacro2 {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemMacro2");
@@ -42128,7 +41074,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemMod {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemMod");
@@ -42141,7 +41087,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemStatic {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemStatic");
@@ -42158,7 +41104,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemStruct {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemStruct");
@@ -42172,7 +41118,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemTrait {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemTrait");
@@ -42190,7 +41136,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemTraitAlias {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemTraitAlias");
@@ -42205,7 +41151,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemType");
@@ -42220,7 +41166,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemUnion {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemUnion");
@@ -42233,7 +41179,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for ItemUse {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("ItemUse");
@@ -42246,7 +41192,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Label {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Label");
@@ -42263,7 +41209,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for LifetimeDef {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("LifetimeDef");
@@ -42320,7 +41266,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Local {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Local");
@@ -42332,7 +41278,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Macro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Macro");
@@ -42343,7 +41289,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for MacroDelimiter {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42365,7 +41311,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Member {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42382,7 +41328,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Meta {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42404,7 +41350,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for MetaList {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("MetaList");
@@ -42414,7 +41360,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for MetaNameValue {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("MetaNameValue");
@@ -42424,7 +41370,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for MethodTurbofish {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("MethodTurbofish");
@@ -42435,7 +41381,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for NestedMeta {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42452,7 +41398,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ParenthesizedGenericArguments {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter
@@ -42463,7 +41409,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Pat {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42550,7 +41496,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatBox {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatBox");
@@ -42560,7 +41506,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatIdent {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatIdent");
@@ -42572,7 +41518,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatLit {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatLit");
@@ -42581,7 +41527,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatMacro");
@@ -42590,7 +41536,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatOr {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatOr");
@@ -42600,7 +41546,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatPath {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatPath");
@@ -42610,7 +41556,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatRange {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatRange");
@@ -42621,7 +41567,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatReference {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatReference");
@@ -42632,7 +41578,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatRest {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatRest");
@@ -42641,7 +41587,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatSlice {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatSlice");
@@ -42651,7 +41597,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatStruct {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatStruct");
@@ -42663,7 +41609,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatTuple {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatTuple");
@@ -42673,7 +41619,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatTupleStruct {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatTupleStruct");
@@ -42683,7 +41629,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatType");
@@ -42694,7 +41640,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for PatWild {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PatWild");
@@ -42703,7 +41649,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Path {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Path");
@@ -42712,7 +41658,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for PathArguments {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42730,7 +41676,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for PathSegment {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PathSegment");
@@ -42739,7 +41685,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for PredicateEq {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PredicateEq");
@@ -42749,7 +41695,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for PredicateLifetime {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PredicateLifetime");
@@ -42759,7 +41705,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for PredicateType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("PredicateType");
@@ -42770,7 +41716,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for QSelf {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("QSelf");
@@ -42782,7 +41728,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for RangeLimits {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42799,7 +41745,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Receiver {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Receiver");
@@ -42810,7 +41756,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for ReturnType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42824,7 +41770,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Signature {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Signature");
@@ -42842,7 +41788,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for Stmt {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42870,7 +41816,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TraitBound {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TraitBound");
@@ -42881,7 +41827,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TraitBoundModifier {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42894,7 +41840,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for TraitItem {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -42926,7 +41872,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for TraitItemConst {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TraitItemConst");
@@ -42940,7 +41886,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for TraitItemMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TraitItemMacro");
@@ -42950,7 +41896,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for TraitItemMethod {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TraitItemMethod");
@@ -42961,7 +41907,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for TraitItemType {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TraitItemType");
@@ -42976,7 +41922,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Type {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43058,7 +42004,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeArray {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeArray");
@@ -43069,7 +42015,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeBareFn {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeBareFn");
@@ -43084,7 +42030,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeGroup {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeGroup");
@@ -43093,7 +42039,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeImplTrait {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeImplTrait");
@@ -43102,7 +42048,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeInfer {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeInfer");
@@ -43110,7 +42056,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeMacro {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeMacro");
@@ -43118,7 +42064,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeNever {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeNever");
@@ -43126,7 +42072,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeParam {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeParam");
@@ -43139,7 +42085,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeParamBound {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43156,7 +42102,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeParen {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeParen");
@@ -43165,7 +42111,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypePath {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypePath");
@@ -43174,7 +42120,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypePtr {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypePtr");
@@ -43185,7 +42131,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeReference {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeReference");
@@ -43196,7 +42142,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeSlice {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeSlice");
@@ -43205,7 +42151,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeTraitObject {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeTraitObject");
@@ -43214,7 +42160,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for TypeTuple {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("TypeTuple");
@@ -43223,7 +42169,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for UnOp {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43245,7 +42191,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UseGlob {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("UseGlob");
@@ -43253,7 +42199,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UseGroup {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("UseGroup");
@@ -43262,7 +42208,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UseName {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("UseName");
@@ -43270,7 +42216,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UsePath {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("UsePath");
@@ -43280,7 +42226,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UseRename {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("UseRename");
@@ -43290,7 +42236,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(feature = "full")]
+        #[cfg]
         impl Debug for UseTree {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43322,7 +42268,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Variadic {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Variadic");
@@ -43331,7 +42277,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Variant {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("Variant");
@@ -43342,7 +42288,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for VisCrate {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("VisCrate");
@@ -43350,7 +42296,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for VisPublic {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("VisPublic");
@@ -43358,7 +42304,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for VisRestricted {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("VisRestricted");
@@ -43369,7 +42315,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for Visibility {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43392,7 +42338,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for WhereClause {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 let mut formatter = formatter.debug_struct("WhereClause");
@@ -43401,7 +42347,7 @@ mod gen {
                 formatter.finish()
             }
         }
-        #[cfg(any(feature = "derive", feature = "full"))]
+        #[cfg]
         impl Debug for WherePredicate {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match self {
@@ -43424,10 +42370,10 @@ mod gen {
             }
         }
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
-    #[path = "../gen_helper.rs"]
+    #[cfg]
+    #[path]
     mod helper {
-        #[cfg(feature = "fold")]
+        #[cfg]
         pub mod fold {
             use crate::fold::Fold;
             use crate::punctuated::{Pair, Punctuated};
@@ -43493,7 +42439,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "visit")]
+        #[cfg]
         pub mod visit {
             use crate::visit::Visit;
             use proc_macro2::Span;
@@ -43530,7 +42476,7 @@ mod gen {
                 }
             }
         }
-        #[cfg(feature = "visit-mut")]
+        #[cfg]
         pub mod visit_mut {
             use crate::visit_mut::VisitMut;
             use proc_macro2::Span;
@@ -43570,8 +42516,8 @@ mod gen {
     }
 }
 pub use crate::gen::*;
-#[doc(hidden)]
-#[path = "export.rs"]
+#[doc]
+#[path]
 pub mod __private {
     pub use std::clone::Clone;
     pub use std::cmp::{Eq, PartialEq};
@@ -43581,27 +42527,17 @@ pub mod __private {
     pub use std::marker::Copy;
     pub use std::option::Option::{None, Some};
     pub use std::result::Result::{Err, Ok};
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub extern crate quote;
     pub use proc_macro2::{Span, TokenStream as TokenStream2};
     pub use crate::span::IntoSpans;
-    #[cfg(
-        all(
-            not(
-                all(
-                    target_arch = "wasm32",
-                    any(target_os = "unknown", target_os = "wasi")
-                )
-            ),
-            feature = "proc-macro"
-        )
-    )]
+    #[cfg]
     pub use proc_macro::TokenStream;
-    #[cfg(feature = "printing")]
+    #[cfg]
     pub use quote::{ToTokens, TokenStreamExt};
-    #[allow(non_camel_case_types)]
+    #[allow]
     pub type bool = help::Bool;
-    #[allow(non_camel_case_types)]
+    #[allow]
     pub type str = help::Str;
     mod help {
         pub type Bool = bool;
@@ -43612,7 +42548,7 @@ pub mod __private {
 mod custom_keyword {}
 mod custom_punctuation {}
 mod sealed {
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub mod lookahead {
         pub trait Sealed: Copy {}
     }
@@ -43652,23 +42588,23 @@ mod span {
             self
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub trait FromSpans: Sized {
         fn from_spans(spans: &[Span]) -> Self;
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl FromSpans for [Span; 1] {
         fn from_spans(spans: &[Span]) -> Self {
             [spans[0]]
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl FromSpans for [Span; 2] {
         fn from_spans(spans: &[Span]) -> Self {
             [spans[0], spans[1]]
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     impl FromSpans for [Span; 3] {
         fn from_spans(spans: &[Span]) -> Self {
             [spans[0], spans[1], spans[2]]
@@ -43708,7 +42644,7 @@ mod thread {
         }
     }
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 mod lookahead {
     use crate::buffer::Cursor;
     use crate::error::{self, Error};
@@ -43799,7 +42735,7 @@ mod lookahead {
         }
     }
     pub trait Peek: Sealed {
-        #[doc(hidden)]
+        #[doc]
         type Token: Token;
     }
     impl<F: Copy + FnOnce(TokenMarker) -> T, T: Token> Peek for F {
@@ -43816,9 +42752,9 @@ mod lookahead {
     }
     impl<F: Copy + FnOnce(TokenMarker) -> T, T: Token> Sealed for F {}
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 pub mod parse {
-    #[path = "discouraged.rs"]
+    #[path]
     pub mod discouraged {
         use super::*;
         pub trait Speculative {
@@ -43837,9 +42773,7 @@ pub mod parse {
                 let (fork_unexp, fork_sp) = inner_unexpected(fork);
                 if !Rc::ptr_eq(&self_unexp, &fork_unexp) {
                     match (fork_sp, self_sp) {
-                        (Some(span), None) => {
-                            self_unexp.set(Unexpected::Some(span));
-                        }
+                        (Some(span), None) => self_unexp.set(Unexpected::Some(span)),
                         (None, None) => {
                             fork_unexp.set(Unexpected::Chain(self_unexp));
                             fork.unexpected
@@ -43858,17 +42792,7 @@ pub mod parse {
     use crate::buffer::{Cursor, TokenBuffer};
     use crate::error;
     use crate::lookahead;
-    #[cfg(
-        all(
-            not(
-                all(
-                    target_arch = "wasm32",
-                    any(target_os = "unknown", target_os = "wasi")
-                )
-            ),
-            feature = "proc-macro"
-        )
-    )]
+    #[cfg]
     use crate::proc_macro;
     use crate::punctuated::Punctuated;
     use crate::token::Token;
@@ -43877,7 +42801,7 @@ pub mod parse {
     };
     use std::cell::Cell;
     use std::fmt::{self, Debug, Display};
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::hash::{Hash, Hasher};
     use std::marker::PhantomData;
     use std::mem;
@@ -44162,25 +43086,15 @@ pub mod parse {
     pub trait Parser: Sized {
         type Output;
         fn parse2(self, tokens: TokenStream) -> Result<Self::Output>;
-        #[cfg(
-            all(
-                not(
-                    all(
-                        target_arch = "wasm32",
-                        any(target_os = "unknown", target_os = "wasi")
-                    )
-                ),
-                feature = "proc-macro"
-            )
-        )]
+        #[cfg]
         fn parse(self, tokens: proc_macro::TokenStream) -> Result<Self::Output> {
             self.parse2(proc_macro2::TokenStream::from(tokens))
         }
         fn parse_str(self, s: &str) -> Result<Self::Output> {
             self.parse2(proc_macro2::TokenStream::from_str(s)?)
         }
-        #[doc(hidden)]
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[doc]
+        #[cfg]
         fn __parse_scoped(
             self,
             scope: Span,
@@ -44189,8 +43103,8 @@ pub mod parse {
             let _ = scope;
             self.parse2(tokens)
         }
-        #[doc(hidden)]
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[doc]
+        #[cfg]
         fn __parse_stream(self, input: ParseStream) -> Result<Self::Output> {
             input.parse().and_then(|tokens| self.parse2(tokens))
         }
@@ -44218,7 +43132,7 @@ pub mod parse {
                 Ok(node)
             }
         }
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[cfg]
         fn __parse_scoped(
             self,
             scope: Span,
@@ -44237,12 +43151,12 @@ pub mod parse {
                 Ok(node)
             }
         }
-        #[cfg(any(feature = "full", feature = "derive"))]
+        #[cfg]
         fn __parse_stream(self, input: ParseStream) -> Result<Self::Output> {
             self(input)
         }
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     pub(crate) fn parse_scoped<F: Parser>(
         f: F,
         scope: Span,
@@ -44250,7 +43164,7 @@ pub mod parse {
     ) -> Result<F::Output> {
         f.__parse_scoped(scope, tokens)
     }
-    #[cfg(any(feature = "full", feature = "derive"))]
+    #[cfg]
     pub(crate) fn parse_stream<F: Parser>(
         f: F,
         input: ParseStream,
@@ -44263,30 +43177,30 @@ pub mod parse {
             Ok(Nothing)
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Nothing {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.write_str("Nothing")
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Eq for Nothing {}
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl PartialEq for Nothing {
         fn eq(&self, _other: &Self) -> bool {
             true
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Hash for Nothing {
         fn hash<H: Hasher>(&self, _state: &mut H) {}
     }
 }
-#[cfg(feature = "full")]
+#[cfg]
 mod reserved {
     use proc_macro2::Span;
     use std::marker::PhantomData;
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     use std::fmt::{self, Debug};
     pub struct Reserved {
         _private: PhantomData<Span>,
@@ -44296,7 +43210,7 @@ mod reserved {
             Reserved { _private: PhantomData }
         }
     }
-    #[cfg(feature = "clone-impls")]
+    #[cfg]
     impl Clone for Reserved {
         fn clone(&self) -> Self {
             Reserved {
@@ -44304,14 +43218,14 @@ mod reserved {
             }
         }
     }
-    #[cfg(feature = "extra-traits")]
+    #[cfg]
     impl Debug for Reserved {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.debug_struct("Reserved").finish()
         }
     }
 }
-#[cfg(all(any(feature = "full", feature = "derive"), feature = "parsing"))]
+#[cfg]
 mod verbatim {
     use crate::parse::{ParseBuffer, ParseStream};
     use proc_macro2::TokenStream;
@@ -44328,7 +43242,7 @@ mod verbatim {
         tokens
     }
 }
-#[cfg(all(any(feature = "full", feature = "derive"), feature = "printing"))]
+#[cfg]
 mod print {
     use proc_macro2::TokenStream;
     use quote::ToTokens;
@@ -44345,19 +43259,19 @@ mod print {
         }
     }
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 mod rustdoc_workaround {
     pub use crate::parse::self as parse_module;
 }
 mod error {
-    #[cfg(feature = "parsing")]
+    #[cfg]
     use crate::buffer::Cursor;
     use crate::thread::ThreadBound;
     use proc_macro2::{
         Delimiter, Group, Ident, LexError, Literal, Punct, Spacing, Span, TokenStream,
         TokenTree,
     };
-    #[cfg(feature = "printing")]
+    #[cfg]
     use quote::ToTokens;
     use std::fmt::{self, Debug, Display};
     use std::iter::FromIterator;
@@ -44387,7 +43301,7 @@ mod error {
                 ),
             }
         }
-        #[cfg(feature = "printing")]
+        #[cfg]
         pub fn new_spanned<T: ToTokens, U: Display>(tokens: T, message: U) -> Self {
             let mut iter = tokens.into_token_stream().into_iter();
             let start = iter.next().map_or_else(Span::call_site, |t| t.span());
@@ -44466,7 +43380,7 @@ mod error {
             )
         }
     }
-    #[cfg(feature = "parsing")]
+    #[cfg]
     pub fn new_at<T: Display>(scope: Span, cursor: Cursor, message: T) -> Error {
         if cursor.eof() {
             Error::new(
@@ -44486,7 +43400,7 @@ mod error {
             Error::new(span, message)
         }
     }
-    #[cfg(all(feature = "parsing", any(feature = "full", feature = "derive")))]
+    #[cfg]
     pub fn new2<T: Display>(start: Span, end: Span, message: T) -> Error {
         Error {
             messages: <[_]>::into_vec(
@@ -44599,25 +43513,19 @@ mod error {
     }
 }
 pub use crate::error::{Error, Result};
-#[cfg(
-    all(
-        not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "wasi"))),
-        feature = "parsing",
-        feature = "proc-macro"
-    )
-)]
+#[cfg]
 pub fn parse<T: parse::Parse>(tokens: proc_macro::TokenStream) -> Result<T> {
     parse::Parser::parse(T::parse, tokens)
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 pub fn parse2<T: parse::Parse>(tokens: proc_macro2::TokenStream) -> Result<T> {
     parse::Parser::parse2(T::parse, tokens)
 }
-#[cfg(feature = "parsing")]
+#[cfg]
 pub fn parse_str<T: parse::Parse>(s: &str) -> Result<T> {
     parse::Parser::parse_str(T::parse, s)
 }
-#[cfg(all(feature = "parsing", feature = "full"))]
+#[cfg]
 pub fn parse_file(mut content: &str) -> Result<File> {
     const BOM: &str = "\u{feff}";
     if content.starts_with(BOM) {

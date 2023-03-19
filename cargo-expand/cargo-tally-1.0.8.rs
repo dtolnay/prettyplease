@@ -1,32 +1,12 @@
-#![feature(prelude_import)]
+#![feature]
 #[prelude_import]
 use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
-#[path = "lib.rs"]
+#[path]
 mod lib {
-    #![allow(non_camel_case_types)]
-    #![allow(
-        clippy::borrow_as_ptr,
-        clippy::borrowed_box,
-        clippy::cast_possible_truncation,
-        clippy::cast_precision_loss,
-        clippy::cast_ptr_alignment,
-        clippy::cast_sign_loss,
-        clippy::items_after_statements,
-        clippy::iter_not_returning_iterator,
-        clippy::mismatching_type_param_order,
-        clippy::missing_errors_doc,
-        clippy::missing_panics_doc,
-        clippy::module_name_repetitions,
-        clippy::must_use_candidate,
-        clippy::needless_pass_by_value,
-        clippy::option_if_let_else,
-        clippy::ptr_as_ptr,
-        clippy::significant_drop_in_scrutinee,
-        clippy::too_many_lines,
-        clippy::unseparated_literal_suffix
-    )]
+    #![allow]
+    #![allow]
     #[macro_use]
     mod stream {}
     pub mod arena {
@@ -42,7 +22,7 @@ mod lib {
             contents: &'static [T],
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::Ord + 'static> ::core::cmp::Ord for Slice<T> {
             #[inline]
             fn cmp(&self, other: &Slice<T>) -> ::core::cmp::Ordering {
@@ -64,7 +44,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::PartialOrd + 'static> ::core::cmp::PartialOrd for Slice<T> {
             #[inline]
             fn partial_cmp(
@@ -94,10 +74,10 @@ mod lib {
         }
         impl<T: 'static> ::core::marker::StructuralEq for Slice<T> {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::Eq + 'static> ::core::cmp::Eq for Slice<T> {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -107,7 +87,7 @@ mod lib {
         }
         impl<T: 'static> ::core::marker::StructuralPartialEq for Slice<T> {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::PartialEq + 'static> ::core::cmp::PartialEq for Slice<T> {
             #[inline]
             fn eq(&self, other: &Slice<T>) -> bool {
@@ -135,7 +115,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::hash::Hash + 'static> ::core::hash::Hash for Slice<T> {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -283,7 +263,7 @@ mod lib {
                 self.inspect_batch(move |_timestamp, slice| {
                     out.lock()
                         .unwrap_or_else(PoisonError::into_inner)
-                        .extend_from_slice(slice);
+                        .extend_from_slice(slice)
                 });
             }
         }
@@ -1691,10 +1671,10 @@ mod lib {
             Dev,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for DependencyKind {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for DependencyKind {
             #[inline]
             fn clone(&self) -> DependencyKind {
@@ -1702,7 +1682,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for DependencyKind {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match (&*self,) {
@@ -1735,13 +1715,13 @@ mod lib {
         use crate::id::{CrateId, VersionId};
         use std::collections::BTreeMap as Map;
         use std::convert::TryFrom;
-        #[repr(transparent)]
+        #[repr]
         pub struct FeatureId(pub u32);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for FeatureId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for FeatureId {
             #[inline]
             fn clone(&self) -> FeatureId {
@@ -1752,7 +1732,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for FeatureId {
             #[inline]
             fn cmp(&self, other: &FeatureId) -> ::core::cmp::Ordering {
@@ -1774,7 +1754,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for FeatureId {
             #[inline]
             fn partial_cmp(
@@ -1804,10 +1784,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for FeatureId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for FeatureId {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -1817,7 +1797,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for FeatureId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for FeatureId {
             #[inline]
             fn eq(&self, other: &FeatureId) -> bool {
@@ -1841,7 +1821,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for FeatureId {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -1852,7 +1832,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for FeatureId {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -1880,10 +1860,10 @@ mod lib {
             pub feature_id: FeatureId,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for CrateFeature {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for CrateFeature {
             #[inline]
             fn clone(&self) -> CrateFeature {
@@ -1895,7 +1875,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for CrateFeature {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -1924,10 +1904,10 @@ mod lib {
             pub feature_id: FeatureId,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for VersionFeature {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for VersionFeature {
             #[inline]
             fn clone(&self) -> VersionFeature {
@@ -1939,7 +1919,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for VersionFeature {
             #[inline]
             fn cmp(&self, other: &VersionFeature) -> ::core::cmp::Ordering {
@@ -1972,7 +1952,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for VersionFeature {
             #[inline]
             fn partial_cmp(
@@ -2015,10 +1995,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for VersionFeature {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for VersionFeature {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2029,7 +2009,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for VersionFeature {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for VersionFeature {
             #[inline]
             fn eq(&self, other: &VersionFeature) -> bool {
@@ -2065,7 +2045,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for VersionFeature {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -2077,7 +2057,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for VersionFeature {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2103,10 +2083,10 @@ mod lib {
         }
         pub struct DefaultFeatures(pub bool);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for DefaultFeatures {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for DefaultFeatures {
             #[inline]
             fn clone(&self) -> DefaultFeatures {
@@ -2117,7 +2097,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for DefaultFeatures {
             #[inline]
             fn cmp(&self, other: &DefaultFeatures) -> ::core::cmp::Ordering {
@@ -2139,7 +2119,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for DefaultFeatures {
             #[inline]
             fn partial_cmp(
@@ -2169,10 +2149,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for DefaultFeatures {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for DefaultFeatures {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2182,7 +2162,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for DefaultFeatures {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for DefaultFeatures {
             #[inline]
             fn eq(&self, other: &DefaultFeatures) -> bool {
@@ -2206,7 +2186,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for DefaultFeatures {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2317,7 +2297,7 @@ mod lib {
         use differential_dataflow::collection::Collection;
         use differential_dataflow::difference::Semigroup;
         use timely::dataflow::Scope;
-        #[allow(non_snake_case)]
+        #[allow]
         pub(crate) trait TypeHint: Sized {
             type Element;
             fn T<D>(self) -> Self
@@ -2349,13 +2329,13 @@ mod lib {
         }
     }
     pub mod id {
-        #[repr(transparent)]
+        #[repr]
         pub struct QueryId(pub u8);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for QueryId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for QueryId {
             #[inline]
             fn clone(&self) -> QueryId {
@@ -2366,7 +2346,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for QueryId {
             #[inline]
             fn cmp(&self, other: &QueryId) -> ::core::cmp::Ordering {
@@ -2388,7 +2368,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for QueryId {
             #[inline]
             fn partial_cmp(
@@ -2418,10 +2398,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for QueryId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for QueryId {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2431,7 +2411,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for QueryId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for QueryId {
             #[inline]
             fn eq(&self, other: &QueryId) -> bool {
@@ -2455,7 +2435,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for QueryId {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -2466,7 +2446,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for QueryId {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2484,13 +2464,13 @@ mod lib {
                 }
             }
         }
-        #[repr(transparent)]
+        #[repr]
         pub struct CrateId(pub u32);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for CrateId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for CrateId {
             #[inline]
             fn clone(&self) -> CrateId {
@@ -2501,7 +2481,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for CrateId {
             #[inline]
             fn cmp(&self, other: &CrateId) -> ::core::cmp::Ordering {
@@ -2523,7 +2503,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for CrateId {
             #[inline]
             fn partial_cmp(
@@ -2553,10 +2533,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for CrateId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for CrateId {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2566,7 +2546,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for CrateId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for CrateId {
             #[inline]
             fn eq(&self, other: &CrateId) -> bool {
@@ -2590,7 +2570,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for CrateId {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -2601,7 +2581,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for CrateId {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2619,13 +2599,13 @@ mod lib {
                 }
             }
         }
-        #[repr(transparent)]
+        #[repr]
         pub struct VersionId(pub u32);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for VersionId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for VersionId {
             #[inline]
             fn clone(&self) -> VersionId {
@@ -2636,7 +2616,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for VersionId {
             #[inline]
             fn cmp(&self, other: &VersionId) -> ::core::cmp::Ordering {
@@ -2658,7 +2638,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for VersionId {
             #[inline]
             fn partial_cmp(
@@ -2688,10 +2668,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for VersionId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for VersionId {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2701,7 +2681,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for VersionId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for VersionId {
             #[inline]
             fn eq(&self, other: &VersionId) -> bool {
@@ -2725,7 +2705,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for VersionId {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -2736,7 +2716,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for VersionId {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2754,13 +2734,13 @@ mod lib {
                 }
             }
         }
-        #[repr(transparent)]
+        #[repr]
         pub struct DependencyId(pub u32);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for DependencyId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for DependencyId {
             #[inline]
             fn clone(&self) -> DependencyId {
@@ -2771,7 +2751,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for DependencyId {
             #[inline]
             fn cmp(&self, other: &DependencyId) -> ::core::cmp::Ordering {
@@ -2793,7 +2773,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for DependencyId {
             #[inline]
             fn partial_cmp(
@@ -2823,10 +2803,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for DependencyId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for DependencyId {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -2836,7 +2816,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for DependencyId {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for DependencyId {
             #[inline]
             fn eq(&self, other: &DependencyId) -> bool {
@@ -2860,7 +2840,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for DependencyId {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -2871,7 +2851,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for DependencyId {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -2968,15 +2948,15 @@ mod lib {
             queries: usize,
             rows: Vec<(NaiveDateTime, Vec<u32>)>,
         }
-        #[repr(transparent)]
+        #[repr]
         pub struct Row([u32]);
         impl ::ref_cast::RefCast for Row {
             type From = [u32];
             #[inline]
             fn ref_cast(_from: &Self::From) -> &Self {
-                #[cfg(debug_assertions)]
+                #[cfg]
                 {
-                    #[allow(unused_imports)]
+                    #[allow]
                     use ::ref_cast::private::LayoutUnsized;
                     ::ref_cast::private::assert_layout::<
                         Self,
@@ -2993,9 +2973,9 @@ mod lib {
             }
             #[inline]
             fn ref_cast_mut(_from: &mut Self::From) -> &mut Self {
-                #[cfg(debug_assertions)]
+                #[cfg]
                 {
-                    #[allow(unused_imports)]
+                    #[allow]
                     use ::ref_cast::private::LayoutUnsized;
                     ::ref_cast::private::assert_layout::<
                         Self,
@@ -3143,7 +3123,7 @@ mod lib {
             value: T,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::clone::Clone> ::core::clone::Clone for Max<T> {
             #[inline]
             fn clone(&self) -> Max<T> {
@@ -3157,7 +3137,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::Ord> ::core::cmp::Ord for Max<T> {
             #[inline]
             fn cmp(&self, other: &Max<T>) -> ::core::cmp::Ordering {
@@ -3179,7 +3159,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::PartialOrd> ::core::cmp::PartialOrd for Max<T> {
             #[inline]
             fn partial_cmp(
@@ -3209,10 +3189,10 @@ mod lib {
         }
         impl<T> ::core::marker::StructuralEq for Max<T> {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::Eq> ::core::cmp::Eq for Max<T> {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -3222,7 +3202,7 @@ mod lib {
         }
         impl<T> ::core::marker::StructuralPartialEq for Max<T> {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::cmp::PartialEq> ::core::cmp::PartialEq for Max<T> {
             #[inline]
             fn eq(&self, other: &Max<T>) -> bool {
@@ -3250,7 +3230,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl<T: ::core::fmt::Debug> ::core::fmt::Debug for Max<T> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -3300,7 +3280,7 @@ mod lib {
         use std::ops::{AddAssign, Mul};
         pub(crate) struct Present;
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Present {
             #[inline]
             fn clone(&self) -> Present {
@@ -3310,7 +3290,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for Present {
             #[inline]
             fn cmp(&self, other: &Present) -> ::core::cmp::Ordering {
@@ -3324,7 +3304,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for Present {
             #[inline]
             fn partial_cmp(
@@ -3344,10 +3324,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for Present {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for Present {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {}
@@ -3355,7 +3335,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for Present {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for Present {
             #[inline]
             fn eq(&self, other: &Present) -> bool {
@@ -3369,7 +3349,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::fmt::Debug for Present {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match *self {
@@ -3415,13 +3395,13 @@ mod lib {
         use std::fmt::{self, Debug, Display};
         use timely::order::{PartialOrder, TotalOrder};
         use timely::progress::timestamp::{PathSummary, Refines, Timestamp};
-        #[repr(transparent)]
+        #[repr]
         pub struct NaiveDateTime(chrono::NaiveDateTime);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for NaiveDateTime {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for NaiveDateTime {
             #[inline]
             fn clone(&self) -> NaiveDateTime {
@@ -3432,7 +3412,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for NaiveDateTime {
             #[inline]
             fn cmp(&self, other: &NaiveDateTime) -> ::core::cmp::Ordering {
@@ -3454,7 +3434,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for NaiveDateTime {
             #[inline]
             fn partial_cmp(
@@ -3484,10 +3464,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for NaiveDateTime {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for NaiveDateTime {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -3497,7 +3477,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for NaiveDateTime {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for NaiveDateTime {
             #[inline]
             fn eq(&self, other: &NaiveDateTime) -> bool {
@@ -3521,7 +3501,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for NaiveDateTime {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -3531,13 +3511,13 @@ mod lib {
                 }
             }
         }
-        #[repr(transparent)]
+        #[repr]
         pub struct Duration(chrono::Duration);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for Duration {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Duration {
             #[inline]
             fn clone(&self) -> Duration {
@@ -3548,7 +3528,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for Duration {
             #[inline]
             fn cmp(&self, other: &Duration) -> ::core::cmp::Ordering {
@@ -3570,7 +3550,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for Duration {
             #[inline]
             fn partial_cmp(
@@ -3600,10 +3580,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for Duration {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for Duration {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -3613,7 +3593,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for Duration {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for Duration {
             #[inline]
             fn eq(&self, other: &Duration) -> bool {
@@ -3696,9 +3676,9 @@ mod lib {
             fn to_inner(_other: ()) -> Self {
                 Self::minimum()
             }
-            #[allow(clippy::unused_unit)]
+            #[allow]
             fn to_outer(self) -> () {}
-            #[allow(clippy::unused_unit)]
+            #[allow]
             fn summarize(_path: <Self as Timestamp>::Summary) -> () {}
         }
         impl PartialOrder for Duration {
@@ -3744,7 +3724,7 @@ mod lib {
         use std::str::FromStr;
         pub struct Version(pub semver::Version);
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for Version {
             #[inline]
             fn clone(&self) -> Version {
@@ -3756,7 +3736,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Ord for Version {
             #[inline]
             fn cmp(&self, other: &Version) -> ::core::cmp::Ordering {
@@ -3778,7 +3758,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialOrd for Version {
             #[inline]
             fn partial_cmp(
@@ -3808,10 +3788,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for Version {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for Version {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -3821,7 +3801,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for Version {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for Version {
             #[inline]
             fn eq(&self, other: &Version) -> bool {
@@ -3845,7 +3825,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for Version {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -3859,10 +3839,10 @@ mod lib {
             pub comparators: Slice<Comparator>,
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::marker::Copy for VersionReq {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::clone::Clone for VersionReq {
             #[inline]
             fn clone(&self) -> VersionReq {
@@ -3874,10 +3854,10 @@ mod lib {
         }
         impl ::core::marker::StructuralEq for VersionReq {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::Eq for VersionReq {
             #[inline]
-            #[doc(hidden)]
+            #[doc]
             #[no_coverage]
             fn assert_receiver_is_total_eq(&self) -> () {
                 {
@@ -3887,7 +3867,7 @@ mod lib {
         }
         impl ::core::marker::StructuralPartialEq for VersionReq {}
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::cmp::PartialEq for VersionReq {
             #[inline]
             fn eq(&self, other: &VersionReq) -> bool {
@@ -3915,7 +3895,7 @@ mod lib {
             }
         }
         #[automatically_derived]
-        #[allow(unused_qualifications)]
+        #[allow]
         impl ::core::hash::Hash for VersionReq {
             fn hash<__H: ::core::hash::Hasher>(&self, state: &mut __H) -> () {
                 match *self {
@@ -4166,18 +4146,18 @@ mod lib {
             };
             if cmp.major > 0 {
                 if ver.minor != minor {
-                    return ver.minor > minor;
+                    return ver.minor > minor
                 } else if ver.patch != patch {
-                    return ver.patch > patch;
+                    return ver.patch > patch
                 }
             } else if minor > 0 {
                 if ver.minor != minor {
-                    return false;
+                    return false
                 } else if ver.patch != patch {
-                    return ver.patch > patch;
+                    return ver.patch > patch
                 }
             } else if ver.minor != minor || ver.patch != patch {
-                return false;
+                return false
             }
             ver.pre >= cmp.pre
         }
@@ -4225,7 +4205,7 @@ mod lib {
         pub features: Slice<(FeatureId, Slice<CrateFeature>)>,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for Release {
         #[inline]
         fn clone(&self) -> Release {
@@ -4249,7 +4229,7 @@ mod lib {
         }
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Release {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -4305,10 +4285,10 @@ mod lib {
         pub kind: DependencyKind,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::marker::Copy for Dependency {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for Dependency {
         #[inline]
         fn clone(&self) -> Dependency {
@@ -4326,7 +4306,7 @@ mod lib {
         }
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Dependency {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -4394,10 +4374,10 @@ mod lib {
         pub predicates: Slice<Predicate>,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::marker::Copy for Query {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for Query {
         #[inline]
         fn clone(&self) -> Query {
@@ -4409,7 +4389,7 @@ mod lib {
         }
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Query {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -4438,10 +4418,10 @@ mod lib {
         pub req: Option<VersionReq>,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::marker::Copy for Predicate {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::clone::Clone for Predicate {
         #[inline]
         fn clone(&self) -> Predicate {
@@ -4453,7 +4433,7 @@ mod lib {
         }
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Predicate {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -4964,9 +4944,9 @@ mod lib {
             }
             let cell = &mut values[query_id.0 as usize];
             if diff > 0 {
-                *cell += diff as u32;
+                *cell += diff as u32
             } else {
-                *cell = cell.checked_sub(-diff as u32).expect("value went negative");
+                *cell = cell.checked_sub(-diff as u32).expect("value went negative")
             }
         }
         if match matrix.iter().next_back() {
@@ -4978,5 +4958,5 @@ mod lib {
         matrix
     }
 }
-#[doc(hidden)]
+#[doc]
 pub use crate::lib::*;

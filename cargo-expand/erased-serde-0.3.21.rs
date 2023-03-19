@@ -1,22 +1,13 @@
-#![feature(prelude_import)]
-#![doc(html_root_url = "https://docs.rs/erased-serde/0.3.21")]
-#![deny(unsafe_op_in_unsafe_fn)]
-#![allow(
-    clippy::derive_partial_eq_without_eq,
-    clippy::items_after_statements,
-    clippy::manual_map,
-    clippy::missing_errors_doc,
-    clippy::needless_doctest_main,
-    clippy::semicolon_if_nothing_returned,
-    clippy::unused_self,
-    clippy::wildcard_imports
-)]
+#![feature]
+#![doc]
+#![deny]
+#![allow]
 #[prelude_import]
 use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
 mod alloc {
-    #[cfg(feature = "std")]
+    #[cfg]
     use std as alloc;
     pub use self::alloc::borrow::ToOwned;
     pub use self::alloc::boxed::Box;
@@ -28,7 +19,7 @@ mod macros {}
 mod any {
     use crate::alloc::Box;
     use core::mem;
-    #[cfg(not(no_maybe_uninit))]
+    #[cfg]
     use core::mem::MaybeUninit;
     use core::ptr;
     pub struct Any {
@@ -65,7 +56,7 @@ mod any {
                 }
                 drop = ptr_drop::<T>;
             };
-            #[cfg(not(feature = "unstable-debug"))] { Any { value, drop, fingerprint } }
+            #[cfg] { Any { value, drop, fingerprint } }
         }
         pub(crate) unsafe fn view<T>(&mut self) -> &mut T {
             if true && self.fingerprint != Fingerprint::of::<T>() {
@@ -94,7 +85,7 @@ mod any {
                 *box_t
             }
         }
-        #[cfg(not(feature = "unstable-debug"))]
+        #[cfg]
         fn invalid_cast_to<T>(&self) -> ! {
             {
                 ::std::rt::begin_panic(
@@ -113,7 +104,7 @@ mod any {
         align: usize,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Fingerprint {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -139,10 +130,10 @@ mod any {
     }
     impl ::core::marker::StructuralEq for Fingerprint {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::cmp::Eq for Fingerprint {
         #[inline]
-        #[doc(hidden)]
+        #[doc]
         #[no_coverage]
         fn assert_receiver_is_total_eq(&self) -> () {
             {
@@ -153,7 +144,7 @@ mod any {
     }
     impl ::core::marker::StructuralPartialEq for Fingerprint {}
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::cmp::PartialEq for Fingerprint {
         #[inline]
         fn eq(&self, other: &Fingerprint) -> bool {
@@ -366,11 +357,11 @@ mod de {
         fn erased_visit_char(&mut self, v: char) -> Result<Out, Error>;
         fn erased_visit_str(&mut self, v: &str) -> Result<Out, Error>;
         fn erased_visit_borrowed_str(&mut self, v: &'de str) -> Result<Out, Error>;
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn erased_visit_string(&mut self, v: String) -> Result<Out, Error>;
         fn erased_visit_bytes(&mut self, v: &[u8]) -> Result<Out, Error>;
         fn erased_visit_borrowed_bytes(&mut self, v: &'de [u8]) -> Result<Out, Error>;
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn erased_visit_byte_buf(&mut self, v: Vec<u8>) -> Result<Out, Error>;
         fn erased_visit_none(&mut self) -> Result<Out, Error>;
         fn erased_visit_some(
@@ -768,7 +759,7 @@ mod de {
         fn erased_visit_borrowed_str(&mut self, v: &'de str) -> Result<Out, Error> {
             unsafe { self.take().visit_borrowed_str(v).unsafe_map(Out::new) }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn erased_visit_string(&mut self, v: String) -> Result<Out, Error> {
             unsafe { self.take().visit_string(v).unsafe_map(Out::new) }
         }
@@ -778,7 +769,7 @@ mod de {
         fn erased_visit_borrowed_bytes(&mut self, v: &'de [u8]) -> Result<Out, Error> {
             unsafe { self.take().visit_borrowed_bytes(v).unsafe_map(Out::new) }
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn erased_visit_byte_buf(&mut self, v: Vec<u8>) -> Result<Out, Error> {
             unsafe { self.take().visit_byte_buf(v).unsafe_map(Out::new) }
         }
@@ -3764,7 +3755,7 @@ mod de {
         {
             self.erased_visit_borrowed_str(v).map_err(unerase)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn visit_string<E>(self, v: String) -> Result<Out, E>
         where
             E: serde::de::Error,
@@ -3783,7 +3774,7 @@ mod de {
         {
             self.erased_visit_borrowed_bytes(v).map_err(unerase)
         }
-        #[cfg(any(feature = "std", feature = "alloc"))]
+        #[cfg]
         fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Out, E>
         where
             E: serde::de::Error,
@@ -4990,7 +4981,7 @@ mod error {
         msg: String,
     }
     #[automatically_derived]
-    #[allow(unused_qualifications)]
+    #[allow]
     impl ::core::fmt::Debug for Error {
         fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
             match *self {
@@ -7129,7 +7120,7 @@ mod ser {
 pub use crate::de::{deserialize, Deserializer};
 pub use crate::error::{Error, Result};
 pub use crate::ser::{serialize, Serialize, Serializer};
-#[doc(hidden)]
+#[doc]
 pub mod private {
     pub use core::marker::{Send, Sized, Sync};
     pub use core::result::Result;
