@@ -1225,15 +1225,12 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
 
 fn is_short_ident(expr: &Expr) -> bool {
     if let Expr::Path(expr) = expr {
-        if expr.attrs.is_empty()
+        return expr.attrs.is_empty()
             && expr.qself.is_none()
             && expr.path.leading_colon.is_none()
             && expr.path.segments.len() == 1
             && expr.path.segments[0].ident.to_string().len() as isize <= INDENT
-            && expr.path.segments[0].arguments.is_none()
-        {
-            return true;
-        }
+            && expr.path.segments[0].arguments.is_none();
     }
     false
 }
