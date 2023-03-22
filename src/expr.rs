@@ -666,23 +666,10 @@ impl Printer {
 
     fn expr_unsafe(&mut self, expr: &ExprUnsafe) {
         self.outer_attrs(&expr.attrs);
-        self.word("unsafe {");
+        self.word("unsafe ");
         self.cbox(INDENT);
-        self.space_if_nonempty();
-        self.inner_attrs(&expr.attrs);
-        for stmt in expr.block.stmts.iter().delimited() {
-            if stmt.is_first && stmt.is_last {
-                if let Stmt::Expr(expr) = &*stmt {
-                    self.expr(expr);
-                    self.space();
-                    continue;
-                }
-            }
-            self.stmt(&stmt);
-        }
-        self.offset(-INDENT);
+        self.small_block(&expr.block, &expr.attrs);
         self.end();
-        self.word("}");
     }
 
     #[cfg(not(feature = "verbatim"))]
