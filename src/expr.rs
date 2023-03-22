@@ -1070,6 +1070,40 @@ pub fn requires_terminator(expr: &Expr) -> bool {
         | Expr::ForLoop(_)
         | Expr::Async(_)
         | Expr::TryBlock(_) => false,
+
+        Expr::Array(_)
+        | Expr::Assign(_)
+        | Expr::AssignOp(_)
+        | Expr::Await(_)
+        | Expr::Binary(_)
+        | Expr::Box(_)
+        | Expr::Break(_)
+        | Expr::Call(_)
+        | Expr::Cast(_)
+        | Expr::Closure(_)
+        | Expr::Continue(_)
+        | Expr::Field(_)
+        | Expr::Group(_)
+        | Expr::Index(_)
+        | Expr::Let(_)
+        | Expr::Lit(_)
+        | Expr::Macro(_)
+        | Expr::MethodCall(_)
+        | Expr::Paren(_)
+        | Expr::Path(_)
+        | Expr::Range(_)
+        | Expr::Reference(_)
+        | Expr::Repeat(_)
+        | Expr::Return(_)
+        | Expr::Struct(_)
+        | Expr::Try(_)
+        | Expr::Tuple(_)
+        | Expr::Type(_)
+        | Expr::Unary(_)
+        | Expr::Verbatim(_)
+        | Expr::Yield(_) => true,
+
+        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => true,
     }
 }
@@ -1102,6 +1136,35 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
             contains_exterior_struct_lit(e)
         }
 
+        Expr::Array(_)
+        | Expr::Async(_)
+        | Expr::Block(_)
+        | Expr::Break(_)
+        | Expr::Call(_)
+        | Expr::Closure(_)
+        | Expr::Continue(_)
+        | Expr::ForLoop(_)
+        | Expr::Group(_)
+        | Expr::If(_)
+        | Expr::Let(_)
+        | Expr::Lit(_)
+        | Expr::Loop(_)
+        | Expr::Macro(_)
+        | Expr::Match(_)
+        | Expr::Paren(_)
+        | Expr::Path(_)
+        | Expr::Range(_)
+        | Expr::Repeat(_)
+        | Expr::Return(_)
+        | Expr::Try(_)
+        | Expr::TryBlock(_)
+        | Expr::Tuple(_)
+        | Expr::Unsafe(_)
+        | Expr::Verbatim(_)
+        | Expr::While(_)
+        | Expr::Yield(_) => false,
+
+        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
@@ -1185,6 +1248,41 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::TryBlock(ExprTryBlock { attrs, .. })
         | Expr::Tuple(ExprTuple { attrs, .. })
         | Expr::Unsafe(ExprUnsafe { attrs, .. }) => !attr::has_outer(attrs),
+
+        Expr::Assign(_)
+        | Expr::AssignOp(_)
+        | Expr::Await(_)
+        | Expr::Binary(_)
+        | Expr::Box(_)
+        | Expr::Break(_)
+        | Expr::Call(_)
+        | Expr::Cast(_)
+        | Expr::Continue(_)
+        | Expr::Field(_)
+        | Expr::ForLoop(_)
+        | Expr::Group(_)
+        | Expr::If(_)
+        | Expr::Index(_)
+        | Expr::Let(_)
+        | Expr::Lit(_)
+        | Expr::Loop(_)
+        | Expr::Macro(_)
+        | Expr::Match(_)
+        | Expr::MethodCall(_)
+        | Expr::Paren(_)
+        | Expr::Path(_)
+        | Expr::Range(_)
+        | Expr::Reference(_)
+        | Expr::Repeat(_)
+        | Expr::Return(_)
+        | Expr::Try(_)
+        | Expr::Type(_)
+        | Expr::Unary(_)
+        | Expr::Verbatim(_)
+        | Expr::While(_)
+        | Expr::Yield(_) => false,
+
+        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
