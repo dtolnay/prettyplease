@@ -953,8 +953,11 @@ impl Printer {
     }
 
     fn static_mutability(&mut self, mutability: &StaticMutability) {
-        if let StaticMutability::Mut(_) = mutability {
-            self.word("mut ");
+        match mutability {
+            StaticMutability::Mut(_) => self.word("mut "),
+            StaticMutability::None => {}
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown StaticMutability"),
         }
     }
 }
