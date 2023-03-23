@@ -364,13 +364,15 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn item_verbatim(&mut self, tokens: &TokenStream) {
+        use proc_macro2::Ident;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
-        use syn::{braced, Attribute, Token, Visibility};
+        use syn::{braced, Attribute, Expr, Token, Visibility};
 
         enum ItemVerbatim {
             Empty,
             FnSignature(FnSignature),
+            StaticUntyped(StaticUntyped),
             UseBrace(UseBrace),
         }
 
@@ -378,6 +380,14 @@ impl Printer {
             attrs: Vec<Attribute>,
             vis: Visibility,
             sig: Signature,
+        }
+
+        struct StaticUntyped {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            mutability: StaticMutability,
+            ident: Ident,
+            expr: Expr,
         }
 
         struct UseBrace {
@@ -419,6 +429,20 @@ impl Printer {
                     let sig: Signature = input.parse()?;
                     input.parse::<Token![;]>()?;
                     Ok(ItemVerbatim::FnSignature(FnSignature { attrs, vis, sig }))
+                } else if lookahead.peek(Token![static]) {
+                    input.parse::<Token![static]>()?;
+                    let mutability: StaticMutability = input.parse()?;
+                    let ident = input.parse()?;
+                    input.parse::<Token![=]>()?;
+                    let expr: Expr = input.parse()?;
+                    input.parse::<Token![;]>()?;
+                    Ok(ItemVerbatim::StaticUntyped(StaticUntyped {
+                        attrs,
+                        vis,
+                        mutability,
+                        ident,
+                        expr,
+                    }))
                 } else if lookahead.peek(Token![use]) {
                     input.parse::<Token![use]>()?;
                     let content;
@@ -445,6 +469,21 @@ impl Printer {
                 self.visibility(&item.vis);
                 self.signature(&item.sig);
                 self.where_clause_semi(&item.sig.generics.where_clause);
+                self.end();
+            }
+            ItemVerbatim::StaticUntyped(item) => {
+                self.outer_attrs(&item.attrs);
+                self.cbox(0);
+                self.visibility(&item.vis);
+                self.word("static ");
+                if let StaticMutability::Mut(_) = item.mutability {
+                    self.word("mut ");
+                }
+                self.ident(&item.ident);
+                self.word(" = ");
+                self.neverbreak();
+                self.expr(&item.expr);
+                self.word(";");
                 self.end();
             }
             ItemVerbatim::UseBrace(item) => {
