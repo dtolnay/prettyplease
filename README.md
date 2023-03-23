@@ -167,7 +167,7 @@ from rustfmt-formatted code.
 
 ```rust
 // [dependencies]
-// prettyplease = "0.1"
+// prettyplease = "0.2"
 // syn = { version = "2", default-features = false, features = ["full", "parsing"] }
 
 const INPUT: &str = stringify! {
