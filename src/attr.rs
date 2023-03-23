@@ -1,8 +1,8 @@
 use crate::algorithm::Printer;
 use crate::path::PathKind;
 use crate::INDENT;
-use proc_macro2::{Delimiter, TokenStream, TokenTree};
-use syn::{AttrStyle, Attribute, Lit};
+use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
+use syn::{AttrStyle, Attribute, Expr, Lit, MacroDelimiter, Meta, MetaList, MetaNameValue};
 
 impl Printer {
     pub fn outer_attrs(&mut self, attrs: &[Attribute]) {
@@ -75,10 +75,34 @@ impl Printer {
             AttrStyle::Inner(_) => "#!",
         });
         self.word("[");
-        self.path(&attr.path, PathKind::Simple);
-        self.attr_tokens(attr.tokens.clone());
+        self.meta(&attr.meta);
         self.word("]");
         self.space();
+    }
+
+    fn meta(&mut self, meta: &Meta) {
+        match meta {
+            Meta::Path(path) => self.path(path, PathKind::Simple),
+            Meta::List(meta) => self.meta_list(meta),
+            Meta::NameValue(meta) => self.meta_name_value(meta),
+        }
+    }
+
+    fn meta_list(&mut self, meta: &MetaList) {
+        self.path(&meta.path, PathKind::Simple);
+        let delimiter = match meta.delimiter {
+            MacroDelimiter::Paren(_) => Delimiter::Parenthesis,
+            MacroDelimiter::Brace(_) => Delimiter::Brace,
+            MacroDelimiter::Bracket(_) => Delimiter::Bracket,
+        };
+        let group = Group::new(delimiter, meta.tokens.clone());
+        self.attr_tokens(TokenStream::from(TokenTree::Group(group)));
+    }
+
+    fn meta_name_value(&mut self, meta: &MetaNameValue) {
+        self.path(&meta.path, PathKind::Simple);
+        self.word(" = ");
+        self.expr(&meta.value);
     }
 
     fn attr_tokens(&mut self, tokens: TokenStream) {
@@ -185,26 +209,15 @@ impl Printer {
 }
 
 fn value_of_attribute(requested: &str, attr: &Attribute) -> Option<String> {
-    let is_doc = attr.path.leading_colon.is_none()
-        && attr.path.segments.len() == 1
-        && attr.path.segments[0].arguments.is_none()
-        && attr.path.segments[0].ident == requested;
-    if !is_doc {
-        return None;
-    }
-    let mut tokens = attr.tokens.clone().into_iter();
-    match tokens.next() {
-        Some(TokenTree::Punct(punct)) if punct.as_char() == '=' => {}
-        _ => return None,
-    }
-    let literal = match tokens.next() {
-        Some(TokenTree::Literal(literal)) => literal,
+    let value = match &attr.meta {
+        Meta::NameValue(meta) if meta.path.is_ident(requested) => &meta.value,
         _ => return None,
     };
-    if tokens.next().is_some() {
-        return None;
-    }
-    match Lit::new(literal) {
+    let lit = match value {
+        Expr::Lit(expr) if expr.attrs.is_empty() => &expr.lit,
+        _ => return None,
+    };
+    match lit {
         Lit::Str(string) => Some(string.value()),
         _ => None,
     }

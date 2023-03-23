@@ -5,11 +5,11 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use syn::{
     Fields, FnArg, ForeignItem, ForeignItemFn, ForeignItemMacro, ForeignItemStatic,
-    ForeignItemType, ImplItem, ImplItemConst, ImplItemMacro, ImplItemMethod, ImplItemType, Item,
-    ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMacro2,
-    ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Pat,
-    Receiver, Signature, Stmt, TraitItem, TraitItemConst, TraitItemMacro, TraitItemMethod,
-    TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree,
+    ForeignItemType, ImplItem, ImplItemConst, ImplItemFn, ImplItemMacro, ImplItemType, Item,
+    ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMod,
+    ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Receiver,
+    Signature, StaticMutability, Stmt, TraitItem, TraitItemConst, TraitItemFn, TraitItemMacro,
+    TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree, Variadic,
 };
 
 impl Printer {
@@ -22,7 +22,6 @@ impl Printer {
             Item::ForeignMod(item) => self.item_foreign_mod(item),
             Item::Impl(item) => self.item_impl(item),
             Item::Macro(item) => self.item_macro(item),
-            Item::Macro2(item) => self.item_macro2(item),
             Item::Mod(item) => self.item_mod(item),
             Item::Static(item) => self.item_static(item),
             Item::Struct(item) => self.item_struct(item),
@@ -43,6 +42,7 @@ impl Printer {
         self.visibility(&item.vis);
         self.word("const ");
         self.ident(&item.ident);
+        self.generics(&item.generics);
         self.word(": ");
         self.ty(&item.ty);
         self.word(" = ");
@@ -108,6 +108,9 @@ impl Printer {
     fn item_foreign_mod(&mut self, item: &ItemForeignMod) {
         self.outer_attrs(&item.attrs);
         self.cbox(INDENT);
+        if item.unsafety.is_some() {
+            self.word("unsafe ");
+        }
         self.abi(&item.abi);
         self.word("{");
         self.hardbreak_if_nonempty();
@@ -166,14 +169,13 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn item_macro2(&mut self, item: &ItemMacro2) {
-        unimplemented!("Item::Macro2 `macro {} {}`", item.ident, item.rules);
-    }
-
     fn item_mod(&mut self, item: &ItemMod) {
         self.outer_attrs(&item.attrs);
         self.cbox(INDENT);
         self.visibility(&item.vis);
+        if item.unsafety.is_some() {
+            self.word("unsafe ");
+        }
         self.word("mod ");
         self.ident(&item.ident);
         if let Some((_brace, items)) = &item.content {
@@ -198,7 +200,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&item.vis);
         self.word("static ");
-        if item.mutability.is_some() {
+        if let StaticMutability::Mut(_) = item.mutability {
             self.word("mut ");
         }
         self.ident(&item.ident);
@@ -363,11 +365,32 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{Attribute, Token};
+        use syn::punctuated::Punctuated;
+        use syn::{braced, Attribute, Token, Visibility};
 
         enum ItemVerbatim {
             Empty,
-            UnsafeForeignMod(ItemForeignMod),
+            UseBrace(UseBrace),
+        }
+
+        struct UseBrace {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            trees: Punctuated<RootUseTree, Token![,]>,
+        }
+
+        struct RootUseTree {
+            leading_colon: Option<Token![::]>,
+            inner: UseTree,
+        }
+
+        impl Parse for RootUseTree {
+            fn parse(input: ParseStream) -> Result<Self> {
+                Ok(RootUseTree {
+                    leading_colon: input.parse()?,
+                    inner: input.parse()?,
+                })
+            }
         }
 
         impl Parse for ItemVerbatim {
@@ -376,12 +399,13 @@ impl Printer {
                     Ok(ItemVerbatim::Empty)
                 } else {
                     let attrs = input.call(Attribute::parse_outer)?;
-                    input.parse::<Token![unsafe]>()?;
-                    let module: ItemForeignMod = input.parse()?;
-                    Ok(ItemVerbatim::UnsafeForeignMod(ItemForeignMod {
-                        attrs,
-                        ..module
-                    }))
+                    let vis: Visibility = input.parse()?;
+                    input.parse::<Token![use]>()?;
+                    let content;
+                    braced!(content in input);
+                    let trees = content.parse_terminated(RootUseTree::parse, Token![,])?;
+                    input.parse::<Token![;]>()?;
+                    Ok(ItemVerbatim::UseBrace(UseBrace { attrs, vis, trees }))
                 }
             }
         }
@@ -393,20 +417,43 @@ impl Printer {
 
         match item {
             ItemVerbatim::Empty => {}
-            ItemVerbatim::UnsafeForeignMod(item) => {
+            ItemVerbatim::UseBrace(item) => {
                 self.outer_attrs(&item.attrs);
-                self.cbox(INDENT);
-                self.word("unsafe ");
-                self.abi(&item.abi);
-                self.word("{");
-                self.hardbreak_if_nonempty();
-                self.inner_attrs(&item.attrs);
-                for foreign_item in &item.items {
-                    self.foreign_item(foreign_item);
+                self.visibility(&item.vis);
+                self.word("use ");
+                if item.trees.len() == 1 {
+                    self.word("::");
+                    self.use_tree(&item.trees[0].inner);
+                } else {
+                    self.cbox(INDENT);
+                    self.word("{");
+                    self.zerobreak();
+                    self.ibox(0);
+                    for use_tree in item.trees.iter().delimited() {
+                        if use_tree.leading_colon.is_some() {
+                            self.word("::");
+                        }
+                        self.use_tree(&use_tree.inner);
+                        if !use_tree.is_last {
+                            self.word(",");
+                            let mut use_tree = &use_tree.inner;
+                            while let UseTree::Path(use_path) = use_tree {
+                                use_tree = &use_path.tree;
+                            }
+                            if let UseTree::Group(_) = use_tree {
+                                self.hardbreak();
+                            } else {
+                                self.space();
+                            }
+                        }
+                    }
+                    self.end();
+                    self.trailing_comma(true);
+                    self.offset(-INDENT);
+                    self.word("}");
+                    self.end();
                 }
-                self.offset(-INDENT);
-                self.end();
-                self.word("}");
+                self.word(";");
             }
         }
 
@@ -504,7 +551,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&foreign_item.vis);
         self.word("static ");
-        if foreign_item.mutability.is_some() {
+        if let StaticMutability::Mut(_) = foreign_item.mutability {
             self.word("mut ");
         }
         self.ident(&foreign_item.ident);
@@ -521,6 +568,7 @@ impl Printer {
         self.visibility(&foreign_item.vis);
         self.word("type ");
         self.ident(&foreign_item.ident);
+        self.generics(&foreign_item.generics);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -568,7 +616,7 @@ impl Printer {
     fn trait_item(&mut self, trait_item: &TraitItem) {
         match trait_item {
             TraitItem::Const(item) => self.trait_item_const(item),
-            TraitItem::Method(item) => self.trait_item_method(item),
+            TraitItem::Fn(item) => self.trait_item_fn(item),
             TraitItem::Type(item) => self.trait_item_type(item),
             TraitItem::Macro(item) => self.trait_item_macro(item),
             TraitItem::Verbatim(item) => self.trait_item_verbatim(item),
@@ -582,6 +630,7 @@ impl Printer {
         self.cbox(0);
         self.word("const ");
         self.ident(&trait_item.ident);
+        self.generics(&trait_item.generics);
         self.word(": ");
         self.ty(&trait_item.ty);
         if let Some((_eq_token, default)) = &trait_item.default {
@@ -594,7 +643,7 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn trait_item_method(&mut self, trait_item: &TraitItemMethod) {
+    fn trait_item_fn(&mut self, trait_item: &TraitItemFn) {
         self.outer_attrs(&trait_item.attrs);
         self.cbox(INDENT);
         self.signature(&trait_item.sig);
@@ -658,7 +707,7 @@ impl Printer {
     fn impl_item(&mut self, impl_item: &ImplItem) {
         match impl_item {
             ImplItem::Const(item) => self.impl_item_const(item),
-            ImplItem::Method(item) => self.impl_item_method(item),
+            ImplItem::Fn(item) => self.impl_item_fn(item),
             ImplItem::Type(item) => self.impl_item_type(item),
             ImplItem::Macro(item) => self.impl_item_macro(item),
             ImplItem::Verbatim(item) => self.impl_item_verbatim(item),
@@ -676,6 +725,7 @@ impl Printer {
         }
         self.word("const ");
         self.ident(&impl_item.ident);
+        self.generics(&impl_item.generics);
         self.word(": ");
         self.ty(&impl_item.ty);
         self.word(" = ");
@@ -686,7 +736,7 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn impl_item_method(&mut self, impl_item: &ImplItemMethod) {
+    fn impl_item_fn(&mut self, impl_item: &ImplItemFn) {
         self.outer_attrs(&impl_item.attrs);
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
@@ -751,33 +801,6 @@ impl Printer {
         self.hardbreak();
     }
 
-    fn maybe_variadic(&mut self, arg: &FnArg) -> bool {
-        let pat_type = match arg {
-            FnArg::Typed(pat_type) => pat_type,
-            FnArg::Receiver(receiver) => {
-                self.receiver(receiver);
-                return false;
-            }
-        };
-
-        match pat_type.ty.as_ref() {
-            Type::Verbatim(ty) if ty.to_string() == "..." => {
-                match pat_type.pat.as_ref() {
-                    Pat::Verbatim(pat) if pat.to_string() == "..." => {
-                        self.outer_attrs(&pat_type.attrs);
-                        self.word("...");
-                    }
-                    _ => self.pat_type(pat_type),
-                }
-                true
-            }
-            _ => {
-                self.pat_type(pat_type);
-                false
-            }
-        }
-    }
-
     fn signature(&mut self, signature: &Signature) {
         if signature.constness.is_some() {
             self.word("const ");
@@ -798,18 +821,13 @@ impl Printer {
         self.neverbreak();
         self.cbox(0);
         self.zerobreak();
-        let mut last_is_variadic = false;
         for input in signature.inputs.iter().delimited() {
-            last_is_variadic = self.maybe_variadic(&input);
-            if last_is_variadic {
-                self.zerobreak();
-            } else {
-                let is_last = input.is_last && signature.variadic.is_none();
-                self.trailing_comma(is_last);
-            }
+            self.fn_arg(&input);
+            let is_last = input.is_last && signature.variadic.is_none();
+            self.trailing_comma(is_last);
         }
-        if signature.variadic.is_some() && !last_is_variadic {
-            self.word("...");
+        if let Some(variadic) = &signature.variadic {
+            self.variadic(variadic);
             self.zerobreak();
         }
         self.offset(-INDENT);
@@ -818,6 +836,13 @@ impl Printer {
         self.cbox(-INDENT);
         self.return_type(&signature.output);
         self.end();
+    }
+
+    fn fn_arg(&mut self, fn_arg: &FnArg) {
+        match fn_arg {
+            FnArg::Receiver(receiver) => self.receiver(receiver),
+            FnArg::Typed(pat_type) => self.pat_type(pat_type),
+        }
     }
 
     fn receiver(&mut self, receiver: &Receiver) {
@@ -833,5 +858,34 @@ impl Printer {
             self.word("mut ");
         }
         self.word("self");
+        if receiver.colon_token.is_some() {
+            self.word(": ");
+            self.ty(&receiver.ty);
+        } else {
+            let consistent = match (&receiver.reference, &receiver.mutability, &*receiver.ty) {
+                (Some(_), mutability, Type::Reference(ty)) => {
+                    mutability.is_some() == ty.mutability.is_some()
+                        && match &*ty.elem {
+                            Type::Path(ty) => ty.qself.is_none() && ty.path.is_ident("Self"),
+                            _ => false,
+                        }
+                }
+                (None, _, Type::Path(ty)) => ty.qself.is_none() && ty.path.is_ident("Self"),
+                _ => false,
+            };
+            if !consistent {
+                self.word(": ");
+                self.ty(&receiver.ty);
+            }
+        }
+    }
+
+    fn variadic(&mut self, variadic: &Variadic) {
+        self.outer_attrs(&variadic.attrs);
+        if let Some((pat, _colon)) = &variadic.pat {
+            self.pat(pat);
+            self.word(": ");
+        }
+        self.word("...");
     }
 }

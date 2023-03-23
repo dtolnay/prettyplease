@@ -7,11 +7,7 @@ use syn::{Ident, Macro, MacroDelimiter};
 
 impl Printer {
     pub fn mac(&mut self, mac: &Macro, ident: Option<&Ident>) {
-        let is_macro_rules = mac.path.leading_colon.is_none()
-            && mac.path.segments.len() == 1
-            && mac.path.segments[0].arguments.is_none()
-            && mac.path.segments[0].ident == "macro_rules";
-        if is_macro_rules {
+        if mac.path.is_ident("macro_rules") {
             if let Some(ident) = ident {
                 self.macro_rules(ident, &mac.tokens);
                 return;
@@ -212,10 +208,10 @@ impl Printer {
 
 fn is_keyword(ident: &Ident) -> bool {
     match ident.to_string().as_str() {
-        "as" | "box" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
-        | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "macro" | "match" | "mod"
-        | "move" | "mut" | "pub" | "ref" | "return" | "static" | "struct" | "trait" | "type"
-        | "unsafe" | "use" | "where" | "while" | "yield" => true,
+        "as" | "async" | "await" | "box" | "break" | "const" | "continue" | "crate" | "dyn"
+        | "else" | "enum" | "extern" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop"
+        | "macro" | "match" | "mod" | "move" | "mut" | "pub" | "ref" | "return" | "static"
+        | "struct" | "trait" | "type" | "unsafe" | "use" | "where" | "while" | "yield" => true,
         _ => false,
     }
 }

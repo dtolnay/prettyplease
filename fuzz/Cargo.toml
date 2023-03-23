@@ -11,7 +11,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 prettyplease = { path = "..", features = ["verbatim"] }
-syn = { version = "1", default-features = false, features = ["full", "parsing"] }
+syn = { version = "2", default-features = false, features = ["full", "parsing"] }
 
 [[bin]]
 name = "round_trip"

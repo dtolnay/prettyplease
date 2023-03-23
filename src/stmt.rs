@@ -1,5 +1,6 @@
 use crate::algorithm::Printer;
-use syn::{Expr, Stmt};
+use crate::INDENT;
+use syn::{BinOp, Expr, Stmt};
 
 impl Printer {
     pub fn stmt(&mut self, stmt: &Stmt) {
@@ -9,17 +10,32 @@ impl Printer {
                 self.ibox(0);
                 self.word("let ");
                 self.pat(&local.pat);
-                if let Some((_eq, init)) = &local.init {
+                if let Some(local_init) = &local.init {
                     self.word(" = ");
                     self.neverbreak();
-                    self.expr(init);
+                    self.expr(&local_init.expr);
+                    if let Some((_else, diverge)) = &local_init.diverge {
+                        self.word(" else ");
+                        if let Expr::Block(expr) = diverge.as_ref() {
+                            self.small_block(&expr.block, &[]);
+                        } else {
+                            self.word("{");
+                            self.space();
+                            self.ibox(INDENT);
+                            self.expr(diverge);
+                            self.end();
+                            self.space();
+                            self.offset(-INDENT);
+                            self.word("}");
+                        }
+                    }
                 }
                 self.word(";");
                 self.end();
                 self.hardbreak();
             }
             Stmt::Item(item) => self.item(item),
-            Stmt::Expr(expr) => {
+            Stmt::Expr(expr, None) => {
                 if break_after(expr) {
                     self.ibox(0);
                     self.expr_beginning_of_line(expr, true);
@@ -32,7 +48,7 @@ impl Printer {
                     self.expr_beginning_of_line(expr, true);
                 }
             }
-            Stmt::Semi(expr, _semi) => {
+            Stmt::Expr(expr, Some(_semi)) => {
                 if let Expr::Verbatim(tokens) = expr {
                     if tokens.is_empty() {
                         return;
@@ -46,33 +62,68 @@ impl Printer {
                 self.end();
                 self.hardbreak();
             }
+            Stmt::Macro(stmt) => {
+                self.outer_attrs(&stmt.attrs);
+                self.mac(&stmt.mac, None);
+                self.mac_semi_if_needed(&stmt.mac.delimiter);
+                self.hardbreak();
+            }
         }
     }
 }
 
 pub fn add_semi(expr: &Expr) -> bool {
     match expr {
-        Expr::Assign(_)
-        | Expr::AssignOp(_)
-        | Expr::Break(_)
-        | Expr::Continue(_)
-        | Expr::Return(_)
-        | Expr::Yield(_) => true,
+        Expr::Assign(_) | Expr::Break(_) | Expr::Continue(_) | Expr::Return(_) | Expr::Yield(_) => {
+            true
+        }
+        Expr::Binary(expr) => match expr.op {
+            BinOp::AddAssign(_)
+            | BinOp::SubAssign(_)
+            | BinOp::MulAssign(_)
+            | BinOp::DivAssign(_)
+            | BinOp::RemAssign(_)
+            | BinOp::BitXorAssign(_)
+            | BinOp::BitAndAssign(_)
+            | BinOp::BitOrAssign(_)
+            | BinOp::ShlAssign(_)
+            | BinOp::ShrAssign(_) => true,
+            BinOp::Add(_)
+            | BinOp::Sub(_)
+            | BinOp::Mul(_)
+            | BinOp::Div(_)
+            | BinOp::Rem(_)
+            | BinOp::And(_)
+            | BinOp::Or(_)
+            | BinOp::BitXor(_)
+            | BinOp::BitAnd(_)
+            | BinOp::BitOr(_)
+            | BinOp::Shl(_)
+            | BinOp::Shr(_)
+            | BinOp::Eq(_)
+            | BinOp::Lt(_)
+            | BinOp::Le(_)
+            | BinOp::Ne(_)
+            | BinOp::Ge(_)
+            | BinOp::Gt(_) => false,
+            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            _ => unimplemented!("unknown BinOp"),
+        },
         Expr::Group(group) => add_semi(&group.expr),
 
         Expr::Array(_)
         | Expr::Async(_)
         | Expr::Await(_)
-        | Expr::Binary(_)
         | Expr::Block(_)
-        | Expr::Box(_)
         | Expr::Call(_)
         | Expr::Cast(_)
         | Expr::Closure(_)
+        | Expr::Const(_)
         | Expr::Field(_)
         | Expr::ForLoop(_)
         | Expr::If(_)
         | Expr::Index(_)
+        | Expr::Infer(_)
         | Expr::Let(_)
         | Expr::Lit(_)
         | Expr::Loop(_)
@@ -88,7 +139,6 @@ pub fn add_semi(expr: &Expr) -> bool {
         | Expr::Try(_)
         | Expr::TryBlock(_)
         | Expr::Tuple(_)
-        | Expr::Type(_)
         | Expr::Unary(_)
         | Expr::Unsafe(_)
         | Expr::Verbatim(_)
@@ -119,19 +169,19 @@ fn remove_semi(expr: &Expr) -> bool {
 
         Expr::Array(_)
         | Expr::Assign(_)
-        | Expr::AssignOp(_)
         | Expr::Async(_)
         | Expr::Await(_)
         | Expr::Binary(_)
         | Expr::Block(_)
-        | Expr::Box(_)
         | Expr::Break(_)
         | Expr::Call(_)
         | Expr::Cast(_)
         | Expr::Closure(_)
         | Expr::Continue(_)
+        | Expr::Const(_)
         | Expr::Field(_)
         | Expr::Index(_)
+        | Expr::Infer(_)
         | Expr::Let(_)
         | Expr::Lit(_)
         | Expr::Loop(_)
@@ -148,7 +198,6 @@ fn remove_semi(expr: &Expr) -> bool {
         | Expr::Try(_)
         | Expr::TryBlock(_)
         | Expr::Tuple(_)
-        | Expr::Type(_)
         | Expr::Unary(_)
         | Expr::Unsafe(_)
         | Expr::Verbatim(_)
