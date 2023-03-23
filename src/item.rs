@@ -200,9 +200,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&item.vis);
         self.word("static ");
-        if let StaticMutability::Mut(_) = item.mutability {
-            self.word("mut ");
-        }
+        self.static_mutability(&item.mutability);
         self.ident(&item.ident);
         self.word(": ");
         self.ty(&item.ty);
@@ -476,9 +474,7 @@ impl Printer {
                 self.cbox(0);
                 self.visibility(&item.vis);
                 self.word("static ");
-                if let StaticMutability::Mut(_) = item.mutability {
-                    self.word("mut ");
-                }
+                self.static_mutability(&item.mutability);
                 self.ident(&item.ident);
                 self.word(" = ");
                 self.neverbreak();
@@ -620,9 +616,7 @@ impl Printer {
         self.cbox(0);
         self.visibility(&foreign_item.vis);
         self.word("static ");
-        if let StaticMutability::Mut(_) = foreign_item.mutability {
-            self.word("mut ");
-        }
+        self.static_mutability(&foreign_item.mutability);
         self.ident(&foreign_item.ident);
         self.word(": ");
         self.ty(&foreign_item.ty);
@@ -956,5 +950,11 @@ impl Printer {
             self.word(": ");
         }
         self.word("...");
+    }
+
+    fn static_mutability(&mut self, mutability: &StaticMutability) {
+        if let StaticMutability::Mut(_) = mutability {
+            self.word("mut ");
+        }
     }
 }
