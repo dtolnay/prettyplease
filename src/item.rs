@@ -362,16 +362,24 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn item_verbatim(&mut self, tokens: &TokenStream) {
-        use proc_macro2::Ident;
+        use syn::ext::IdentExt;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
-        use syn::{braced, Attribute, Expr, Token, Visibility};
+        use syn::{braced, Attribute, Expr, Ident, Token, Visibility};
 
         enum ItemVerbatim {
             Empty,
+            ConstIncomplete(ConstIncomplete),
             FnSignature(FnSignature),
             StaticIncomplete(StaticIncomplete),
             UseBrace(UseBrace),
+        }
+
+        struct ConstIncomplete {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            ident: Ident,
+            ty: Type,
         }
 
         struct FnSignature {
@@ -419,7 +427,19 @@ impl Printer {
                 let vis: Visibility = input.parse()?;
 
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![const])
+                if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
+                    input.parse::<Token![const]>()?;
+                    let ident = input.call(Ident::parse_any)?;
+                    input.parse::<Token![:]>()?;
+                    let ty: Type = input.parse()?;
+                    input.parse::<Token![;]>()?;
+                    Ok(ItemVerbatim::ConstIncomplete(ConstIncomplete {
+                        attrs,
+                        vis,
+                        ident,
+                        ty,
+                    }))
+                } else if input.peek(Token![const])
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe])
                     || lookahead.peek(Token![extern])
@@ -481,6 +501,17 @@ impl Printer {
 
         match item {
             ItemVerbatim::Empty => {}
+            ItemVerbatim::ConstIncomplete(item) => {
+                self.outer_attrs(&item.attrs);
+                self.cbox(0);
+                self.visibility(&item.vis);
+                self.word("const ");
+                self.ident(&item.ident);
+                self.word(": ");
+                self.ty(&item.ty);
+                self.word(";");
+                self.end();
+            }
             ItemVerbatim::FnSignature(item) => {
                 self.outer_attrs(&item.attrs);
                 self.cbox(INDENT);
