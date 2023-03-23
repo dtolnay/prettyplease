@@ -370,7 +370,7 @@ impl Printer {
         enum ItemVerbatim {
             Empty,
             FnSignature(FnSignature),
-            StaticUntyped(StaticUntyped),
+            StaticIncomplete(StaticIncomplete),
             UseBrace(UseBrace),
         }
 
@@ -380,12 +380,13 @@ impl Printer {
             sig: Signature,
         }
 
-        struct StaticUntyped {
+        struct StaticIncomplete {
             attrs: Vec<Attribute>,
             vis: Visibility,
             mutability: StaticMutability,
             ident: Ident,
-            expr: Expr,
+            ty: Option<Type>,
+            expr: Option<Expr>,
         }
 
         struct UseBrace {
@@ -431,14 +432,33 @@ impl Printer {
                     input.parse::<Token![static]>()?;
                     let mutability: StaticMutability = input.parse()?;
                     let ident = input.parse()?;
-                    input.parse::<Token![=]>()?;
-                    let expr: Expr = input.parse()?;
+                    let lookahead = input.lookahead1();
+                    let has_type = lookahead.peek(Token![:]);
+                    let has_expr = lookahead.peek(Token![=]);
+                    if !has_type && !has_expr {
+                        return Err(lookahead.error());
+                    }
+                    let ty = if has_type {
+                        input.parse::<Token![:]>()?;
+                        let ty: Type = input.parse()?;
+                        Some(ty)
+                    } else {
+                        None
+                    };
+                    let expr = if has_expr {
+                        input.parse::<Token![=]>()?;
+                        let expr: Expr = input.parse()?;
+                        Some(expr)
+                    } else {
+                        None
+                    };
                     input.parse::<Token![;]>()?;
-                    Ok(ItemVerbatim::StaticUntyped(StaticUntyped {
+                    Ok(ItemVerbatim::StaticIncomplete(StaticIncomplete {
                         attrs,
                         vis,
                         mutability,
                         ident,
+                        ty,
                         expr,
                     }))
                 } else if lookahead.peek(Token![use]) {
@@ -469,16 +489,22 @@ impl Printer {
                 self.where_clause_semi(&item.sig.generics.where_clause);
                 self.end();
             }
-            ItemVerbatim::StaticUntyped(item) => {
+            ItemVerbatim::StaticIncomplete(item) => {
                 self.outer_attrs(&item.attrs);
                 self.cbox(0);
                 self.visibility(&item.vis);
                 self.word("static ");
                 self.static_mutability(&item.mutability);
                 self.ident(&item.ident);
-                self.word(" = ");
-                self.neverbreak();
-                self.expr(&item.expr);
+                if let Some(ty) = &item.ty {
+                    self.word(": ");
+                    self.ty(ty);
+                }
+                if let Some(expr) = &item.expr {
+                    self.word(" = ");
+                    self.neverbreak();
+                    self.expr(expr);
+                }
                 self.word(";");
                 self.end();
             }
