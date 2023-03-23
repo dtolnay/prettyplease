@@ -53,6 +53,18 @@ jobs:
       - run: cargo run --manifest-path cargo-expand/update/Cargo.toml
       - run: git diff --exit-code
 
+  fuzz:
+    name: Fuzz
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/install@cargo-fuzz
+      - run: cargo fuzz check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
