@@ -370,7 +370,14 @@ impl Printer {
 
         enum ItemVerbatim {
             Empty,
+            FnSignature(FnSignature),
             UseBrace(UseBrace),
+        }
+
+        struct FnSignature {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            sig: Signature,
         }
 
         struct UseBrace {
@@ -396,16 +403,31 @@ impl Printer {
         impl Parse for ItemVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.is_empty() {
-                    Ok(ItemVerbatim::Empty)
-                } else {
-                    let attrs = input.call(Attribute::parse_outer)?;
-                    let vis: Visibility = input.parse()?;
+                    return Ok(ItemVerbatim::Empty);
+                }
+
+                let attrs = input.call(Attribute::parse_outer)?;
+                let vis: Visibility = input.parse()?;
+
+                let lookahead = input.lookahead1();
+                if lookahead.peek(Token![const])
+                    || lookahead.peek(Token![async])
+                    || lookahead.peek(Token![unsafe])
+                    || lookahead.peek(Token![extern])
+                    || lookahead.peek(Token![fn])
+                {
+                    let sig: Signature = input.parse()?;
+                    input.parse::<Token![;]>()?;
+                    Ok(ItemVerbatim::FnSignature(FnSignature { attrs, vis, sig }))
+                } else if lookahead.peek(Token![use]) {
                     input.parse::<Token![use]>()?;
                     let content;
                     braced!(content in input);
                     let trees = content.parse_terminated(RootUseTree::parse, Token![,])?;
                     input.parse::<Token![;]>()?;
                     Ok(ItemVerbatim::UseBrace(UseBrace { attrs, vis, trees }))
+                } else {
+                    Err(lookahead.error())
                 }
             }
         }
@@ -417,6 +439,14 @@ impl Printer {
 
         match item {
             ItemVerbatim::Empty => {}
+            ItemVerbatim::FnSignature(item) => {
+                self.outer_attrs(&item.attrs);
+                self.cbox(INDENT);
+                self.visibility(&item.vis);
+                self.signature(&item.sig);
+                self.where_clause_semi(&item.sig.generics.where_clause);
+                self.end();
+            }
             ItemVerbatim::UseBrace(item) => {
                 self.outer_attrs(&item.attrs);
                 self.visibility(&item.vis);
