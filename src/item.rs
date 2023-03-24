@@ -365,12 +365,13 @@ impl Printer {
         use syn::ext::IdentExt;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
-        use syn::{braced, Attribute, Expr, Ident, Token, Visibility};
+        use syn::{braced, token, Attribute, Expr, Generics, Ident, Lifetime, Token, Visibility};
 
         enum ItemVerbatim {
             Empty,
             ConstIncomplete(ConstIncomplete),
             FnSignature(FnSignature),
+            ImplExtra(ImplExtra),
             StaticIncomplete(StaticIncomplete),
             UseBrace(UseBrace),
         }
@@ -386,6 +387,25 @@ impl Printer {
             attrs: Vec<Attribute>,
             vis: Visibility,
             sig: Signature,
+        }
+
+        struct ImplExtra {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            defaultness: bool,
+            unsafety: bool,
+            generics: Generics,
+            constness: ImplConstness,
+            negative_impl: bool,
+            trait_: Option<Type>,
+            self_ty: Type,
+            items: Vec<ImplItem>,
+        }
+
+        enum ImplConstness {
+            None,
+            MaybeConst,
+            Const,
         }
 
         struct StaticIncomplete {
@@ -408,6 +428,19 @@ impl Printer {
             inner: UseTree,
         }
 
+        impl Parse for ImplConstness {
+            fn parse(input: ParseStream) -> Result<Self> {
+                if input.parse::<Option<Token![?]>>()?.is_some() {
+                    input.parse::<Token![const]>()?;
+                    Ok(ImplConstness::MaybeConst)
+                } else if input.parse::<Option<Token![const]>>()?.is_some() {
+                    Ok(ImplConstness::Const)
+                } else {
+                    Ok(ImplConstness::None)
+                }
+            }
+        }
+
         impl Parse for RootUseTree {
             fn parse(input: ParseStream) -> Result<Self> {
                 Ok(RootUseTree {
@@ -423,7 +456,7 @@ impl Printer {
                     return Ok(ItemVerbatim::Empty);
                 }
 
-                let attrs = input.call(Attribute::parse_outer)?;
+                let mut attrs = input.call(Attribute::parse_outer)?;
                 let vis: Visibility = input.parse()?;
 
                 let lookahead = input.lookahead1();
@@ -441,13 +474,64 @@ impl Printer {
                     }))
                 } else if input.peek(Token![const])
                     || lookahead.peek(Token![async])
-                    || lookahead.peek(Token![unsafe])
+                    || lookahead.peek(Token![unsafe]) && !input.peek2(Token![impl])
                     || lookahead.peek(Token![extern])
                     || lookahead.peek(Token![fn])
                 {
                     let sig: Signature = input.parse()?;
                     input.parse::<Token![;]>()?;
                     Ok(ItemVerbatim::FnSignature(FnSignature { attrs, vis, sig }))
+                } else if lookahead.peek(Token![default])
+                    || input.peek(Token![unsafe])
+                    || lookahead.peek(Token![impl])
+                {
+                    let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
+                    let unsafety = input.parse::<Option<Token![unsafe]>>()?.is_some();
+                    input.parse::<Token![impl]>()?;
+                    let has_generics = input.peek(Token![<])
+                        && (input.peek2(Token![>])
+                            || input.peek2(Token![#])
+                            || (input.peek2(Ident) || input.peek2(Lifetime))
+                                && (input.peek3(Token![:])
+                                    || input.peek3(Token![,])
+                                    || input.peek3(Token![>])
+                                    || input.peek3(Token![=]))
+                            || input.peek2(Token![const]));
+                    let mut generics: Generics = if has_generics {
+                        input.parse()?
+                    } else {
+                        Generics::default()
+                    };
+                    let constness: ImplConstness = input.parse()?;
+                    let negative_impl =
+                        !input.peek2(token::Brace) && input.parse::<Option<Token![!]>>()?.is_some();
+                    let first_ty: Type = input.parse()?;
+                    let (trait_, self_ty) = if input.parse::<Option<Token![for]>>()?.is_some() {
+                        (Some(first_ty), input.parse()?)
+                    } else {
+                        (None, first_ty)
+                    };
+                    generics.where_clause = input.parse()?;
+                    let content;
+                    braced!(content in input);
+                    let inner_attrs = content.call(Attribute::parse_inner)?;
+                    attrs.extend(inner_attrs);
+                    let mut items = Vec::new();
+                    while !content.is_empty() {
+                        items.push(content.parse()?);
+                    }
+                    Ok(ItemVerbatim::ImplExtra(ImplExtra {
+                        attrs,
+                        vis,
+                        defaultness,
+                        unsafety,
+                        generics,
+                        constness,
+                        negative_impl,
+                        trait_,
+                        self_ty,
+                        items,
+                    }))
                 } else if lookahead.peek(Token![static]) {
                     input.parse::<Token![static]>()?;
                     let mutability: StaticMutability = input.parse()?;
@@ -519,6 +603,48 @@ impl Printer {
                 self.signature(&item.sig);
                 self.where_clause_semi(&item.sig.generics.where_clause);
                 self.end();
+            }
+            ItemVerbatim::ImplExtra(item) => {
+                self.outer_attrs(&item.attrs);
+                self.cbox(INDENT);
+                self.ibox(-INDENT);
+                self.cbox(INDENT);
+                self.visibility(&item.vis);
+                if item.defaultness {
+                    self.word("default ");
+                }
+                if item.unsafety {
+                    self.word("unsafe ");
+                }
+                self.word("impl");
+                self.generics(&item.generics);
+                self.end();
+                self.nbsp();
+                match item.constness {
+                    ImplConstness::None => {}
+                    ImplConstness::MaybeConst => self.word("?const "),
+                    ImplConstness::Const => self.word("const "),
+                }
+                if item.negative_impl {
+                    self.word("!");
+                }
+                if let Some(trait_) = &item.trait_ {
+                    self.ty(trait_);
+                    self.space();
+                    self.word("for ");
+                }
+                self.ty(&item.self_ty);
+                self.end();
+                self.where_clause_for_body(&item.generics.where_clause);
+                self.word("{");
+                self.hardbreak_if_nonempty();
+                self.inner_attrs(&item.attrs);
+                for impl_item in &item.items {
+                    self.impl_item(impl_item);
+                }
+                self.offset(-INDENT);
+                self.end();
+                self.word("}");
             }
             ItemVerbatim::StaticIncomplete(item) => {
                 self.outer_attrs(&item.attrs);
