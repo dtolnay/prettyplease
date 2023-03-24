@@ -365,13 +365,17 @@ impl Printer {
         use syn::ext::IdentExt;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
-        use syn::{braced, token, Attribute, Expr, Generics, Ident, Lifetime, Token, Visibility};
+        use syn::{
+            braced, parenthesized, token, Attribute, Expr, Generics, Ident, Lifetime, Token,
+            Visibility,
+        };
 
         enum ItemVerbatim {
             Empty,
             ConstIncomplete(ConstIncomplete),
             FnSignature(FnSignature),
             ImplExtra(ImplExtra),
+            Macro2(Macro2),
             StaticIncomplete(StaticIncomplete),
             UseBrace(UseBrace),
         }
@@ -406,6 +410,14 @@ impl Printer {
             None,
             MaybeConst,
             Const,
+        }
+
+        struct Macro2 {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            ident: Ident,
+            args: Option<TokenStream>,
+            body: TokenStream,
         }
 
         struct StaticIncomplete {
@@ -532,6 +544,26 @@ impl Printer {
                         self_ty,
                         items,
                     }))
+                } else if lookahead.peek(Token![macro]) {
+                    input.parse::<Token![macro]>()?;
+                    let ident: Ident = input.parse()?;
+                    let args = if input.peek(token::Paren) {
+                        let paren_content;
+                        parenthesized!(paren_content in input);
+                        Some(paren_content.parse::<TokenStream>()?)
+                    } else {
+                        None
+                    };
+                    let brace_content;
+                    braced!(brace_content in input);
+                    let body: TokenStream = brace_content.parse()?;
+                    Ok(ItemVerbatim::Macro2(Macro2 {
+                        attrs,
+                        vis,
+                        ident,
+                        args,
+                        body,
+                    }))
                 } else if lookahead.peek(Token![static]) {
                     input.parse::<Token![static]>()?;
                     let mutability: StaticMutability = input.parse()?;
@@ -644,6 +676,37 @@ impl Printer {
                 }
                 self.offset(-INDENT);
                 self.end();
+                self.word("}");
+            }
+            ItemVerbatim::Macro2(item) => {
+                self.outer_attrs(&item.attrs);
+                self.visibility(&item.vis);
+                self.word("macro ");
+                self.ident(&item.ident);
+                if let Some(args) = &item.args {
+                    self.word("(");
+                    self.cbox(INDENT);
+                    self.zerobreak();
+                    self.ibox(0);
+                    self.macro_rules_tokens(args.clone(), true);
+                    self.end();
+                    self.zerobreak();
+                    self.offset(-INDENT);
+                    self.end();
+                    self.word(")");
+                }
+                self.word(" {");
+                if !item.body.is_empty() {
+                    self.neverbreak();
+                    self.cbox(INDENT);
+                    self.hardbreak();
+                    self.ibox(0);
+                    self.macro_rules_tokens(item.body.clone(), false);
+                    self.end();
+                    self.hardbreak();
+                    self.offset(-INDENT);
+                    self.end();
+                }
                 self.word("}");
             }
             ItemVerbatim::StaticIncomplete(item) => {

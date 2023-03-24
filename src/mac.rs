@@ -25,14 +25,16 @@ impl Printer {
             MacroDelimiter::Bracket(_) => ("[", "]", Self::zerobreak as fn(&mut Self)),
         };
         self.word(open);
-        self.cbox(INDENT);
-        delimiter_break(self);
-        self.ibox(0);
-        self.macro_rules_tokens(mac.tokens.clone(), false);
-        self.end();
-        delimiter_break(self);
-        self.offset(-INDENT);
-        self.end();
+        if !mac.tokens.is_empty() {
+            self.cbox(INDENT);
+            delimiter_break(self);
+            self.ibox(0);
+            self.macro_rules_tokens(mac.tokens.clone(), false);
+            self.end();
+            delimiter_break(self);
+            self.offset(-INDENT);
+            self.end();
+        }
         self.word(close);
     }
 
@@ -123,7 +125,7 @@ impl Printer {
         self.word("}");
     }
 
-    fn macro_rules_tokens(&mut self, stream: TokenStream, matcher: bool) {
+    pub fn macro_rules_tokens(&mut self, stream: TokenStream, matcher: bool) {
         #[derive(PartialEq)]
         enum State {
             Start,
