@@ -179,6 +179,7 @@ impl Printer {
         use syn::{braced, Attribute, Block, Token};
 
         enum PatVerbatim {
+            Box(Pat),
             Const(PatConst),
         }
 
@@ -190,7 +191,11 @@ impl Printer {
         impl Parse for PatVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![const]) {
+                if lookahead.peek(Token![box]) {
+                    input.parse::<Token![box]>()?;
+                    let inner = Pat::parse_single(input)?;
+                    Ok(PatVerbatim::Box(inner))
+                } else if lookahead.peek(Token![const]) {
                     input.parse::<Token![const]>()?;
                     let content;
                     let brace_token = braced!(content in input);
@@ -212,6 +217,10 @@ impl Printer {
         };
 
         match pat {
+            PatVerbatim::Box(pat) => {
+                self.word("box ");
+                self.pat(&pat);
+            }
             PatVerbatim::Const(pat) => {
                 self.word("const ");
                 self.cbox(INDENT);
