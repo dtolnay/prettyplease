@@ -909,11 +909,16 @@ impl Printer {
         use syn::parse::{Parse, ParseStream, Result};
 
         enum ForeignItemVerbatim {
+            Empty,
             TypeAlias(ItemType),
         }
 
         impl Parse for ForeignItemVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
+                if input.is_empty() {
+                    return Ok(ForeignItemVerbatim::Empty);
+                }
+
                 input.parse().map(ForeignItemVerbatim::TypeAlias)
             }
         }
@@ -924,7 +929,12 @@ impl Printer {
         };
 
         match foreign_item {
-            ForeignItemVerbatim::TypeAlias(item) => self.item_type(&item),
+            ForeignItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+            ForeignItemVerbatim::TypeAlias(item) => {
+                self.item_type(&item);
+            }
         }
     }
 
@@ -1012,11 +1022,38 @@ impl Printer {
         self.hardbreak();
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn trait_item_verbatim(&mut self, trait_item: &TokenStream) {
         if !trait_item.is_empty() {
             unimplemented!("TraitItem::Verbatim `{}`", trait_item);
         }
         self.hardbreak();
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn trait_item_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+
+        enum TraitItemVerbatim {
+            Empty,
+        }
+
+        impl Parse for TraitItemVerbatim {
+            fn parse(_input: ParseStream) -> Result<Self> {
+                Ok(TraitItemVerbatim::Empty)
+            }
+        }
+
+        let impl_item: TraitItemVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(impl_item) => impl_item,
+            Err(_) => unimplemented!("TraitItem::Verbatim `{}`", tokens),
+        };
+
+        match impl_item {
+            TraitItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+        }
     }
 
     fn impl_item(&mut self, impl_item: &ImplItem) {
@@ -1113,6 +1150,7 @@ impl Printer {
         use syn::{Attribute, Token, Visibility};
 
         enum ImplItemVerbatim {
+            Empty,
             FnWithoutBody(FnWithoutBody),
         }
 
@@ -1125,6 +1163,10 @@ impl Printer {
 
         impl Parse for ImplItemVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
+                if input.is_empty() {
+                    return Ok(ImplItemVerbatim::Empty);
+                }
+
                 let attrs = input.call(Attribute::parse_outer)?;
                 let vis: Visibility = input.parse()?;
                 let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
@@ -1145,6 +1187,9 @@ impl Printer {
         };
 
         match impl_item {
+            ImplItemVerbatim::Empty => {
+                self.hardbreak();
+            }
             ImplItemVerbatim::FnWithoutBody(impl_item) => {
                 self.outer_attrs(&impl_item.attrs);
                 self.cbox(INDENT);
