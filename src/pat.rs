@@ -168,8 +168,57 @@ impl Printer {
         self.ty(&pat.ty);
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn pat_verbatim(&mut self, pat: &TokenStream) {
         unimplemented!("Pat::Verbatim `{}`", pat);
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn pat_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+        use syn::{braced, Attribute, Block, Token};
+
+        enum PatVerbatim {
+            Const(PatConst),
+        }
+
+        struct PatConst {
+            attrs: Vec<Attribute>,
+            block: Block,
+        }
+
+        impl Parse for PatVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                let lookahead = input.lookahead1();
+                if lookahead.peek(Token![const]) {
+                    input.parse::<Token![const]>()?;
+                    let content;
+                    let brace_token = braced!(content in input);
+                    let attrs = content.call(Attribute::parse_inner)?;
+                    let stmts = content.call(Block::parse_within)?;
+                    Ok(PatVerbatim::Const(PatConst {
+                        attrs,
+                        block: Block { brace_token, stmts },
+                    }))
+                } else {
+                    Err(lookahead.error())
+                }
+            }
+        }
+
+        let pat: PatVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(pat) => pat,
+            Err(_) => unimplemented!("Pat::Verbatim `{}`", tokens),
+        };
+
+        match pat {
+            PatVerbatim::Const(pat) => {
+                self.word("const ");
+                self.cbox(INDENT);
+                self.small_block(&pat.block, &pat.attrs);
+                self.end();
+            }
+        }
     }
 
     fn pat_wild(&mut self, pat: &PatWild) {
