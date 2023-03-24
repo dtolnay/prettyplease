@@ -8,7 +8,7 @@ use syn::{
     ForeignItemType, ImplItem, ImplItemConst, ImplItemFn, ImplItemMacro, ImplItemType, Item,
     ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMod,
     ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Receiver,
-    Signature, StaticMutability, Stmt, TraitItem, TraitItemConst, TraitItemFn, TraitItemMacro,
+    Signature, StaticMutability, TraitItem, TraitItemConst, TraitItemFn, TraitItemMacro,
     TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree, Variadic,
 };
 
@@ -1053,16 +1053,6 @@ impl Printer {
             self.word("default ");
         }
         self.signature(&impl_item.sig);
-        if impl_item.block.stmts.len() == 1 {
-            if let Stmt::Item(Item::Verbatim(verbatim)) = &impl_item.block.stmts[0] {
-                if verbatim.to_string() == ";" {
-                    self.where_clause_semi(&impl_item.sig.generics.where_clause);
-                    self.end();
-                    self.hardbreak();
-                    return;
-                }
-            }
-        }
         self.where_clause_for_body(&impl_item.sig.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
@@ -1103,11 +1093,65 @@ impl Printer {
         self.hardbreak();
     }
 
+    #[cfg(not(feature = "verbatim"))]
     fn impl_item_verbatim(&mut self, impl_item: &TokenStream) {
         if !impl_item.is_empty() {
             unimplemented!("ImplItem::Verbatim `{}`", impl_item);
         }
         self.hardbreak();
+    }
+
+    #[cfg(feature = "verbatim")]
+    fn impl_item_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::{Parse, ParseStream, Result};
+        use syn::{Attribute, Token, Visibility};
+
+        enum ImplItemVerbatim {
+            FnWithoutBody(FnWithoutBody),
+        }
+
+        struct FnWithoutBody {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            defaultness: bool,
+            sig: Signature,
+        }
+
+        impl Parse for ImplItemVerbatim {
+            fn parse(input: ParseStream) -> Result<Self> {
+                let attrs = input.call(Attribute::parse_outer)?;
+                let vis: Visibility = input.parse()?;
+                let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
+                let sig: Signature = input.parse()?;
+                input.parse::<Token![;]>()?;
+                Ok(ImplItemVerbatim::FnWithoutBody(FnWithoutBody {
+                    attrs,
+                    vis,
+                    defaultness,
+                    sig,
+                }))
+            }
+        }
+
+        let impl_item: ImplItemVerbatim = match syn::parse2(tokens.clone()) {
+            Ok(impl_item) => impl_item,
+            Err(_) => unimplemented!("ImplItem::Verbatim `{}`", tokens),
+        };
+
+        match impl_item {
+            ImplItemVerbatim::FnWithoutBody(impl_item) => {
+                self.outer_attrs(&impl_item.attrs);
+                self.cbox(INDENT);
+                self.visibility(&impl_item.vis);
+                if impl_item.defaultness {
+                    self.word("default ");
+                }
+                self.signature(&impl_item.sig);
+                self.where_clause_semi(&impl_item.sig.generics.where_clause);
+                self.end();
+                self.hardbreak();
+            }
+        }
     }
 
     fn signature(&mut self, signature: &Signature) {
