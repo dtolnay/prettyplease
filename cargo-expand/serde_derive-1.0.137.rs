@@ -569,27 +569,24 @@ mod internals {
                                             default.set(word, Default::Default);
                                         }
                                         syn::Fields::Unnamed(_) | syn::Fields::Unit => {
-                                            cx
-                                                .error_spanned_by(
-                                                    fields,
-                                                    "#[serde(default)] can only be used on structs with named fields",
-                                                )
+                                            cx.error_spanned_by(
+                                                fields,
+                                                "#[serde(default)] can only be used on structs with named fields",
+                                            )
                                         }
                                     }
                                 }
                                 syn::Data::Enum(syn::DataEnum { enum_token, .. }) => {
-                                    cx
-                                        .error_spanned_by(
-                                            enum_token,
-                                            "#[serde(default)] can only be used on structs with named fields",
-                                        )
+                                    cx.error_spanned_by(
+                                        enum_token,
+                                        "#[serde(default)] can only be used on structs with named fields",
+                                    )
                                 }
                                 syn::Data::Union(syn::DataUnion { union_token, .. }) => {
-                                    cx
-                                        .error_spanned_by(
-                                            union_token,
-                                            "#[serde(default)] can only be used on structs with named fields",
-                                        )
+                                    cx.error_spanned_by(
+                                        union_token,
+                                        "#[serde(default)] can only be used on structs with named fields",
+                                    )
                                 }
                             }
                         }
@@ -603,27 +600,24 @@ mod internals {
                                                 default.set(&m.path, Default::Path(path));
                                             }
                                             syn::Fields::Unnamed(_) | syn::Fields::Unit => {
-                                                cx
-                                                    .error_spanned_by(
-                                                        fields,
-                                                        "#[serde(default = \"...\")] can only be used on structs with named fields",
-                                                    )
+                                                cx.error_spanned_by(
+                                                    fields,
+                                                    "#[serde(default = \"...\")] can only be used on structs with named fields",
+                                                )
                                             }
                                         }
                                     }
                                     syn::Data::Enum(syn::DataEnum { enum_token, .. }) => {
-                                        cx
-                                            .error_spanned_by(
-                                                enum_token,
-                                                "#[serde(default = \"...\")] can only be used on structs with named fields",
-                                            )
+                                        cx.error_spanned_by(
+                                            enum_token,
+                                            "#[serde(default = \"...\")] can only be used on structs with named fields",
+                                        )
                                     }
                                     syn::Data::Union(syn::DataUnion { union_token, .. }) => {
-                                        cx
-                                            .error_spanned_by(
-                                                union_token,
-                                                "#[serde(default = \"...\")] can only be used on structs with named fields",
-                                            )
+                                        cx.error_spanned_by(
+                                            union_token,
+                                            "#[serde(default = \"...\")] can only be used on structs with named fields",
+                                        )
                                     }
                                 }
                             }

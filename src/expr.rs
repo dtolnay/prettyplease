@@ -819,7 +819,7 @@ impl Printer {
                 pre_break: Some('{'),
                 ..BreakToken::default()
             });
-            self.expr(body);
+            self.expr_beginning_of_line(body, true);
             self.scan_break(BreakToken {
                 offset: -INDENT,
                 pre_break: stmt::add_semi(body).then(|| ';'),

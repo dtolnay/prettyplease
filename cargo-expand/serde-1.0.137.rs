@@ -39273,8 +39273,7 @@ pub mod __private {
                 {
                     match self.iter.next() {
                         Some(value) => {
-                            seed
-                                .deserialize(ContentRefDeserializer::new(value))
+                            seed.deserialize(ContentRefDeserializer::new(value))
                                 .map(Some)
                         }
                         None => Ok(None),
