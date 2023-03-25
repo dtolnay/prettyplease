@@ -616,7 +616,9 @@ impl Printer {
         };
 
         match item {
-            ItemVerbatim::Empty => {}
+            ItemVerbatim::Empty => {
+                self.hardbreak();
+            }
             ItemVerbatim::ConstIncomplete(item) => {
                 self.outer_attrs(&item.attrs);
                 self.cbox(0);
@@ -627,6 +629,7 @@ impl Printer {
                 self.ty(&item.ty);
                 self.word(";");
                 self.end();
+                self.hardbreak();
             }
             ItemVerbatim::FnSignature(item) => {
                 self.outer_attrs(&item.attrs);
@@ -635,6 +638,7 @@ impl Printer {
                 self.signature(&item.sig);
                 self.where_clause_semi(&item.sig.generics.where_clause);
                 self.end();
+                self.hardbreak();
             }
             ItemVerbatim::ImplExtra(item) => {
                 self.outer_attrs(&item.attrs);
@@ -677,6 +681,7 @@ impl Printer {
                 self.offset(-INDENT);
                 self.end();
                 self.word("}");
+                self.hardbreak();
             }
             ItemVerbatim::Macro2(item) => {
                 self.outer_attrs(&item.attrs);
@@ -708,6 +713,7 @@ impl Printer {
                     self.end();
                 }
                 self.word("}");
+                self.hardbreak();
             }
             ItemVerbatim::StaticIncomplete(item) => {
                 self.outer_attrs(&item.attrs);
@@ -727,6 +733,7 @@ impl Printer {
                 }
                 self.word(";");
                 self.end();
+                self.hardbreak();
             }
             ItemVerbatim::UseBrace(item) => {
                 self.outer_attrs(&item.attrs);
@@ -765,10 +772,9 @@ impl Printer {
                     self.end();
                 }
                 self.word(";");
+                self.hardbreak();
             }
         }
-
-        self.hardbreak();
     }
 
     fn use_tree(&mut self, use_tree: &UseTree) {
