@@ -10,7 +10,7 @@ edition = "2021"
 exclude = ["cargo-expand"]
 keywords = ["rustfmt"]
 license = "MIT OR Apache-2.0"
-links = "prettyplease01"
+links = "prettyplease02"
 repository = "https://github.com/dtolnay/prettyplease"
 rust-version = "1.56"
 
