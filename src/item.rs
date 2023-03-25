@@ -374,7 +374,7 @@ impl Printer {
             Empty,
             ConstIncomplete(ConstIncomplete),
             FnFlexible(FlexibleItemFn),
-            ImplExtra(ImplExtra),
+            ImplFlexible(ImplFlexible),
             Macro2(Macro2),
             StaticFlexible(FlexibleItemStatic),
             TypeFlexible(FlexibleItemType),
@@ -388,7 +388,7 @@ impl Printer {
             ty: Type,
         }
 
-        struct ImplExtra {
+        struct ImplFlexible {
             attrs: Vec<Attribute>,
             vis: Visibility,
             defaultness: bool,
@@ -518,7 +518,7 @@ impl Printer {
                     while !content.is_empty() {
                         items.push(content.parse()?);
                     }
-                    Ok(ItemVerbatim::ImplExtra(ImplExtra {
+                    Ok(ItemVerbatim::ImplFlexible(ImplFlexible {
                         attrs,
                         vis,
                         defaultness,
@@ -600,7 +600,7 @@ impl Printer {
             ItemVerbatim::FnFlexible(item) => {
                 self.flexible_item_fn(&item);
             }
-            ItemVerbatim::ImplExtra(item) => {
+            ItemVerbatim::ImplFlexible(item) => {
                 self.outer_attrs(&item.attrs);
                 self.cbox(INDENT);
                 self.ibox(-INDENT);
