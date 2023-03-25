@@ -1002,6 +1002,14 @@ impl Printer {
         enum TraitItemVerbatim {
             Empty,
             TypeFlexible(FlexibleItemType),
+            PubOrDefault(PubOrDefaultTraitItem),
+        }
+
+        struct PubOrDefaultTraitItem {
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            defaultness: bool,
+            trait_item: TraitItem,
         }
 
         impl Parse for TraitItemVerbatim {
@@ -1013,14 +1021,33 @@ impl Printer {
                 let attrs = input.call(Attribute::parse_outer)?;
                 let vis: Visibility = input.parse()?;
                 let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
-                let flexible_item = FlexibleItemType::parse(
-                    attrs,
-                    vis,
-                    defaultness,
-                    input,
-                    WhereClauseLocation::AfterEq,
-                )?;
-                Ok(TraitItemVerbatim::TypeFlexible(flexible_item))
+
+                let lookahead = input.lookahead1();
+                if lookahead.peek(Token![type]) {
+                    let flexible_item = FlexibleItemType::parse(
+                        attrs,
+                        vis,
+                        defaultness,
+                        input,
+                        WhereClauseLocation::AfterEq,
+                    )?;
+                    Ok(TraitItemVerbatim::TypeFlexible(flexible_item))
+                } else if (lookahead.peek(Token![const])
+                    || lookahead.peek(Token![async])
+                    || lookahead.peek(Token![unsafe])
+                    || lookahead.peek(Token![extern])
+                    || lookahead.peek(Token![fn]))
+                    && (!matches!(vis, Visibility::Inherited) || defaultness)
+                {
+                    Ok(TraitItemVerbatim::PubOrDefault(PubOrDefaultTraitItem {
+                        attrs,
+                        vis,
+                        defaultness,
+                        trait_item: input.parse()?,
+                    }))
+                } else {
+                    Err(lookahead.error())
+                }
             }
         }
 
@@ -1035,6 +1062,14 @@ impl Printer {
             }
             TraitItemVerbatim::TypeFlexible(trait_item) => {
                 self.flexible_item_type(&trait_item);
+            }
+            TraitItemVerbatim::PubOrDefault(trait_item) => {
+                self.outer_attrs(&trait_item.attrs);
+                self.visibility(&trait_item.vis);
+                if trait_item.defaultness {
+                    self.word("default ");
+                }
+                self.trait_item(&trait_item.trait_item);
             }
         }
     }
