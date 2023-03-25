@@ -191,7 +191,7 @@ impl Printer {
                 if !segment.is_first || path.leading_colon.is_some() {
                     self.word("::");
                 }
-                self.path_segment(&segment, kind);
+                self.path_segment(&segment, PathKind::Type);
                 if segment.is_last {
                     self.word(">");
                 }
