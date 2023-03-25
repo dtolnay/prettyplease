@@ -362,30 +362,25 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn item_verbatim(&mut self, tokens: &TokenStream) {
-        use syn::ext::IdentExt;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
         use syn::{
             braced, parenthesized, token, Attribute, Generics, Ident, Lifetime, Token, Visibility,
         };
-        use verbatim::{FlexibleItemFn, FlexibleItemStatic, FlexibleItemType, WhereClauseLocation};
+        use verbatim::{
+            FlexibleItemConst, FlexibleItemFn, FlexibleItemStatic, FlexibleItemType,
+            WhereClauseLocation,
+        };
 
         enum ItemVerbatim {
             Empty,
-            ConstIncomplete(ConstIncomplete),
+            ConstFlexible(FlexibleItemConst),
             FnFlexible(FlexibleItemFn),
             ImplFlexible(ImplFlexible),
             Macro2(Macro2),
             StaticFlexible(FlexibleItemStatic),
             TypeFlexible(FlexibleItemType),
             UseBrace(UseBrace),
-        }
-
-        struct ConstIncomplete {
-            attrs: Vec<Attribute>,
-            vis: Visibility,
-            ident: Ident,
-            ty: Type,
         }
 
         struct ImplFlexible {
@@ -459,17 +454,9 @@ impl Printer {
 
                 let lookahead = input.lookahead1();
                 if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
-                    input.parse::<Token![const]>()?;
-                    let ident = input.call(Ident::parse_any)?;
-                    input.parse::<Token![:]>()?;
-                    let ty: Type = input.parse()?;
-                    input.parse::<Token![;]>()?;
-                    Ok(ItemVerbatim::ConstIncomplete(ConstIncomplete {
-                        attrs,
-                        vis,
-                        ident,
-                        ty,
-                    }))
+                    let defaultness = false;
+                    let flexible_item = FlexibleItemConst::parse(attrs, vis, defaultness, input)?;
+                    Ok(ItemVerbatim::ConstFlexible(flexible_item))
                 } else if input.peek(Token![const])
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe]) && !input.peek2(Token![impl])
@@ -585,17 +572,8 @@ impl Printer {
             ItemVerbatim::Empty => {
                 self.hardbreak();
             }
-            ItemVerbatim::ConstIncomplete(item) => {
-                self.outer_attrs(&item.attrs);
-                self.cbox(0);
-                self.visibility(&item.vis);
-                self.word("const ");
-                self.ident(&item.ident);
-                self.word(": ");
-                self.ty(&item.ty);
-                self.word(";");
-                self.end();
-                self.hardbreak();
+            ItemVerbatim::ConstFlexible(item) => {
+                self.flexible_item_const(&item);
             }
             ItemVerbatim::FnFlexible(item) => {
                 self.flexible_item_fn(&item);
@@ -1152,11 +1130,12 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn impl_item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{Attribute, Token, Visibility};
-        use verbatim::{FlexibleItemFn, FlexibleItemType, WhereClauseLocation};
+        use syn::{Attribute, Ident, Token, Visibility};
+        use verbatim::{FlexibleItemConst, FlexibleItemFn, FlexibleItemType, WhereClauseLocation};
 
         enum ImplItemVerbatim {
             Empty,
+            ConstFlexible(FlexibleItemConst),
             FnFlexible(FlexibleItemFn),
             TypeFlexible(FlexibleItemType),
         }
@@ -1172,7 +1151,10 @@ impl Printer {
                 let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
 
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![const])
+                if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
+                    let flexible_item = FlexibleItemConst::parse(attrs, vis, defaultness, input)?;
+                    Ok(ImplItemVerbatim::ConstFlexible(flexible_item))
+                } else if input.peek(Token![const])
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe])
                     || lookahead.peek(Token![extern])
@@ -1203,6 +1185,9 @@ impl Printer {
         match impl_item {
             ImplItemVerbatim::Empty => {
                 self.hardbreak();
+            }
+            ImplItemVerbatim::ConstFlexible(impl_item) => {
+                self.flexible_item_const(&impl_item);
             }
             ImplItemVerbatim::FnFlexible(impl_item) => {
                 self.flexible_item_fn(&impl_item);
@@ -1316,11 +1301,20 @@ mod verbatim {
     use crate::algorithm::Printer;
     use crate::iter::IterDelimited;
     use crate::INDENT;
+    use syn::ext::IdentExt;
     use syn::parse::{ParseStream, Result};
     use syn::{
         braced, token, Attribute, Block, Expr, Generics, Ident, Signature, StaticMutability, Stmt,
         Token, Type, TypeParamBound, Visibility, WhereClause,
     };
+
+    pub struct FlexibleItemConst {
+        pub attrs: Vec<Attribute>,
+        pub vis: Visibility,
+        pub defaultness: bool,
+        pub ident: Ident,
+        pub ty: Type,
+    }
 
     pub struct FlexibleItemFn {
         pub attrs: Vec<Attribute>,
@@ -1357,6 +1351,29 @@ mod verbatim {
         AfterEq,
         // TODO: goes away once the migration period on rust-lang/rust#89122 is over
         Both,
+    }
+
+    impl FlexibleItemConst {
+        pub fn parse(
+            attrs: Vec<Attribute>,
+            vis: Visibility,
+            defaultness: bool,
+            input: ParseStream,
+        ) -> Result<Self> {
+            input.parse::<Token![const]>()?;
+            let ident = input.call(Ident::parse_any)?;
+            input.parse::<Token![:]>()?;
+            let ty: Type = input.parse()?;
+            input.parse::<Token![;]>()?;
+
+            Ok(FlexibleItemConst {
+                attrs,
+                vis,
+                defaultness,
+                ident,
+                ty,
+            })
+        }
     }
 
     impl FlexibleItemFn {
@@ -1494,6 +1511,22 @@ mod verbatim {
     }
 
     impl Printer {
+        pub fn flexible_item_const(&mut self, item: &FlexibleItemConst) {
+            self.outer_attrs(&item.attrs);
+            self.cbox(0);
+            self.visibility(&item.vis);
+            if item.defaultness {
+                self.word("default ");
+            }
+            self.word("const ");
+            self.ident(&item.ident);
+            self.word(": ");
+            self.ty(&item.ty);
+            self.word(";");
+            self.end();
+            self.hardbreak();
+        }
+
         pub fn flexible_item_fn(&mut self, item: &FlexibleItemFn) {
             self.outer_attrs(&item.attrs);
             self.cbox(INDENT);
