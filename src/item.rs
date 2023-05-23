@@ -164,8 +164,8 @@ impl Printer {
 
     fn item_macro(&mut self, item: &ItemMacro) {
         self.outer_attrs(&item.attrs);
-        self.mac(&item.mac, item.ident.as_ref());
-        self.mac_semi_if_needed(&item.mac.delimiter);
+        let semicolon = true;
+        self.mac(&item.mac, item.ident.as_ref(), semicolon);
         self.hardbreak();
     }
 
@@ -815,8 +815,8 @@ impl Printer {
 
     fn foreign_item_macro(&mut self, foreign_item: &ForeignItemMacro) {
         self.outer_attrs(&foreign_item.attrs);
-        self.mac(&foreign_item.mac, None);
-        self.mac_semi_if_needed(&foreign_item.mac.delimiter);
+        let semicolon = true;
+        self.mac(&foreign_item.mac, None, semicolon);
         self.hardbreak();
     }
 
@@ -980,8 +980,8 @@ impl Printer {
 
     fn trait_item_macro(&mut self, trait_item: &TraitItemMacro) {
         self.outer_attrs(&trait_item.attrs);
-        self.mac(&trait_item.mac, None);
-        self.mac_semi_if_needed(&trait_item.mac.delimiter);
+        let semicolon = true;
+        self.mac(&trait_item.mac, None, semicolon);
         self.hardbreak();
     }
 
@@ -1149,8 +1149,8 @@ impl Printer {
 
     fn impl_item_macro(&mut self, impl_item: &ImplItemMacro) {
         self.outer_attrs(&impl_item.attrs);
-        self.mac(&impl_item.mac, None);
-        self.mac_semi_if_needed(&impl_item.mac.delimiter);
+        let semicolon = true;
+        self.mac(&impl_item.mac, None, semicolon);
         self.hardbreak();
     }
 

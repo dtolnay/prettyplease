@@ -477,7 +477,8 @@ impl Printer {
 
     pub fn expr_macro(&mut self, expr: &ExprMacro) {
         self.outer_attrs(&expr.attrs);
-        self.mac(&expr.mac, None);
+        let semicolon = false;
+        self.mac(&expr.mac, None, semicolon);
     }
 
     fn expr_match(&mut self, expr: &ExprMatch) {
