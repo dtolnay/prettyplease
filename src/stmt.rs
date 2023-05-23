@@ -64,8 +64,8 @@ impl Printer {
             }
             Stmt::Macro(stmt) => {
                 self.outer_attrs(&stmt.attrs);
-                self.mac(&stmt.mac, None);
-                self.mac_semi_if_needed(&stmt.mac.delimiter);
+                let semicolon = true;
+                self.mac(&stmt.mac, None, semicolon);
                 self.hardbreak();
             }
         }

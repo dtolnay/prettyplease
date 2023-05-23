@@ -87,7 +87,8 @@ impl Printer {
     }
 
     fn type_macro(&mut self, ty: &TypeMacro) {
-        self.mac(&ty.mac, None);
+        let semicolon = false;
+        self.mac(&ty.mac, None, semicolon);
     }
 
     fn type_never(&mut self, ty: &TypeNever) {

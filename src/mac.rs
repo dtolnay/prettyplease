@@ -6,7 +6,7 @@ use proc_macro2::{Delimiter, Spacing, TokenStream};
 use syn::{Ident, Macro, MacroDelimiter};
 
 impl Printer {
-    pub fn mac(&mut self, mac: &Macro, ident: Option<&Ident>) {
+    pub fn mac(&mut self, mac: &Macro, ident: Option<&Ident>, semicolon: bool) {
         if mac.path.is_ident("macro_rules") {
             if let Some(ident) = ident {
                 self.macro_rules(ident, &mac.tokens);
@@ -36,12 +36,11 @@ impl Printer {
             self.end();
         }
         self.word(close);
-    }
-
-    pub fn mac_semi_if_needed(&mut self, delimiter: &MacroDelimiter) {
-        match delimiter {
-            MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => self.word(";"),
-            MacroDelimiter::Brace(_) => {}
+        if semicolon {
+            match mac.delimiter {
+                MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => self.word(";"),
+                MacroDelimiter::Brace(_) => {}
+            }
         }
     }
 
