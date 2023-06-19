@@ -263,15 +263,16 @@ impl Printer {
                 };
                 if wrap_in_brace {
                     self.cbox(INDENT);
+                    let okay_to_brace = parseable_as_stmt(&expr.body);
                     self.scan_break(BreakToken {
-                        pre_break: Some('{'),
+                        pre_break: Some(if okay_to_brace { '{' } else { '(' }),
                         ..BreakToken::default()
                     });
                     self.expr(&expr.body);
                     self.scan_break(BreakToken {
                         offset: -INDENT,
-                        pre_break: stmt::add_semi(&expr.body).then(|| ';'),
-                        post_break: Some('}'),
+                        pre_break: (okay_to_brace && stmt::add_semi(&expr.body)).then(|| ';'),
+                        post_break: Some(if okay_to_brace { '}' } else { ')' }),
                         ..BreakToken::default()
                     });
                     self.end();
@@ -1186,6 +1187,61 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::Verbatim(_)
         | Expr::While(_)
         | Expr::Yield(_) => false,
+
+        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+        _ => false,
+    }
+}
+
+// Expressions for which `$expr` and `{ $expr }` mean the same thing.
+//
+// This is not the case for all expressions. For example `{} | x | x` has some
+// bitwise OR operators while `{ {} |x| x }` has a block followed by a closure.
+fn parseable_as_stmt(expr: &Expr) -> bool {
+    match expr {
+        Expr::Array(_)
+        | Expr::Async(_)
+        | Expr::Block(_)
+        | Expr::Break(_)
+        | Expr::Closure(_)
+        | Expr::Const(_)
+        | Expr::Continue(_)
+        | Expr::ForLoop(_)
+        | Expr::If(_)
+        | Expr::Infer(_)
+        | Expr::Let(_)
+        | Expr::Lit(_)
+        | Expr::Loop(_)
+        | Expr::Macro(_)
+        | Expr::Match(_)
+        | Expr::Paren(_)
+        | Expr::Path(_)
+        | Expr::Reference(_)
+        | Expr::Repeat(_)
+        | Expr::Return(_)
+        | Expr::Struct(_)
+        | Expr::TryBlock(_)
+        | Expr::Tuple(_)
+        | Expr::Unary(_)
+        | Expr::Unsafe(_)
+        | Expr::Verbatim(_)
+        | Expr::While(_)
+        | Expr::Yield(_) => true,
+
+        Expr::Assign(expr) => parseable_as_stmt(&expr.left),
+        Expr::Await(expr) => parseable_as_stmt(&expr.base),
+        Expr::Binary(expr) => requires_terminator(&expr.left) && parseable_as_stmt(&expr.left),
+        Expr::Call(expr) => requires_terminator(&expr.func) && parseable_as_stmt(&expr.func),
+        Expr::Cast(expr) => requires_terminator(&expr.expr) && parseable_as_stmt(&expr.expr),
+        Expr::Field(expr) => parseable_as_stmt(&expr.base),
+        Expr::Group(expr) => parseable_as_stmt(&expr.expr),
+        Expr::Index(expr) => requires_terminator(&expr.expr) && parseable_as_stmt(&expr.expr),
+        Expr::MethodCall(expr) => parseable_as_stmt(&expr.receiver),
+        Expr::Range(expr) => match &expr.start {
+            None => true,
+            Some(start) => requires_terminator(start) && parseable_as_stmt(start),
+        },
+        Expr::Try(expr) => parseable_as_stmt(&expr.expr),
 
         #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
