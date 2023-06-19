@@ -971,7 +971,7 @@ impl Printer {
     }
 }
 
-pub fn requires_terminator(expr: &Expr) -> bool {
+fn requires_terminator(expr: &Expr) -> bool {
     // see https://github.com/rust-lang/rust/blob/a266f1199/compiler/rustc_ast/src/util/classify.rs#L7-L26
     match expr {
         Expr::If(_)
