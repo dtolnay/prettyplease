@@ -174,6 +174,7 @@ impl Printer {
         use syn::{Token, TypeParamBound};
 
         enum TypeVerbatim {
+            Ellipsis,
             DynStar(DynStar),
             MutSelf(MutSelf),
             NotType(NotType),
@@ -214,6 +215,9 @@ impl Printer {
                     input.parse::<Token![!]>()?;
                     let inner: Type = input.parse()?;
                     Ok(TypeVerbatim::NotType(NotType { inner }))
+                } else if lookahead.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    Ok(TypeVerbatim::Ellipsis)
                 } else {
                     Err(lookahead.error())
                 }
@@ -226,6 +230,9 @@ impl Printer {
         };
 
         match ty {
+            TypeVerbatim::Ellipsis => {
+                self.word("...");
+            }
             TypeVerbatim::DynStar(ty) => {
                 self.word("dyn* ");
                 for type_param_bound in ty.bounds.iter().delimited() {

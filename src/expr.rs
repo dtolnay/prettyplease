@@ -671,6 +671,7 @@ impl Printer {
 
         enum ExprVerbatim {
             Empty,
+            Ellipsis,
             Builtin(Builtin),
             RawReference(RawReference),
         }
@@ -712,6 +713,9 @@ impl Printer {
                     }
                     let expr: Expr = input.parse()?;
                     Ok(ExprVerbatim::RawReference(RawReference { mutable, expr }))
+                } else if lookahead.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    Ok(ExprVerbatim::Ellipsis)
                 } else {
                     Err(lookahead.error())
                 }
@@ -725,6 +729,9 @@ impl Printer {
 
         match expr {
             ExprVerbatim::Empty => {}
+            ExprVerbatim::Ellipsis => {
+                self.word("...");
+            }
             ExprVerbatim::Builtin(expr) => {
                 self.word("builtin # ");
                 self.ident(&expr.name);

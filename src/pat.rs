@@ -179,6 +179,7 @@ impl Printer {
         use syn::{braced, Attribute, Block, Token};
 
         enum PatVerbatim {
+            Ellipsis,
             Box(Pat),
             Const(PatConst),
         }
@@ -205,6 +206,9 @@ impl Printer {
                         attrs,
                         block: Block { brace_token, stmts },
                     }))
+                } else if lookahead.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    Ok(PatVerbatim::Ellipsis)
                 } else {
                     Err(lookahead.error())
                 }
@@ -217,6 +221,9 @@ impl Printer {
         };
 
         match pat {
+            PatVerbatim::Ellipsis => {
+                self.word("...");
+            }
             PatVerbatim::Box(pat) => {
                 self.word("box ");
                 self.pat(&pat);

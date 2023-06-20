@@ -374,6 +374,7 @@ impl Printer {
 
         enum ItemVerbatim {
             Empty,
+            Ellipsis,
             ConstFlexible(FlexibleItemConst),
             FnFlexible(FlexibleItemFn),
             ImplFlexible(ImplFlexible),
@@ -447,6 +448,9 @@ impl Printer {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.is_empty() {
                     return Ok(ItemVerbatim::Empty);
+                } else if input.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    return Ok(ItemVerbatim::Ellipsis);
                 }
 
                 let mut attrs = input.call(Attribute::parse_outer)?;
@@ -570,6 +574,10 @@ impl Printer {
 
         match item {
             ItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+            ItemVerbatim::Ellipsis => {
+                self.word("...");
                 self.hardbreak();
             }
             ItemVerbatim::ConstFlexible(item) => {
@@ -836,6 +844,7 @@ impl Printer {
 
         enum ForeignItemVerbatim {
             Empty,
+            Ellipsis,
             FnFlexible(FlexibleItemFn),
             StaticFlexible(FlexibleItemStatic),
             TypeFlexible(FlexibleItemType),
@@ -845,6 +854,9 @@ impl Printer {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.is_empty() {
                     return Ok(ForeignItemVerbatim::Empty);
+                } else if input.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    return Ok(ForeignItemVerbatim::Ellipsis);
                 }
 
                 let attrs = input.call(Attribute::parse_outer)?;
@@ -885,6 +897,10 @@ impl Printer {
 
         match foreign_item {
             ForeignItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+            ForeignItemVerbatim::Ellipsis => {
+                self.word("...");
                 self.hardbreak();
             }
             ForeignItemVerbatim::FnFlexible(foreign_item) => {
@@ -1001,6 +1017,7 @@ impl Printer {
 
         enum TraitItemVerbatim {
             Empty,
+            Ellipsis,
             TypeFlexible(FlexibleItemType),
             PubOrDefault(PubOrDefaultTraitItem),
         }
@@ -1016,6 +1033,9 @@ impl Printer {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.is_empty() {
                     return Ok(TraitItemVerbatim::Empty);
+                } else if input.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    return Ok(TraitItemVerbatim::Ellipsis);
                 }
 
                 let attrs = input.call(Attribute::parse_outer)?;
@@ -1058,6 +1078,10 @@ impl Printer {
 
         match impl_item {
             TraitItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+            TraitItemVerbatim::Ellipsis => {
+                self.word("...");
                 self.hardbreak();
             }
             TraitItemVerbatim::TypeFlexible(trait_item) => {
@@ -1170,6 +1194,7 @@ impl Printer {
 
         enum ImplItemVerbatim {
             Empty,
+            Ellipsis,
             ConstFlexible(FlexibleItemConst),
             FnFlexible(FlexibleItemFn),
             TypeFlexible(FlexibleItemType),
@@ -1179,6 +1204,9 @@ impl Printer {
             fn parse(input: ParseStream) -> Result<Self> {
                 if input.is_empty() {
                     return Ok(ImplItemVerbatim::Empty);
+                } else if input.peek(Token![...]) {
+                    input.parse::<Token![...]>()?;
+                    return Ok(ImplItemVerbatim::Ellipsis);
                 }
 
                 let attrs = input.call(Attribute::parse_outer)?;
@@ -1219,6 +1247,10 @@ impl Printer {
 
         match impl_item {
             ImplItemVerbatim::Empty => {
+                self.hardbreak();
+            }
+            ImplItemVerbatim::Ellipsis => {
+                self.word("...");
                 self.hardbreak();
             }
             ImplItemVerbatim::ConstFlexible(impl_item) => {
