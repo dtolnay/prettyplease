@@ -666,6 +666,7 @@ impl Printer {
 
     #[cfg(feature = "verbatim")]
     fn expr_verbatim(&mut self, tokens: &TokenStream) {
+        use syn::parse::discouraged::Speculative;
         use syn::parse::{Parse, ParseStream, Result};
         use syn::{parenthesized, Ident};
 
@@ -677,11 +678,13 @@ impl Printer {
         }
 
         struct Builtin {
+            attrs: Vec<Attribute>,
             name: Ident,
             args: TokenStream,
         }
 
         struct RawReference {
+            attrs: Vec<Attribute>,
             mutable: bool,
             expr: Expr,
         }
@@ -693,18 +696,22 @@ impl Printer {
 
         impl Parse for ExprVerbatim {
             fn parse(input: ParseStream) -> Result<Self> {
-                let lookahead = input.lookahead1();
+                let ahead = input.fork();
+                let attrs = ahead.call(Attribute::parse_outer)?;
+                let lookahead = ahead.lookahead1();
                 if input.is_empty() {
                     Ok(ExprVerbatim::Empty)
                 } else if lookahead.peek(kw::builtin) {
+                    input.advance_to(&ahead);
                     input.parse::<kw::builtin>()?;
                     input.parse::<Token![#]>()?;
                     let name: Ident = input.parse()?;
                     let args;
                     parenthesized!(args in input);
                     let args: TokenStream = args.parse()?;
-                    Ok(ExprVerbatim::Builtin(Builtin { name, args }))
+                    Ok(ExprVerbatim::Builtin(Builtin { attrs, name, args }))
                 } else if lookahead.peek(Token![&]) {
+                    input.advance_to(&ahead);
                     input.parse::<Token![&]>()?;
                     input.parse::<kw::raw>()?;
                     let mutable = input.parse::<Option<Token![mut]>>()?.is_some();
@@ -712,7 +719,11 @@ impl Printer {
                         input.parse::<Token![const]>()?;
                     }
                     let expr: Expr = input.parse()?;
-                    Ok(ExprVerbatim::RawReference(RawReference { mutable, expr }))
+                    Ok(ExprVerbatim::RawReference(RawReference {
+                        attrs,
+                        mutable,
+                        expr,
+                    }))
                 } else if lookahead.peek(Token![...]) {
                     input.parse::<Token![...]>()?;
                     Ok(ExprVerbatim::Ellipsis)
@@ -733,6 +744,7 @@ impl Printer {
                 self.word("...");
             }
             ExprVerbatim::Builtin(expr) => {
+                self.outer_attrs(&expr.attrs);
                 self.word("builtin # ");
                 self.ident(&expr.name);
                 self.word("(");
@@ -749,6 +761,7 @@ impl Printer {
                 self.word(")");
             }
             ExprVerbatim::RawReference(expr) => {
+                self.outer_attrs(&expr.attrs);
                 self.word("&raw ");
                 self.word(if expr.mutable { "mut " } else { "const " });
                 self.expr(&expr.expr);
