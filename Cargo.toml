@@ -18,11 +18,11 @@ rust-version = "1.56"
 verbatim = ["syn/parsing"]
 
 [dependencies]
-proc-macro2 = { version = "1.0", default-features = false }
-syn = { version = "2.0.16", default-features = false, features = ["full"] }
+proc-macro2 = { version = "1.0.63", default-features = false }
+syn = { version = "2.0.23", default-features = false, features = ["full"] }
 
 [dev-dependencies]
-syn = { version = "2.0.16", default-features = false, features = ["parsing"] }
+syn = { version = "2.0.23", default-features = false, features = ["parsing"] }
 
 [lib]
 doc-scrape-examples = false
