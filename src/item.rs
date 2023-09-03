@@ -1387,7 +1387,9 @@ mod verbatim {
         pub vis: Visibility,
         pub defaultness: bool,
         pub ident: Ident,
+        pub generics: Generics,
         pub ty: Type,
+        pub value: Option<Expr>,
     }
 
     pub struct FlexibleItemFn {
@@ -1436,8 +1438,16 @@ mod verbatim {
         ) -> Result<Self> {
             input.parse::<Token![const]>()?;
             let ident = input.call(Ident::parse_any)?;
+            let mut generics: Generics = input.parse()?;
             input.parse::<Token![:]>()?;
             let ty: Type = input.parse()?;
+            let value = if input.parse::<Option<Token![=]>>()?.is_some() {
+                let expr: Expr = input.parse()?;
+                Some(expr)
+            } else {
+                None
+            };
+            generics.where_clause = input.parse()?;
             input.parse::<Token![;]>()?;
 
             Ok(FlexibleItemConst {
@@ -1445,7 +1455,9 @@ mod verbatim {
                 vis,
                 defaultness,
                 ident,
+                generics,
                 ty,
+                value,
             })
         }
     }
@@ -1587,16 +1599,26 @@ mod verbatim {
     impl Printer {
         pub fn flexible_item_const(&mut self, item: &FlexibleItemConst) {
             self.outer_attrs(&item.attrs);
-            self.cbox(0);
+            self.cbox(INDENT);
             self.visibility(&item.vis);
             if item.defaultness {
                 self.word("default ");
             }
             self.word("const ");
             self.ident(&item.ident);
+            self.generics(&item.generics);
             self.word(": ");
+            self.cbox(-INDENT);
             self.ty(&item.ty);
-            self.word(";");
+            self.end();
+            if let Some(value) = &item.value {
+                self.word(" = ");
+                self.neverbreak();
+                self.ibox(-INDENT);
+                self.expr(value);
+                self.end();
+            }
+            self.where_clause_oneline_semi(&item.generics.where_clause);
             self.end();
             self.hardbreak();
         }
