@@ -1012,12 +1012,13 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn trait_item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{Attribute, Token, Visibility};
-        use verbatim::{FlexibleItemType, WhereClauseLocation};
+        use syn::{Attribute, Ident, Token, Visibility};
+        use verbatim::{FlexibleItemConst, FlexibleItemType, WhereClauseLocation};
 
         enum TraitItemVerbatim {
             Empty,
             Ellipsis,
+            ConstFlexible(FlexibleItemConst),
             TypeFlexible(FlexibleItemType),
             PubOrDefault(PubOrDefaultTraitItem),
         }
@@ -1043,7 +1044,10 @@ impl Printer {
                 let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
 
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![type]) {
+                if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
+                    let flexible_item = FlexibleItemConst::parse(attrs, vis, defaultness, input)?;
+                    Ok(TraitItemVerbatim::ConstFlexible(flexible_item))
+                } else if lookahead.peek(Token![type]) {
                     let flexible_item = FlexibleItemType::parse(
                         attrs,
                         vis,
@@ -1052,7 +1056,7 @@ impl Printer {
                         WhereClauseLocation::AfterEq,
                     )?;
                     Ok(TraitItemVerbatim::TypeFlexible(flexible_item))
-                } else if (lookahead.peek(Token![const])
+                } else if (input.peek(Token![const])
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe])
                     || lookahead.peek(Token![extern])
@@ -1083,6 +1087,9 @@ impl Printer {
             TraitItemVerbatim::Ellipsis => {
                 self.word("...");
                 self.hardbreak();
+            }
+            TraitItemVerbatim::ConstFlexible(trait_item) => {
+                self.flexible_item_const(&trait_item);
             }
             TraitItemVerbatim::TypeFlexible(trait_item) => {
                 self.flexible_item_type(&trait_item);
