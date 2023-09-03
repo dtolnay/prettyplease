@@ -1012,12 +1012,13 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn trait_item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{Attribute, Token, Visibility};
-        use verbatim::{FlexibleItemType, WhereClauseLocation};
+        use syn::{Attribute, Ident, Token, Visibility};
+        use verbatim::{FlexibleItemConst, FlexibleItemType, WhereClauseLocation};
 
         enum TraitItemVerbatim {
             Empty,
             Ellipsis,
+            ConstFlexible(FlexibleItemConst),
             TypeFlexible(FlexibleItemType),
             PubOrDefault(PubOrDefaultTraitItem),
         }
@@ -1043,7 +1044,10 @@ impl Printer {
                 let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
 
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![type]) {
+                if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
+                    let flexible_item = FlexibleItemConst::parse(attrs, vis, defaultness, input)?;
+                    Ok(TraitItemVerbatim::ConstFlexible(flexible_item))
+                } else if lookahead.peek(Token![type]) {
                     let flexible_item = FlexibleItemType::parse(
                         attrs,
                         vis,
@@ -1052,7 +1056,7 @@ impl Printer {
                         WhereClauseLocation::AfterEq,
                     )?;
                     Ok(TraitItemVerbatim::TypeFlexible(flexible_item))
-                } else if (lookahead.peek(Token![const])
+                } else if (input.peek(Token![const])
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe])
                     || lookahead.peek(Token![extern])
@@ -1083,6 +1087,9 @@ impl Printer {
             TraitItemVerbatim::Ellipsis => {
                 self.word("...");
                 self.hardbreak();
+            }
+            TraitItemVerbatim::ConstFlexible(trait_item) => {
+                self.flexible_item_const(&trait_item);
             }
             TraitItemVerbatim::TypeFlexible(trait_item) => {
                 self.flexible_item_type(&trait_item);
@@ -1380,7 +1387,9 @@ mod verbatim {
         pub vis: Visibility,
         pub defaultness: bool,
         pub ident: Ident,
+        pub generics: Generics,
         pub ty: Type,
+        pub value: Option<Expr>,
     }
 
     pub struct FlexibleItemFn {
@@ -1429,8 +1438,16 @@ mod verbatim {
         ) -> Result<Self> {
             input.parse::<Token![const]>()?;
             let ident = input.call(Ident::parse_any)?;
+            let mut generics: Generics = input.parse()?;
             input.parse::<Token![:]>()?;
             let ty: Type = input.parse()?;
+            let value = if input.parse::<Option<Token![=]>>()?.is_some() {
+                let expr: Expr = input.parse()?;
+                Some(expr)
+            } else {
+                None
+            };
+            generics.where_clause = input.parse()?;
             input.parse::<Token![;]>()?;
 
             Ok(FlexibleItemConst {
@@ -1438,7 +1455,9 @@ mod verbatim {
                 vis,
                 defaultness,
                 ident,
+                generics,
                 ty,
+                value,
             })
         }
     }
@@ -1580,16 +1599,26 @@ mod verbatim {
     impl Printer {
         pub fn flexible_item_const(&mut self, item: &FlexibleItemConst) {
             self.outer_attrs(&item.attrs);
-            self.cbox(0);
+            self.cbox(INDENT);
             self.visibility(&item.vis);
             if item.defaultness {
                 self.word("default ");
             }
             self.word("const ");
             self.ident(&item.ident);
+            self.generics(&item.generics);
             self.word(": ");
+            self.cbox(-INDENT);
             self.ty(&item.ty);
-            self.word(";");
+            self.end();
+            if let Some(value) = &item.value {
+                self.word(" = ");
+                self.neverbreak();
+                self.ibox(-INDENT);
+                self.expr(value);
+                self.end();
+            }
+            self.where_clause_oneline_semi(&item.generics.where_clause);
             self.end();
             self.hardbreak();
         }
