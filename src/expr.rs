@@ -436,13 +436,14 @@ impl Printer {
 
     fn expr_let(&mut self, expr: &ExprLet) {
         self.outer_attrs(&expr.attrs);
-        self.ibox(INDENT);
+        self.ibox(0);
         self.word("let ");
-        self.ibox(-INDENT);
+        self.ibox(0);
         self.pat(&expr.pat);
         self.end();
-        self.space();
-        self.word("= ");
+        self.word(" = ");
+        self.neverbreak();
+        self.ibox(0);
         let needs_paren = contains_exterior_struct_lit(&expr.expr);
         if needs_paren {
             self.word("(");
@@ -451,6 +452,7 @@ impl Printer {
         if needs_paren {
             self.word(")");
         }
+        self.end();
         self.end();
     }
 
