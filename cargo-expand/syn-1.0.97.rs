@@ -14502,8 +14502,8 @@ mod item {
             let mut has_receiver = false;
             while !input.is_empty() {
                 let attrs = input.call(Attribute::parse_outer)?;
-                let arg = if let Some(dots)
-                    = input.parse::<Option<crate::token::Dot3>>()?
+                let arg = if let Some(dots) = input
+                    .parse::<Option<crate::token::Dot3>>()?
                 {
                     FnArg::Typed(PatType {
                         attrs,
@@ -15541,8 +15541,8 @@ mod item {
                 let vis: Visibility = input.parse()?;
                 let defaultness: Option<crate::token::Default> = input.parse()?;
                 let sig: Signature = input.parse()?;
-                let block = if let Some(semi)
-                    = input.parse::<Option<crate::token::Semi>>()?
+                let block = if let Some(semi) = input
+                    .parse::<Option<crate::token::Semi>>()?
                 {
                     let mut punct = Punct::new(';', Spacing::Alone);
                     punct.set_span(semi.span);
@@ -43898,8 +43898,9 @@ pub mod parse {
     }
     impl<'a> Drop for ParseBuffer<'a> {
         fn drop(&mut self) {
-            if let Some(unexpected_span)
-                = span_of_unexpected_ignoring_nones(self.cursor()) {
+            if let Some(unexpected_span) = span_of_unexpected_ignoring_nones(
+                self.cursor(),
+            ) {
                 let (inner, old_span) = inner_unexpected(self);
                 if old_span.is_none() {
                     inner.set(Unexpected::Some(unexpected_span));
@@ -44211,8 +44212,9 @@ pub mod parse {
             let state = tokens_to_parse_buffer(&buf);
             let node = self(&state)?;
             state.check_unexpected()?;
-            if let Some(unexpected_span)
-                = span_of_unexpected_ignoring_nones(state.cursor()) {
+            if let Some(unexpected_span) = span_of_unexpected_ignoring_nones(
+                state.cursor(),
+            ) {
                 Err(Error::new(unexpected_span, "unexpected token"))
             } else {
                 Ok(node)
@@ -44230,8 +44232,9 @@ pub mod parse {
             let state = new_parse_buffer(scope, cursor, unexpected);
             let node = self(&state)?;
             state.check_unexpected()?;
-            if let Some(unexpected_span)
-                = span_of_unexpected_ignoring_nones(state.cursor()) {
+            if let Some(unexpected_span) = span_of_unexpected_ignoring_nones(
+                state.cursor(),
+            ) {
                 Err(Error::new(unexpected_span, "unexpected token"))
             } else {
                 Ok(node)
