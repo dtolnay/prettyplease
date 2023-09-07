@@ -591,8 +591,11 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == DEFAULT => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, DEFAULT, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                DEFAULT,
+                                &m.lit,
+                            ) {
                                 match &item.data {
                                     syn::Data::Struct(syn::DataStruct { fields, .. }) => {
                                         match fields {
@@ -623,8 +626,12 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == BOUND => {
-                            if let Ok(where_predicates)
-                                = parse_lit_into_where(cx, BOUND, BOUND, &m.lit) {
+                            if let Ok(where_predicates) = parse_lit_into_where(
+                                cx,
+                                BOUND,
+                                BOUND,
+                                &m.lit,
+                            ) {
                                 ser_bound.set(&m.path, where_predicates.clone());
                                 de_bound.set(&m.path, where_predicates);
                             }
@@ -709,8 +716,11 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == TRY_FROM => {
-                            if let Ok(try_from_ty)
-                                = parse_lit_into_ty(cx, TRY_FROM, &m.lit) {
+                            if let Ok(try_from_ty) = parse_lit_into_ty(
+                                cx,
+                                TRY_FROM,
+                                &m.lit,
+                            ) {
                                 type_try_from.set_opt(&m.path, Some(try_from_ty));
                             }
                         }
@@ -1142,8 +1152,12 @@ mod internals {
                             other.set_true(word);
                         }
                         Meta(NameValue(m)) if m.path == BOUND => {
-                            if let Ok(where_predicates)
-                                = parse_lit_into_where(cx, BOUND, BOUND, &m.lit) {
+                            if let Ok(where_predicates) = parse_lit_into_where(
+                                cx,
+                                BOUND,
+                                BOUND,
+                                &m.lit,
+                            ) {
                                 ser_bound.set(&m.path, where_predicates.clone());
                                 de_bound.set(&m.path, where_predicates);
                             }
@@ -1155,8 +1169,11 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                WITH,
+                                &m.lit,
+                            ) {
                                 let mut ser_path = path.clone();
                                 ser_path
                                     .path
@@ -1172,14 +1189,20 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == SERIALIZE_WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, SERIALIZE_WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                SERIALIZE_WITH,
+                                &m.lit,
+                            ) {
                                 serialize_with.set(&m.path, path);
                             }
                         }
                         Meta(NameValue(m)) if m.path == DESERIALIZE_WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, DESERIALIZE_WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                DESERIALIZE_WITH,
+                                &m.lit,
+                            ) {
                                 deserialize_with.set(&m.path, path);
                             }
                         }
@@ -1383,8 +1406,11 @@ mod internals {
                             default.set(word, Default::Default);
                         }
                         Meta(NameValue(m)) if m.path == DEFAULT => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, DEFAULT, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                DEFAULT,
+                                &m.lit,
+                            ) {
                                 default.set(&m.path, Default::Path(path));
                             }
                         }
@@ -1399,30 +1425,38 @@ mod internals {
                             skip_deserializing.set_true(word);
                         }
                         Meta(NameValue(m)) if m.path == SKIP_SERIALIZING_IF => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(
-                                    cx,
-                                    SKIP_SERIALIZING_IF,
-                                    &m.lit,
-                                ) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                SKIP_SERIALIZING_IF,
+                                &m.lit,
+                            ) {
                                 skip_serializing_if.set(&m.path, path);
                             }
                         }
                         Meta(NameValue(m)) if m.path == SERIALIZE_WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, SERIALIZE_WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                SERIALIZE_WITH,
+                                &m.lit,
+                            ) {
                                 serialize_with.set(&m.path, path);
                             }
                         }
                         Meta(NameValue(m)) if m.path == DESERIALIZE_WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, DESERIALIZE_WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                DESERIALIZE_WITH,
+                                &m.lit,
+                            ) {
                                 deserialize_with.set(&m.path, path);
                             }
                         }
                         Meta(NameValue(m)) if m.path == WITH => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, WITH, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                WITH,
+                                &m.lit,
+                            ) {
                                 let mut ser_path = path.clone();
                                 ser_path
                                     .path
@@ -1438,8 +1472,12 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == BOUND => {
-                            if let Ok(where_predicates)
-                                = parse_lit_into_where(cx, BOUND, BOUND, &m.lit) {
+                            if let Ok(where_predicates) = parse_lit_into_where(
+                                cx,
+                                BOUND,
+                                BOUND,
+                                &m.lit,
+                            ) {
                                 ser_bound.set(&m.path, where_predicates.clone());
                                 de_bound.set(&m.path, where_predicates);
                             }
@@ -1451,16 +1489,25 @@ mod internals {
                             }
                         }
                         Meta(Path(word)) if word == BORROW => {
-                            if let Ok(borrowable)
-                                = borrowable_lifetimes(cx, &ident, field) {
+                            if let Ok(borrowable) = borrowable_lifetimes(
+                                cx,
+                                &ident,
+                                field,
+                            ) {
                                 borrowed_lifetimes.set(word, borrowable);
                             }
                         }
                         Meta(NameValue(m)) if m.path == BORROW => {
-                            if let Ok(lifetimes)
-                                = parse_lit_into_lifetimes(cx, BORROW, &m.lit) {
-                                if let Ok(borrowable)
-                                    = borrowable_lifetimes(cx, &ident, field) {
+                            if let Ok(lifetimes) = parse_lit_into_lifetimes(
+                                cx,
+                                BORROW,
+                                &m.lit,
+                            ) {
+                                if let Ok(borrowable) = borrowable_lifetimes(
+                                    cx,
+                                    &ident,
+                                    field,
+                                ) {
                                     for lifetime in &lifetimes {
                                         if !borrowable.contains(lifetime) {
                                             cx.error_spanned_by(
@@ -1485,8 +1532,11 @@ mod internals {
                             }
                         }
                         Meta(NameValue(m)) if m.path == GETTER => {
-                            if let Ok(path)
-                                = parse_lit_into_expr_path(cx, GETTER, &m.lit) {
+                            if let Ok(path) = parse_lit_into_expr_path(
+                                cx,
+                                GETTER,
+                                &m.lit,
+                            ) {
                                 getter.set(&m.path, path);
                             }
                         }
@@ -2075,8 +2125,8 @@ mod internals {
                         collect_lifetimes(&qself.ty, out);
                     }
                     for seg in &ty.path.segments {
-                        if let syn::PathArguments::AngleBracketed(bracketed)
-                            = &seg.arguments
+                        if let syn::PathArguments::AngleBracketed(bracketed) = &seg
+                            .arguments
                         {
                             for arg in &bracketed.args {
                                 match arg {
@@ -2263,8 +2313,8 @@ mod internals {
                 let self_ty = self.self_ty(path.segments[0].ident.span());
                 let variant = mem::replace(path, self_ty.path);
                 for segment in &mut path.segments {
-                    if let PathArguments::AngleBracketed(bracketed)
-                        = &mut segment.arguments
+                    if let PathArguments::AngleBracketed(bracketed) = &mut segment
+                        .arguments
                     {
                         if bracketed.colon2_token.is_none() && !bracketed.args.is_empty()
                         {
@@ -10429,8 +10479,8 @@ mod de {
             ::quote::ToTokens::to_tokens(&this, &mut _s);
             _s
         };
-        let (ordinary, fallthrough, fallthrough_borrowed) = if let Some(last)
-            = variants.last()
+        let (ordinary, fallthrough, fallthrough_borrowed) = if let Some(last) = variants
+            .last()
         {
             let last_ident = &last.ident;
             if last.attrs.other() {
