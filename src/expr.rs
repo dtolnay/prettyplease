@@ -912,8 +912,8 @@ impl Printer {
         if attr::has_inner(attrs) || !block.stmts.is_empty() {
             self.space();
             self.inner_attrs(attrs);
-            match (block.stmts.get(0), block.stmts.get(1)) {
-                (Some(Stmt::Expr(expr, None)), None) if stmt::break_after(expr) => {
+            match block.stmts.as_slice() {
+                [Stmt::Expr(expr, None)] if stmt::break_after(expr) => {
                     self.ibox(0);
                     self.expr_beginning_of_line(expr, true);
                     self.end();
