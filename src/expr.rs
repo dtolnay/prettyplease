@@ -18,31 +18,32 @@ use syn::{
 
 impl Printer {
     pub fn expr(&mut self, expr: &Expr) {
+        let beginning_of_line = false;
         match expr {
             Expr::Array(expr) => self.expr_array(expr),
             Expr::Assign(expr) => self.expr_assign(expr),
             Expr::Async(expr) => self.expr_async(expr),
-            Expr::Await(expr) => self.expr_await(expr, false),
+            Expr::Await(expr) => self.expr_await(expr, beginning_of_line),
             Expr::Binary(expr) => self.expr_binary(expr),
             Expr::Block(expr) => self.expr_block(expr),
             Expr::Break(expr) => self.expr_break(expr),
-            Expr::Call(expr) => self.expr_call(expr, false),
+            Expr::Call(expr) => self.expr_call(expr, beginning_of_line),
             Expr::Cast(expr) => self.expr_cast(expr),
             Expr::Closure(expr) => self.expr_closure(expr),
             Expr::Const(expr) => self.expr_const(expr),
             Expr::Continue(expr) => self.expr_continue(expr),
-            Expr::Field(expr) => self.expr_field(expr, false),
+            Expr::Field(expr) => self.expr_field(expr, beginning_of_line),
             Expr::ForLoop(expr) => self.expr_for_loop(expr),
             Expr::Group(expr) => self.expr_group(expr),
             Expr::If(expr) => self.expr_if(expr),
-            Expr::Index(expr) => self.expr_index(expr, false),
+            Expr::Index(expr) => self.expr_index(expr, beginning_of_line),
             Expr::Infer(expr) => self.expr_infer(expr),
             Expr::Let(expr) => self.expr_let(expr),
             Expr::Lit(expr) => self.expr_lit(expr),
             Expr::Loop(expr) => self.expr_loop(expr),
             Expr::Macro(expr) => self.expr_macro(expr),
             Expr::Match(expr) => self.expr_match(expr),
-            Expr::MethodCall(expr) => self.expr_method_call(expr, false),
+            Expr::MethodCall(expr) => self.expr_method_call(expr, beginning_of_line),
             Expr::Paren(expr) => self.expr_paren(expr),
             Expr::Path(expr) => self.expr_path(expr),
             Expr::Range(expr) => self.expr_range(expr),
@@ -50,7 +51,7 @@ impl Printer {
             Expr::Repeat(expr) => self.expr_repeat(expr),
             Expr::Return(expr) => self.expr_return(expr),
             Expr::Struct(expr) => self.expr_struct(expr),
-            Expr::Try(expr) => self.expr_try(expr, false),
+            Expr::Try(expr) => self.expr_try(expr, beginning_of_line),
             Expr::TryBlock(expr) => self.expr_try_block(expr),
             Expr::Tuple(expr) => self.expr_tuple(expr),
             Expr::Unary(expr) => self.expr_unary(expr),
@@ -80,7 +81,10 @@ impl Printer {
             Expr::Call(expr) => self.subexpr_call(expr),
             Expr::Field(expr) => self.subexpr_field(expr, beginning_of_line),
             Expr::Index(expr) => self.subexpr_index(expr, beginning_of_line),
-            Expr::MethodCall(expr) => self.subexpr_method_call(expr, beginning_of_line, false),
+            Expr::MethodCall(expr) => {
+                let unindent_call_args = false;
+                self.subexpr_method_call(expr, beginning_of_line, unindent_call_args);
+            }
             Expr::Try(expr) => self.subexpr_try(expr, beginning_of_line),
             _ => {
                 self.cbox(-INDENT);
@@ -200,7 +204,8 @@ impl Printer {
     }
 
     fn subexpr_call(&mut self, expr: &ExprCall) {
-        self.subexpr(&expr.func, false);
+        let beginning_of_line = false;
+        self.subexpr(&expr.func, beginning_of_line);
         self.word("(");
         self.call_args(&expr.args);
         self.word(")");
