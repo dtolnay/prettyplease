@@ -18,16 +18,9 @@ fn test_parenthesize_cond() {
                 if #s == #s {}
             }
         },
-        // FIXME this is not valid Rust syntax. It needs to be either:
-        //
-        //     if (Struct {}) == (Struct {}) {}
-        //
-        // or:
-        //
-        //     if (Struct {} == Struct {}) {}
         indoc! {"
             fn main() {
-                if Struct {} == Struct {} {}
+                if (Struct {} == Struct {}) {}
             }
         "},
     );
