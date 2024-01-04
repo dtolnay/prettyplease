@@ -47,10 +47,12 @@ impl Printer {
 
     fn generic_argument(&mut self, arg: &GenericArgument) {
         match arg {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             GenericArgument::Lifetime(lifetime) => self.lifetime(lifetime),
             GenericArgument::Type(ty) => self.ty(ty),
             GenericArgument::Const(expr) => {
                 match expr {
+                    #![cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
                     Expr::Lit(expr) => self.expr_lit(expr),
                     Expr::Block(expr) => self.expr_block(expr),
                     // ERROR CORRECTION: Add braces to make sure that the
@@ -65,7 +67,6 @@ impl Printer {
             GenericArgument::AssocType(assoc) => self.assoc_type(assoc),
             GenericArgument::AssocConst(assoc) => self.assoc_const(assoc),
             GenericArgument::Constraint(constraint) => self.constraint(constraint),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown GenericArgument"),
         }
     }
@@ -95,13 +96,13 @@ impl Printer {
         }
         fn group(arg: &GenericArgument) -> Group {
             match arg {
+                #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
                 GenericArgument::Lifetime(_) => Group::First,
                 GenericArgument::Type(_)
                 | GenericArgument::Const(_)
                 | GenericArgument::AssocType(_)
                 | GenericArgument::AssocConst(_)
                 | GenericArgument::Constraint(_) => Group::Second,
-                #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
                 _ => Group::Second,
             }
         }

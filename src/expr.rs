@@ -20,6 +20,7 @@ impl Printer {
     pub fn expr(&mut self, expr: &Expr) {
         let beginning_of_line = false;
         match expr {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Expr::Array(expr) => self.expr_array(expr),
             Expr::Assign(expr) => self.expr_assign(expr),
             Expr::Async(expr) => self.expr_async(expr),
@@ -59,7 +60,6 @@ impl Printer {
             Expr::Verbatim(expr) => self.expr_verbatim(expr),
             Expr::While(expr) => self.expr_while(expr),
             Expr::Yield(expr) => self.expr_yield(expr),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Expr"),
         }
     }
@@ -947,48 +947,52 @@ impl Printer {
     }
 
     fn binary_operator(&mut self, op: &BinOp) {
-        self.word(match op {
-            BinOp::Add(_) => "+",
-            BinOp::Sub(_) => "-",
-            BinOp::Mul(_) => "*",
-            BinOp::Div(_) => "/",
-            BinOp::Rem(_) => "%",
-            BinOp::And(_) => "&&",
-            BinOp::Or(_) => "||",
-            BinOp::BitXor(_) => "^",
-            BinOp::BitAnd(_) => "&",
-            BinOp::BitOr(_) => "|",
-            BinOp::Shl(_) => "<<",
-            BinOp::Shr(_) => ">>",
-            BinOp::Eq(_) => "==",
-            BinOp::Lt(_) => "<",
-            BinOp::Le(_) => "<=",
-            BinOp::Ne(_) => "!=",
-            BinOp::Ge(_) => ">=",
-            BinOp::Gt(_) => ">",
-            BinOp::AddAssign(_) => "+=",
-            BinOp::SubAssign(_) => "-=",
-            BinOp::MulAssign(_) => "*=",
-            BinOp::DivAssign(_) => "/=",
-            BinOp::RemAssign(_) => "%=",
-            BinOp::BitXorAssign(_) => "^=",
-            BinOp::BitAndAssign(_) => "&=",
-            BinOp::BitOrAssign(_) => "|=",
-            BinOp::ShlAssign(_) => "<<=",
-            BinOp::ShrAssign(_) => ">>=",
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-            _ => unimplemented!("unknown BinOp"),
-        });
+        self.word(
+            match op {
+                #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                BinOp::Add(_) => "+",
+                BinOp::Sub(_) => "-",
+                BinOp::Mul(_) => "*",
+                BinOp::Div(_) => "/",
+                BinOp::Rem(_) => "%",
+                BinOp::And(_) => "&&",
+                BinOp::Or(_) => "||",
+                BinOp::BitXor(_) => "^",
+                BinOp::BitAnd(_) => "&",
+                BinOp::BitOr(_) => "|",
+                BinOp::Shl(_) => "<<",
+                BinOp::Shr(_) => ">>",
+                BinOp::Eq(_) => "==",
+                BinOp::Lt(_) => "<",
+                BinOp::Le(_) => "<=",
+                BinOp::Ne(_) => "!=",
+                BinOp::Ge(_) => ">=",
+                BinOp::Gt(_) => ">",
+                BinOp::AddAssign(_) => "+=",
+                BinOp::SubAssign(_) => "-=",
+                BinOp::MulAssign(_) => "*=",
+                BinOp::DivAssign(_) => "/=",
+                BinOp::RemAssign(_) => "%=",
+                BinOp::BitXorAssign(_) => "^=",
+                BinOp::BitAndAssign(_) => "&=",
+                BinOp::BitOrAssign(_) => "|=",
+                BinOp::ShlAssign(_) => "<<=",
+                BinOp::ShrAssign(_) => ">>=",
+                _ => unimplemented!("unknown BinOp"),
+            },
+        );
     }
 
     fn unary_operator(&mut self, op: &UnOp) {
-        self.word(match op {
-            UnOp::Deref(_) => "*",
-            UnOp::Not(_) => "!",
-            UnOp::Neg(_) => "-",
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-            _ => unimplemented!("unknown UnOp"),
-        });
+        self.word(
+            match op {
+                #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                UnOp::Deref(_) => "*",
+                UnOp::Not(_) => "!",
+                UnOp::Neg(_) => "-",
+                _ => unimplemented!("unknown UnOp"),
+            },
+        );
     }
 
     fn zerobreak_unless_short_ident(&mut self, beginning_of_line: bool, expr: &Expr) {
@@ -1002,6 +1006,7 @@ impl Printer {
 fn requires_terminator(expr: &Expr) -> bool {
     // see https://github.com/rust-lang/rust/blob/a266f1199/compiler/rustc_ast/src/util/classify.rs#L7-L26
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::If(_)
         | Expr::Match(_)
         | Expr::Block(_) | Expr::Unsafe(_) // both under ExprKind::Block in rustc
@@ -1042,7 +1047,6 @@ fn requires_terminator(expr: &Expr) -> bool {
         | Expr::Verbatim(_)
         | Expr::Yield(_) => true,
 
-        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => true,
     }
 }
@@ -1053,6 +1057,7 @@ fn requires_terminator(expr: &Expr) -> bool {
 // { y: 1 }) == foo` does not.
 fn contains_exterior_struct_lit(expr: &Expr) -> bool {
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::Struct(_) => true,
 
         Expr::Assign(ExprAssign { left, right, .. })
@@ -1102,13 +1107,13 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
         | Expr::While(_)
         | Expr::Yield(_) => false,
 
-        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
 
 fn needs_newline_if_wrap(expr: &Expr) -> bool {
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::Array(_)
         | Expr::Async(_)
         | Expr::Block(_)
@@ -1155,7 +1160,6 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         | Expr::Unary(ExprUnary { expr: e, .. })
         | Expr::Yield(ExprYield { expr: Some(e), .. }) => needs_newline_if_wrap(e),
 
-        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
@@ -1174,6 +1178,7 @@ fn is_short_ident(expr: &Expr) -> bool {
 
 fn is_blocklike(expr: &Expr) -> bool {
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::Array(ExprArray { attrs, .. })
         | Expr::Async(ExprAsync { attrs, .. })
         | Expr::Block(ExprBlock { attrs, .. })
@@ -1215,7 +1220,6 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::While(_)
         | Expr::Yield(_) => false,
 
-        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }
@@ -1226,6 +1230,7 @@ fn is_blocklike(expr: &Expr) -> bool {
 // bitwise OR operators while `{ {} |x| x }` has a block followed by a closure.
 fn parseable_as_stmt(expr: &Expr) -> bool {
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::Array(_)
         | Expr::Async(_)
         | Expr::Block(_)
@@ -1270,7 +1275,6 @@ fn parseable_as_stmt(expr: &Expr) -> bool {
         },
         Expr::Try(expr) => parseable_as_stmt(&expr.expr),
 
-        #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         _ => false,
     }
 }

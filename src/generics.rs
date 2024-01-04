@@ -103,13 +103,13 @@ impl Printer {
 
     pub fn type_param_bound(&mut self, type_param_bound: &TypeParamBound) {
         match type_param_bound {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             TypeParamBound::Trait(trait_bound) => {
                 let tilde_const = false;
                 self.trait_bound(trait_bound, tilde_const);
             }
             TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
             TypeParamBound::Verbatim(bound) => self.type_param_bound_verbatim(bound),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown TypeParamBound"),
         }
     }
@@ -289,9 +289,9 @@ impl Printer {
 
     fn where_predicate(&mut self, predicate: &WherePredicate) {
         match predicate {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             WherePredicate::Type(predicate) => self.predicate_type(predicate),
             WherePredicate::Lifetime(predicate) => self.predicate_lifetime(predicate),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown WherePredicate"),
         }
     }
