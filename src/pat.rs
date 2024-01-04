@@ -11,6 +11,7 @@ use syn::{
 impl Printer {
     pub fn pat(&mut self, pat: &Pat) {
         match pat {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Pat::Const(pat) => self.expr_const(pat),
             Pat::Ident(pat) => self.pat_ident(pat),
             Pat::Lit(pat) => self.expr_lit(pat),
@@ -28,7 +29,6 @@ impl Printer {
             Pat::Type(pat) => self.pat_type(pat),
             Pat::Verbatim(pat) => self.pat_verbatim(pat),
             Pat::Wild(pat) => self.pat_wild(pat),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Pat"),
         }
     }

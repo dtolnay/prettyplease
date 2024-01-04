@@ -5,6 +5,7 @@ use syn::{Lit, LitBool, LitByte, LitByteStr, LitChar, LitFloat, LitInt, LitStr};
 impl Printer {
     pub fn lit(&mut self, lit: &Lit) {
         match lit {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Lit::Str(lit) => self.lit_str(lit),
             Lit::ByteStr(lit) => self.lit_byte_str(lit),
             Lit::Byte(lit) => self.lit_byte(lit),
@@ -13,7 +14,6 @@ impl Printer {
             Lit::Float(lit) => self.lit_float(lit),
             Lit::Bool(lit) => self.lit_bool(lit),
             Lit::Verbatim(lit) => self.lit_verbatim(lit),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Lit"),
         }
     }

@@ -12,6 +12,7 @@ use syn::{
 impl Printer {
     pub fn ty(&mut self, ty: &Type) {
         match ty {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Type::Array(ty) => self.type_array(ty),
             Type::BareFn(ty) => self.type_bare_fn(ty),
             Type::Group(ty) => self.type_group(ty),
@@ -27,7 +28,6 @@ impl Printer {
             Type::TraitObject(ty) => self.type_trait_object(ty),
             Type::Tuple(ty) => self.type_tuple(ty),
             Type::Verbatim(ty) => self.type_verbatim(ty),
-            #[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             _ => unimplemented!("unknown Type"),
         }
     }
