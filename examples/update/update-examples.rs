@@ -10,7 +10,6 @@ use anyhow::Result;
 use quote::quote;
 use rustc_session::parse::ParseSess;
 use rustc_span::edition::Edition::Edition2021;
-use rustc_span::source_map::FilePathMapping;
 use std::fs::{self, File};
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -38,8 +37,7 @@ fn main() -> Result<()> {
     let output_path = manifest_dir.join("..").join("output.rustc.rs");
     let mut string = rustc_span::create_session_globals_then(Edition2021, || {
         let locale_resources = rustc_driver::DEFAULT_LOCALE_RESOURCES.to_vec();
-        let file_path_mapping = FilePathMapping::empty();
-        let sess = ParseSess::new(locale_resources, file_path_mapping);
+        let sess = ParseSess::new(locale_resources);
         let krate = rustc_parse::parse_crate_from_file(&input_path, &sess).unwrap();
         rustc_ast_pretty::pprust::crate_to_string_for_macros(&krate)
     });
