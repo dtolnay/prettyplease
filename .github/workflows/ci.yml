@@ -49,7 +49,6 @@ jobs:
         with:
           components: llvm-tools, rustc-dev, rustfmt
       - run: cargo run --manifest-path examples/update/Cargo.toml
-        continue-on-error: true  # FIXME: waiting on https://github.com/rust-lang/rust/pull/121967
       - run: git diff --exit-code
       - run: cargo run --manifest-path cargo-expand/update/Cargo.toml
       - run: git diff --exit-code
