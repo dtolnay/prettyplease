@@ -743,7 +743,12 @@ impl Printer {
     fn use_group(&mut self, use_group: &UseGroup) {
         if use_group.items.is_empty() {
             self.word("{}");
-        } else if use_group.items.len() == 1 {
+        } else if use_group.items.len() == 1
+            && match &use_group.items[0] {
+                UseTree::Rename(use_rename) => use_rename.ident != "self",
+                _ => true,
+            }
+        {
             self.use_tree(&use_group.items[0]);
         } else {
             self.cbox(INDENT);
