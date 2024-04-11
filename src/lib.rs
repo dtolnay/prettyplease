@@ -276,7 +276,7 @@
 //! style. The reason is that in the paper, the complete non-whitespace contents
 //! are assumed to be independent of linebreak decisions, with Scan and Print
 //! being only in control of the whitespace (spaces and line breaks). In Rust as
-//! idiomatically formattted by rustfmt, that is not the case. Trailing commas
+//! idiomatically formatted by rustfmt, that is not the case. Trailing commas
 //! are one example; the punctuation is only known *after* the broken vs
 //! non-broken status of the surrounding group is known:
 //!
