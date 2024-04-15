@@ -131,6 +131,7 @@ impl Printer {
         self.ibox(0);
         self.expr(&expr.left);
         self.word(" = ");
+        self.neverbreak();
         self.expr(&expr.right);
         self.end();
     }

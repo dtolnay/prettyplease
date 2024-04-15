@@ -1277,16 +1277,12 @@ mod internals {
             }
             pub fn rename_by_rules(&mut self, rules: &RenameAllRules) {
                 if !self.name.serialize_renamed {
-                    self
-                        .name
-                        .serialize = rules
+                    self.name.serialize = rules
                         .serialize
                         .apply_to_variant(&self.name.serialize);
                 }
                 if !self.name.deserialize_renamed {
-                    self
-                        .name
-                        .deserialize = rules
+                    self.name.deserialize = rules
                         .deserialize
                         .apply_to_variant(&self.name.deserialize);
                 }
@@ -1639,16 +1635,12 @@ mod internals {
             }
             pub fn rename_by_rules(&mut self, rules: &RenameAllRules) {
                 if !self.name.serialize_renamed {
-                    self
-                        .name
-                        .serialize = rules
+                    self.name.serialize = rules
                         .serialize
                         .apply_to_field(&self.name.serialize);
                 }
                 if !self.name.deserialize_renamed {
-                    self
-                        .name
-                        .deserialize = rules
+                    self.name.deserialize = rules
                         .deserialize
                         .apply_to_field(&self.name.deserialize);
                 }
@@ -2302,8 +2294,7 @@ mod internals {
                     as_token: None,
                     gt_token: ::syn::token::Gt(span),
                 });
-                path
-                    .leading_colon = Some(
+                path.leading_colon = Some(
                     **path.segments.pairs().next().unwrap().punct().unwrap(),
                 );
                 let segments = mem::replace(&mut path.segments, Punctuated::new());
@@ -2318,8 +2309,9 @@ mod internals {
                     {
                         if bracketed.colon2_token.is_none() && !bracketed.args.is_empty()
                         {
-                            bracketed
-                                .colon2_token = Some(<::syn::token::Colon2>::default());
+                            bracketed.colon2_token = Some(
+                                <::syn::token::Colon2>::default(),
+                            );
                         }
                     }
                 }
@@ -15058,8 +15050,7 @@ mod de {
         fn to_tokens(&self, tokens: &mut TokenStream) {
             let mut generics = self.0.generics.clone();
             if let Some(de_lifetime) = self.0.borrowed.de_lifetime_def() {
-                generics
-                    .params = Some(syn::GenericParam::Lifetime(de_lifetime))
+                generics.params = Some(syn::GenericParam::Lifetime(de_lifetime))
                     .into_iter()
                     .chain(generics.params)
                     .collect();
@@ -15079,8 +15070,7 @@ mod de {
                     colon_token: None,
                     bounds: Punctuated::new(),
                 };
-                generics
-                    .params = Some(syn::GenericParam::Lifetime(def))
+                generics.params = Some(syn::GenericParam::Lifetime(def))
                     .into_iter()
                     .chain(generics.params)
                     .collect();
