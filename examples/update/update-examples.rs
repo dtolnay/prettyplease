@@ -35,7 +35,7 @@ fn main() -> Result<()> {
 
     // Write output.rustc.rs
     let output_path = manifest_dir.join("..").join("output.rustc.rs");
-    let mut string = rustc_span::create_session_globals_then(Edition2021, || {
+    let mut string = rustc_span::create_session_globals_then(Edition2021, None, || {
         let locale_resources = rustc_driver::DEFAULT_LOCALE_RESOURCES.to_vec();
         let sess = ParseSess::new(locale_resources);
         let krate = rustc_parse::parse_crate_from_file(&input_path, &sess).unwrap();
