@@ -320,7 +320,7 @@
 //! these situations with conditional punctuation tokens whose selection can be
 //! deferred and populated after it's known that the group is or is not broken.
 
-#![doc(html_root_url = "https://docs.rs/prettyplease/0.2.19")]
+#![doc(html_root_url = "https://docs.rs/prettyplease/0.2.20")]
 #![allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
