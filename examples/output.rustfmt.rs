@@ -1,3 +1,10 @@
+rewriting static
+rewriting static
+rewriting static
+rewriting static
+rewriting static
+rewriting static
+rewriting static
 use crate::cmp::Ordering;
 use crate::fmt::{self, Write as FmtWrite};
 use crate::hash;
