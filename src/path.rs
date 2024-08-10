@@ -172,12 +172,11 @@ impl Printer {
     }
 
     pub fn qpath(&mut self, qself: &Option<QSelf>, path: &Path, kind: PathKind) {
-        let qself = match qself {
-            Some(qself) => qself,
-            None => {
-                self.path(path, kind);
-                return;
-            }
+        let qself = if let Some(qself) = qself {
+            qself
+        } else {
+            self.path(path, kind);
+            return;
         };
 
         assert!(qself.position < path.segments.len());
