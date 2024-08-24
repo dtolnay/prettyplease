@@ -47,7 +47,7 @@ fn main() -> Result<()> {
 
     // Write output.rustfmt.rs
     let output_path = manifest_dir.join("..").join("output.rustfmt.rs");
-    let output_file = File::create(&output_path)?;
+    let output_file = File::create(output_path)?;
     Command::new("rustfmt")
         .arg("--edition=2021")
         .arg("--config=reorder_imports=false")
@@ -62,13 +62,6 @@ fn main() -> Result<()> {
         .stderr(Stdio::inherit())
         .spawn()?
         .wait()?;
-
-    // Work around https://github.com/rust-lang/rustfmt/issues/6210
-    let rustfmt_content = fs::read_to_string(&output_path)?;
-    fs::write(
-        &output_path,
-        rustfmt_content.replace("rewriting static\n", ""),
-    )?;
 
     Ok(())
 }
