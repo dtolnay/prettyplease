@@ -19,13 +19,13 @@ verbatim = ["syn/parsing"]
 
 [dependencies]
 proc-macro2 = { version = "1.0.80", default-features = false }
-syn = { version = "2.0.59", default-features = false, features = ["full"] }
+syn = { version = "2.0.76", default-features = false, features = ["full"] }
 
 [dev-dependencies]
 indoc = "2"
 proc-macro2 = { version = "1.0.80", default-features = false }
 quote = { version = "1.0.35", default-features = false }
-syn = { version = "2.0.59", default-features = false, features = ["parsing"] }
+syn = { version = "2.0.76", default-features = false, features = ["parsing"] }
 
 [lib]
 doc-scrape-examples = false
