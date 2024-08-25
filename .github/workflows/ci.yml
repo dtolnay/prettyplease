@@ -36,6 +36,11 @@ jobs:
       - run: cargo test
         env:
           RUSTFLAGS: ${{env.RUSTFLAGS}} ${{matrix.rust == 'nightly' && '--cfg exhaustive' || ''}}
+      - uses: actions/upload-artifact@v4
+        if: matrix.rust == 'nightly' && always()
+        with:
+          name: Cargo.lock
+          path: Cargo.lock
 
   examples:
     name: Examples
