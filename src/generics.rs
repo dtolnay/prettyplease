@@ -151,11 +151,17 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn type_param_bound_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{parenthesized, token, Token};
+        use syn::{parenthesized, token, Ident, Lifetime, Token};
 
         enum TypeParamBoundVerbatim {
             Ellipsis,
+            PreciseCapture(Vec<Capture>),
             TildeConst(TraitBound),
+        }
+
+        enum Capture {
+            Lifetime(Lifetime),
+            Type(Ident),
         }
 
         impl Parse for TypeParamBoundVerbatim {
@@ -167,7 +173,33 @@ impl Printer {
                     (None, input)
                 };
                 let lookahead = content.lookahead1();
-                if lookahead.peek(Token![~]) {
+                if lookahead.peek(Token![use]) {
+                    input.parse::<Token![use]>()?;
+                    input.parse::<Token![<]>()?;
+                    let mut captures = Vec::new();
+                    loop {
+                        let lookahead = input.lookahead1();
+                        captures.push(if lookahead.peek(Lifetime) {
+                            input.parse().map(Capture::Lifetime)?
+                        } else if lookahead.peek(Ident) {
+                            input.parse().map(Capture::Type)?
+                        } else if lookahead.peek(Token![>]) {
+                            break;
+                        } else {
+                            return Err(lookahead.error());
+                        });
+                        let lookahead = input.lookahead1();
+                        if lookahead.peek(Token![,]) {
+                            input.parse::<Token![,]>()?;
+                        } else if lookahead.peek(Token![>]) {
+                            break;
+                        } else {
+                            return Err(lookahead.error());
+                        }
+                    }
+                    input.parse::<Token![>]>()?;
+                    Ok(TypeParamBoundVerbatim::PreciseCapture(captures))
+                } else if lookahead.peek(Token![~]) {
                     content.parse::<Token![~]>()?;
                     content.parse::<Token![const]>()?;
                     let mut bound: TraitBound = content.parse()?;
@@ -190,6 +222,19 @@ impl Printer {
         match bound {
             TypeParamBoundVerbatim::Ellipsis => {
                 self.word("...");
+            }
+            TypeParamBoundVerbatim::PreciseCapture(captures) => {
+                self.word("use<");
+                for capture in captures.iter().delimited() {
+                    match *capture {
+                        Capture::Lifetime(lifetime) => self.lifetime(lifetime),
+                        Capture::Type(ident) => self.ident(ident),
+                    }
+                    if !capture.is_last {
+                        self.word(", ");
+                    }
+                }
+                self.word(">");
             }
             TypeParamBoundVerbatim::TildeConst(trait_bound) => {
                 let tilde_const = true;
