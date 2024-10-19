@@ -10,10 +10,10 @@ use syn::{
     token, Arm, Attribute, BinOp, Block, Expr, ExprArray, ExprAssign, ExprAsync, ExprAwait,
     ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast, ExprClosure, ExprConst, ExprContinue,
     ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprInfer, ExprLet, ExprLit, ExprLoop,
-    ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference,
-    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnary, ExprUnsafe,
-    ExprWhile, ExprYield, FieldValue, Index, Label, Member, RangeLimits, ReturnType, Stmt, Token,
-    UnOp,
+    ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprRawAddr,
+    ExprReference, ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnary,
+    ExprUnsafe, ExprWhile, ExprYield, FieldValue, Index, Label, Member, PointerMutability,
+    RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
 impl Printer {
@@ -48,6 +48,7 @@ impl Printer {
             Expr::Paren(expr) => self.expr_paren(expr),
             Expr::Path(expr) => self.expr_path(expr),
             Expr::Range(expr) => self.expr_range(expr),
+            Expr::RawAddr(expr) => self.expr_raw_addr(expr),
             Expr::Reference(expr) => self.expr_reference(expr),
             Expr::Repeat(expr) => self.expr_repeat(expr),
             Expr::Return(expr) => self.expr_return(expr),
@@ -564,6 +565,14 @@ impl Printer {
         }
     }
 
+    fn expr_raw_addr(&mut self, expr: &ExprRawAddr) {
+        self.outer_attrs(&expr.attrs);
+        self.word("&raw ");
+        self.pointer_mutability(&expr.mutability);
+        self.nbsp();
+        self.expr(&expr.expr);
+    }
+
     fn expr_reference(&mut self, expr: &ExprReference) {
         self.outer_attrs(&expr.attrs);
         self.word("&");
@@ -683,7 +692,6 @@ impl Printer {
             Ellipsis,
             Become(Become),
             Builtin(Builtin),
-            RawReference(RawReference),
         }
 
         struct Become {
@@ -695,12 +703,6 @@ impl Printer {
             attrs: Vec<Attribute>,
             name: Ident,
             args: TokenStream,
-        }
-
-        struct RawReference {
-            attrs: Vec<Attribute>,
-            mutable: bool,
-            expr: Expr,
         }
 
         mod kw {
@@ -729,20 +731,6 @@ impl Printer {
                     parenthesized!(args in input);
                     let args: TokenStream = args.parse()?;
                     Ok(ExprVerbatim::Builtin(Builtin { attrs, name, args }))
-                } else if lookahead.peek(Token![&]) {
-                    input.advance_to(&ahead);
-                    input.parse::<Token![&]>()?;
-                    input.parse::<kw::raw>()?;
-                    let mutable = input.parse::<Option<Token![mut]>>()?.is_some();
-                    if !mutable {
-                        input.parse::<Token![const]>()?;
-                    }
-                    let expr: Expr = input.parse()?;
-                    Ok(ExprVerbatim::RawReference(RawReference {
-                        attrs,
-                        mutable,
-                        expr,
-                    }))
                 } else if lookahead.peek(Token![...]) {
                     input.parse::<Token![...]>()?;
                     Ok(ExprVerbatim::Ellipsis)
@@ -784,12 +772,6 @@ impl Printer {
                     self.end();
                 }
                 self.word(")");
-            }
-            ExprVerbatim::RawReference(expr) => {
-                self.outer_attrs(&expr.attrs);
-                self.word("&raw ");
-                self.word(if expr.mutable { "mut " } else { "const " });
-                self.expr(&expr.expr);
             }
         }
     }
@@ -1013,6 +995,13 @@ impl Printer {
         );
     }
 
+    fn pointer_mutability(&mut self, mutability: &PointerMutability) {
+        match mutability {
+            PointerMutability::Const(_) => self.word("const"),
+            PointerMutability::Mut(_) => self.word("mut"),
+        }
+    }
+
     fn zerobreak_unless_short_ident(&mut self, beginning_of_line: bool, expr: &Expr) {
         if beginning_of_line && is_short_ident(expr) {
             return;
@@ -1055,6 +1044,7 @@ fn requires_terminator(expr: &Expr) -> bool {
         | Expr::Paren(_)
         | Expr::Path(_)
         | Expr::Range(_)
+        | Expr::RawAddr(_)
         | Expr::Reference(_)
         | Expr::Repeat(_)
         | Expr::Return(_)
@@ -1090,6 +1080,7 @@ fn contains_exterior_struct_lit(expr: &Expr) -> bool {
         | Expr::Group(ExprGroup { expr: e, .. })
         | Expr::Index(ExprIndex { expr: e, .. })
         | Expr::MethodCall(ExprMethodCall { receiver: e, .. })
+        | Expr::RawAddr(ExprRawAddr { expr: e, .. })
         | Expr::Reference(ExprReference { expr: e, .. })
         | Expr::Unary(ExprUnary { expr: e, .. }) => {
             // &X { y: 1 }, X { y: 1 }.y
@@ -1172,6 +1163,7 @@ fn needs_newline_if_wrap(expr: &Expr) -> bool {
         | Expr::Let(ExprLet { expr: e, .. })
         | Expr::Paren(ExprParen { expr: e, .. })
         | Expr::Range(ExprRange { end: Some(e), .. })
+        | Expr::RawAddr(ExprRawAddr { expr: e, .. })
         | Expr::Reference(ExprReference { expr: e, .. })
         | Expr::Return(ExprReturn { expr: Some(e), .. })
         | Expr::Try(ExprTry { expr: e, .. })
@@ -1229,6 +1221,7 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::Paren(_)
         | Expr::Path(_)
         | Expr::Range(_)
+        | Expr::RawAddr(_)
         | Expr::Reference(_)
         | Expr::Repeat(_)
         | Expr::Return(_)
@@ -1266,6 +1259,7 @@ fn parseable_as_stmt(expr: &Expr) -> bool {
         | Expr::Match(_)
         | Expr::Paren(_)
         | Expr::Path(_)
+        | Expr::RawAddr(_)
         | Expr::Reference(_)
         | Expr::Repeat(_)
         | Expr::Return(_)
