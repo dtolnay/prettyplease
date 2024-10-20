@@ -5,9 +5,9 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use std::ptr;
 use syn::{
-    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeParam, PredicateLifetime,
-    PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound, WhereClause,
-    WherePredicate,
+    BoundLifetimes, CapturedParam, ConstParam, GenericParam, Generics, LifetimeParam,
+    PreciseCapture, PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam,
+    TypeParamBound, WhereClause, WherePredicate,
 };
 
 impl Printer {
@@ -109,6 +109,9 @@ impl Printer {
                 self.trait_bound(trait_bound, tilde_const);
             }
             TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
+            TypeParamBound::PreciseCapture(precise_capture) => {
+                self.precise_capture(precise_capture);
+            }
             TypeParamBound::Verbatim(bound) => self.type_param_bound_verbatim(bound),
             _ => unimplemented!("unknown TypeParamBound"),
         }
@@ -151,17 +154,11 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn type_param_bound_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{parenthesized, token, Ident, Lifetime, Token};
+        use syn::{parenthesized, token, Token};
 
         enum TypeParamBoundVerbatim {
             Ellipsis,
-            PreciseCapture(Vec<Capture>),
             TildeConst(TraitBound),
-        }
-
-        enum Capture {
-            Lifetime(Lifetime),
-            Type(Ident),
         }
 
         impl Parse for TypeParamBoundVerbatim {
@@ -173,33 +170,7 @@ impl Printer {
                     (None, input)
                 };
                 let lookahead = content.lookahead1();
-                if lookahead.peek(Token![use]) {
-                    input.parse::<Token![use]>()?;
-                    input.parse::<Token![<]>()?;
-                    let mut captures = Vec::new();
-                    loop {
-                        let lookahead = input.lookahead1();
-                        captures.push(if lookahead.peek(Lifetime) {
-                            input.parse().map(Capture::Lifetime)?
-                        } else if lookahead.peek(Ident) {
-                            input.parse().map(Capture::Type)?
-                        } else if lookahead.peek(Token![>]) {
-                            break;
-                        } else {
-                            return Err(lookahead.error());
-                        });
-                        let lookahead = input.lookahead1();
-                        if lookahead.peek(Token![,]) {
-                            input.parse::<Token![,]>()?;
-                        } else if lookahead.peek(Token![>]) {
-                            break;
-                        } else {
-                            return Err(lookahead.error());
-                        }
-                    }
-                    input.parse::<Token![>]>()?;
-                    Ok(TypeParamBoundVerbatim::PreciseCapture(captures))
-                } else if lookahead.peek(Token![~]) {
+                if lookahead.peek(Token![~]) {
                     content.parse::<Token![~]>()?;
                     content.parse::<Token![const]>()?;
                     let mut bound: TraitBound = content.parse()?;
@@ -222,19 +193,6 @@ impl Printer {
         match bound {
             TypeParamBoundVerbatim::Ellipsis => {
                 self.word("...");
-            }
-            TypeParamBoundVerbatim::PreciseCapture(captures) => {
-                self.word("use<");
-                for capture in captures.iter().delimited() {
-                    match *capture {
-                        Capture::Lifetime(lifetime) => self.lifetime(lifetime),
-                        Capture::Type(ident) => self.ident(ident),
-                    }
-                    if !capture.is_last {
-                        self.word(", ");
-                    }
-                }
-                self.word(">");
             }
             TypeParamBoundVerbatim::TildeConst(trait_bound) => {
                 let tilde_const = true;
@@ -378,5 +336,25 @@ impl Printer {
             self.lifetime(&lifetime);
         }
         self.end();
+    }
+
+    fn precise_capture(&mut self, precise_capture: &PreciseCapture) {
+        self.word("use<");
+        for capture in precise_capture.params.iter().delimited() {
+            self.captured_param(&capture);
+            if !capture.is_last {
+                self.word(", ");
+            }
+        }
+        self.word(">");
+    }
+
+    fn captured_param(&mut self, capture: &CapturedParam) {
+        match capture {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            CapturedParam::Lifetime(lifetime) => self.lifetime(lifetime),
+            CapturedParam::Ident(ident) => self.ident(ident),
+            _ => unimplemented!("unknown CapturedParam"),
+        }
     }
 }
