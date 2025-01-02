@@ -224,6 +224,7 @@ fn is_keyword(ident: &Ident) -> bool {
 #[cfg(feature = "verbatim")]
 mod standard_library {
     use crate::algorithm::Printer;
+    use crate::fixup::FixupContext;
     use crate::iter::IterDelimited;
     use crate::path::PathKind;
     use crate::INDENT;
@@ -543,7 +544,7 @@ mod standard_library {
                     self.word("(");
                     self.cbox(INDENT);
                     self.zerobreak();
-                    self.expr(expr);
+                    self.expr(expr, FixupContext::NONE);
                     self.zerobreak();
                     self.offset(-INDENT);
                     self.end();
@@ -554,7 +555,7 @@ mod standard_library {
                     self.cbox(INDENT);
                     self.zerobreak();
                     for elem in exprs.iter().delimited() {
-                        self.expr(&elem);
+                        self.expr(&elem, FixupContext::NONE);
                         self.trailing_comma(elem.is_last);
                     }
                     self.offset(-INDENT);
@@ -570,14 +571,14 @@ mod standard_library {
                     self.word("(");
                     self.cbox(INDENT);
                     self.zerobreak();
-                    self.expr(&matches.expression);
+                    self.expr(&matches.expression, FixupContext::NONE);
                     self.word(",");
                     self.space();
                     self.pat(&matches.pattern);
                     if let Some(guard) = &matches.guard {
                         self.space();
                         self.word("if ");
-                        self.expr(guard);
+                        self.expr(guard, FixupContext::NONE);
                     }
                     self.zerobreak();
                     self.offset(-INDENT);
@@ -598,7 +599,7 @@ mod standard_library {
                         self.ty(&item.ty);
                         self.word(" = ");
                         self.neverbreak();
-                        self.expr(&item.init);
+                        self.expr(&item.init, FixupContext::NONE);
                         self.word(";");
                         self.end();
                         self.hardbreak();
@@ -613,7 +614,7 @@ mod standard_library {
                     self.cbox(INDENT);
                     self.zerobreak();
                     for elem in vec.iter().delimited() {
-                        self.expr(&elem);
+                        self.expr(&elem, FixupContext::NONE);
                         self.trailing_comma(elem.is_last);
                     }
                     self.offset(-INDENT);
@@ -624,10 +625,10 @@ mod standard_library {
                     self.word("[");
                     self.cbox(INDENT);
                     self.zerobreak();
-                    self.expr(elem);
+                    self.expr(elem, FixupContext::NONE);
                     self.word(";");
                     self.space();
-                    self.expr(n);
+                    self.expr(n, FixupContext::NONE);
                     self.zerobreak();
                     self.offset(-INDENT);
                     self.end();

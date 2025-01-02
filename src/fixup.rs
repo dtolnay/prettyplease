@@ -609,6 +609,7 @@ fn scan_right(
                 Scan::Consume
             }
         }
+        Expr::Group(e) => scan_right(&e.expr, fixup, range, fail_offset, bailout_offset),
         Expr::Array(_)
         | Expr::Async(_)
         | Expr::Await(_)
@@ -619,7 +620,6 @@ fn scan_right(
         | Expr::Continue(_)
         | Expr::Field(_)
         | Expr::ForLoop(_)
-        | Expr::Group(_)
         | Expr::If(_)
         | Expr::Index(_)
         | Expr::Infer(_)

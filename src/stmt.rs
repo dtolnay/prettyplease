@@ -1,5 +1,7 @@
 use crate::algorithm::Printer;
+use crate::classify;
 use crate::expr;
+use crate::fixup::FixupContext;
 use crate::INDENT;
 use syn::{BinOp, Expr, Stmt};
 
@@ -14,7 +16,12 @@ impl Printer {
                 if let Some(local_init) = &local.init {
                     self.word(" = ");
                     self.neverbreak();
-                    self.expr(&local_init.expr);
+                    self.subexpr(
+                        &local_init.expr,
+                        local_init.diverge.is_some()
+                            && classify::expr_trailing_brace(&local_init.expr),
+                        FixupContext::NONE,
+                    );
                     if let Some((_else, diverge)) = &local_init.diverge {
                         self.space();
                         self.word("else ");
@@ -36,14 +43,14 @@ impl Printer {
             Stmt::Expr(expr, None) => {
                 if break_after(expr) {
                     self.ibox(0);
-                    self.expr_beginning_of_line(expr, true);
+                    self.expr_beginning_of_line(expr, false, true, FixupContext::new_stmt());
                     if add_semi(expr) {
                         self.word(";");
                     }
                     self.end();
                     self.hardbreak();
                 } else {
-                    self.expr_beginning_of_line(expr, true);
+                    self.expr_beginning_of_line(expr, false, true, FixupContext::new_stmt());
                 }
             }
             Stmt::Expr(expr, Some(_semi)) => {
@@ -53,7 +60,7 @@ impl Printer {
                     }
                 }
                 self.ibox(0);
-                self.expr_beginning_of_line(expr, true);
+                self.expr_beginning_of_line(expr, false, true, FixupContext::new_stmt());
                 if !remove_semi(expr) {
                     self.word(";");
                 }

@@ -10,51 +10,54 @@ pub(crate) fn requires_semi_to_be_stmt(expr: &Expr) -> bool {
     }
 }
 
-pub(crate) fn requires_comma_to_be_match_arm(expr: &Expr) -> bool {
-    match expr {
-        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-        Expr::If(_)
-        | Expr::Match(_)
-        | Expr::Block(_) | Expr::Unsafe(_) // both under ExprKind::Block in rustc
-        | Expr::While(_)
-        | Expr::Loop(_)
-        | Expr::ForLoop(_)
-        | Expr::TryBlock(_)
-        | Expr::Const(_) => false,
+pub(crate) fn requires_comma_to_be_match_arm(mut expr: &Expr) -> bool {
+    loop {
+        match expr {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            Expr::If(_)
+            | Expr::Match(_)
+            | Expr::Block(_) | Expr::Unsafe(_) // both under ExprKind::Block in rustc
+            | Expr::While(_)
+            | Expr::Loop(_)
+            | Expr::ForLoop(_)
+            | Expr::TryBlock(_)
+            | Expr::Const(_) => return false,
 
-        Expr::Array(_)
-        | Expr::Assign(_)
-        | Expr::Async(_)
-        | Expr::Await(_)
-        | Expr::Binary(_)
-        | Expr::Break(_)
-        | Expr::Call(_)
-        | Expr::Cast(_)
-        | Expr::Closure(_)
-        | Expr::Continue(_)
-        | Expr::Field(_)
-        | Expr::Group(_)
-        | Expr::Index(_)
-        | Expr::Infer(_)
-        | Expr::Let(_)
-        | Expr::Lit(_)
-        | Expr::Macro(_)
-        | Expr::MethodCall(_)
-        | Expr::Paren(_)
-        | Expr::Path(_)
-        | Expr::Range(_)
-        | Expr::RawAddr(_)
-        | Expr::Reference(_)
-        | Expr::Repeat(_)
-        | Expr::Return(_)
-        | Expr::Struct(_)
-        | Expr::Try(_)
-        | Expr::Tuple(_)
-        | Expr::Unary(_)
-        | Expr::Yield(_)
-        | Expr::Verbatim(_) => true,
+            Expr::Array(_)
+            | Expr::Assign(_)
+            | Expr::Async(_)
+            | Expr::Await(_)
+            | Expr::Binary(_)
+            | Expr::Break(_)
+            | Expr::Call(_)
+            | Expr::Cast(_)
+            | Expr::Closure(_)
+            | Expr::Continue(_)
+            | Expr::Field(_)
+            | Expr::Index(_)
+            | Expr::Infer(_)
+            | Expr::Let(_)
+            | Expr::Lit(_)
+            | Expr::Macro(_)
+            | Expr::MethodCall(_)
+            | Expr::Paren(_)
+            | Expr::Path(_)
+            | Expr::Range(_)
+            | Expr::RawAddr(_)
+            | Expr::Reference(_)
+            | Expr::Repeat(_)
+            | Expr::Return(_)
+            | Expr::Struct(_)
+            | Expr::Try(_)
+            | Expr::Tuple(_)
+            | Expr::Unary(_)
+            | Expr::Yield(_)
+            | Expr::Verbatim(_) => return true,
 
-        _ => true,
+            Expr::Group(group) => expr = &group.expr,
+
+            _ => return true,
+        }
     }
 }
 
@@ -150,7 +153,6 @@ pub(crate) fn expr_leading_label(mut expr: &Expr) -> bool {
             | Expr::Closure(_)
             | Expr::Const(_)
             | Expr::Continue(_)
-            | Expr::Group(_)
             | Expr::If(_)
             | Expr::Infer(_)
             | Expr::Let(_)
@@ -170,6 +172,13 @@ pub(crate) fn expr_leading_label(mut expr: &Expr) -> bool {
             | Expr::Unsafe(_)
             | Expr::Verbatim(_)
             | Expr::Yield(_) => return false,
+
+            Expr::Group(e) => {
+                if !e.attrs.is_empty() {
+                    return false;
+                }
+                expr = &e.expr;
+            }
 
             _ => return false,
         }
@@ -201,6 +210,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
             },
             Expr::Cast(e) => return type_trailing_brace(&e.ty),
             Expr::Closure(e) => expr = &e.body,
+            Expr::Group(e) => expr = &e.expr,
             Expr::Let(e) => expr = &e.expr,
             Expr::Macro(e) => return matches!(e.mac.delimiter, MacroDelimiter::Brace(_)),
             Expr::Range(e) => match &e.end {
@@ -225,7 +235,6 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
             | Expr::Call(_)
             | Expr::Continue(_)
             | Expr::Field(_)
-            | Expr::Group(_)
             | Expr::Index(_)
             | Expr::Infer(_)
             | Expr::Lit(_)

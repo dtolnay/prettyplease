@@ -1,9 +1,9 @@
 use syn::{
     AttrStyle, Attribute, BinOp, Expr, ExprArray, ExprAsync, ExprAwait, ExprBlock, ExprBreak,
-    ExprCall, ExprConst, ExprContinue, ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex,
-    ExprInfer, ExprLit, ExprLoop, ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath,
-    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnsafe, ExprWhile,
-    ExprYield, ReturnType,
+    ExprCall, ExprConst, ExprContinue, ExprField, ExprForLoop, ExprIf, ExprIndex, ExprInfer,
+    ExprLit, ExprLoop, ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRepeat,
+    ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnsafe, ExprWhile, ExprYield,
+    ReturnType,
 };
 
 // Reference: https://doc.rust-lang.org/reference/expressions.html#expression-precedence
@@ -120,7 +120,6 @@ impl Precedence {
             | Expr::Continue(ExprContinue { attrs, .. })
             | Expr::Field(ExprField { attrs, .. })
             | Expr::ForLoop(ExprForLoop { attrs, .. })
-            | Expr::Group(ExprGroup { attrs, .. })
             | Expr::If(ExprIf { attrs, .. })
             | Expr::Index(ExprIndex { attrs, .. })
             | Expr::Infer(ExprInfer { attrs, .. })
@@ -138,6 +137,8 @@ impl Precedence {
             | Expr::Tuple(ExprTuple { attrs, .. })
             | Expr::Unsafe(ExprUnsafe { attrs, .. })
             | Expr::While(ExprWhile { attrs, .. }) => prefix_attrs(attrs),
+
+            Expr::Group(e) => Precedence::of(&e.expr),
 
             Expr::Verbatim(_) => Precedence::Unambiguous,
 
