@@ -1,21 +1,14 @@
-#[cfg(all(feature = "printing", feature = "full"))]
-use crate::attr::{AttrStyle, Attribute};
-#[cfg(feature = "printing")]
-use crate::expr::Expr;
-#[cfg(all(feature = "printing", feature = "full"))]
-use crate::expr::{
-    ExprArray, ExprAsync, ExprAwait, ExprBlock, ExprBreak, ExprCall, ExprConst, ExprContinue,
-    ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprInfer, ExprLit, ExprLoop, ExprMacro,
-    ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRepeat, ExprReturn, ExprStruct, ExprTry,
-    ExprTryBlock, ExprTuple, ExprUnsafe, ExprWhile, ExprYield,
+use syn::{
+    AttrStyle, Attribute, BinOp, Expr, ExprArray, ExprAsync, ExprAwait, ExprBlock, ExprBreak,
+    ExprCall, ExprConst, ExprContinue, ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex,
+    ExprInfer, ExprLit, ExprLoop, ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath,
+    ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnsafe, ExprWhile,
+    ExprYield, ReturnType,
 };
-use crate::op::BinOp;
-#[cfg(all(feature = "printing", feature = "full"))]
-use crate::ty::ReturnType;
-use std::cmp::Ordering;
 
 // Reference: https://doc.rust-lang.org/reference/expressions.html#expression-precedence
-pub(crate) enum Precedence {
+#[derive(Copy, Clone, PartialEq, PartialOrd)]
+pub enum Precedence {
     // return, break, closures
     Jump,
     // = += -= *= /= %= &= |= ^= <<= >>=
@@ -27,7 +20,6 @@ pub(crate) enum Precedence {
     // &&
     And,
     // let
-    #[cfg(feature = "printing")]
     Let,
     // == != < > <= >=
     Compare,
@@ -46,10 +38,8 @@ pub(crate) enum Precedence {
     // as
     Cast,
     // unary - * ! & &mut
-    #[cfg(feature = "printing")]
     Prefix,
     // paths, loops, function calls, array indexing, field expressions, method calls
-    #[cfg(feature = "printing")]
     Unambiguous,
 }
 
@@ -58,6 +48,7 @@ impl Precedence {
 
     pub(crate) fn of_binop(op: &BinOp) -> Self {
         match op {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             BinOp::Add(_) | BinOp::Sub(_) => Precedence::Sum,
             BinOp::Mul(_) | BinOp::Div(_) | BinOp::Rem(_) => Precedence::Product,
             BinOp::And(_) => Precedence::And,
@@ -84,12 +75,12 @@ impl Precedence {
             | BinOp::BitOrAssign(_)
             | BinOp::ShlAssign(_)
             | BinOp::ShrAssign(_) => Precedence::Assign,
+
+            _ => Precedence::MIN,
         }
     }
 
-    #[cfg(feature = "printing")]
     pub(crate) fn of(e: &Expr) -> Self {
-        #[cfg(feature = "full")]
         fn prefix_attrs(attrs: &[Attribute]) -> Precedence {
             for attr in attrs {
                 if let AttrStyle::Outer = attr.style {
@@ -100,13 +91,12 @@ impl Precedence {
         }
 
         match e {
-            #[cfg(feature = "full")]
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Expr::Closure(e) => match e.output {
                 ReturnType::Default => Precedence::Jump,
                 ReturnType::Type(..) => prefix_attrs(&e.attrs),
             },
 
-            #[cfg(feature = "full")]
             Expr::Break(ExprBreak { expr, .. })
             | Expr::Return(ExprReturn { expr, .. })
             | Expr::Yield(ExprYield { expr, .. }) => match expr {
@@ -121,7 +111,6 @@ impl Precedence {
             Expr::Cast(_) => Precedence::Cast,
             Expr::RawAddr(_) | Expr::Reference(_) | Expr::Unary(_) => Precedence::Prefix,
 
-            #[cfg(feature = "full")]
             Expr::Array(ExprArray { attrs, .. })
             | Expr::Async(ExprAsync { attrs, .. })
             | Expr::Await(ExprAwait { attrs, .. })
@@ -150,61 +139,9 @@ impl Precedence {
             | Expr::Unsafe(ExprUnsafe { attrs, .. })
             | Expr::While(ExprWhile { attrs, .. }) => prefix_attrs(attrs),
 
-            #[cfg(not(feature = "full"))]
-            Expr::Array(_)
-            | Expr::Async(_)
-            | Expr::Await(_)
-            | Expr::Block(_)
-            | Expr::Call(_)
-            | Expr::Const(_)
-            | Expr::Continue(_)
-            | Expr::Field(_)
-            | Expr::ForLoop(_)
-            | Expr::Group(_)
-            | Expr::If(_)
-            | Expr::Index(_)
-            | Expr::Infer(_)
-            | Expr::Lit(_)
-            | Expr::Loop(_)
-            | Expr::Macro(_)
-            | Expr::Match(_)
-            | Expr::MethodCall(_)
-            | Expr::Paren(_)
-            | Expr::Path(_)
-            | Expr::Repeat(_)
-            | Expr::Struct(_)
-            | Expr::Try(_)
-            | Expr::TryBlock(_)
-            | Expr::Tuple(_)
-            | Expr::Unsafe(_)
-            | Expr::While(_) => Precedence::Unambiguous,
-
             Expr::Verbatim(_) => Precedence::Unambiguous,
 
-            #[cfg(not(feature = "full"))]
-            Expr::Break(_) | Expr::Closure(_) | Expr::Return(_) | Expr::Yield(_) => unreachable!(),
+            _ => Precedence::Unambiguous,
         }
-    }
-}
-
-impl Copy for Precedence {}
-
-impl Clone for Precedence {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl PartialEq for Precedence {
-    fn eq(&self, other: &Self) -> bool {
-        *self as u8 == *other as u8
-    }
-}
-
-impl PartialOrd for Precedence {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let this = *self as u8;
-        let other = *other as u8;
-        Some(this.cmp(&other))
     }
 }

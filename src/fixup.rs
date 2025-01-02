@@ -1,17 +1,13 @@
 use crate::classify;
-use crate::expr::Expr;
-#[cfg(feature = "full")]
-use crate::expr::{
-    ExprBreak, ExprRange, ExprRawAddr, ExprReference, ExprReturn, ExprUnary, ExprYield,
-};
 use crate::precedence::Precedence;
-#[cfg(feature = "full")]
-use crate::ty::ReturnType;
+use syn::{
+    Expr, ExprBreak, ExprRange, ExprRawAddr, ExprReference, ExprReturn, ExprUnary, ExprYield,
+    ReturnType,
+};
 
-pub(crate) struct FixupContext {
-    #[cfg(feature = "full")]
+#[derive(Copy, Clone)]
+pub struct FixupContext {
     previous_operator: Precedence,
-    #[cfg(feature = "full")]
     next_operator: Precedence,
 
     // Print expression such that it can be parsed back as a statement
@@ -24,7 +20,6 @@ pub(crate) struct FixupContext {
     //
     //     match x {};  // not when its own statement
     //
-    #[cfg(feature = "full")]
     stmt: bool,
 
     // This is the difference between:
@@ -56,7 +51,6 @@ pub(crate) struct FixupContext {
     //     Example: `$match;`
     //
     //     No parentheses required.
-    #[cfg(feature = "full")]
     leftmost_subexpression_in_stmt: bool,
 
     // Print expression such that it can be parsed as a match arm.
@@ -72,7 +66,6 @@ pub(crate) struct FixupContext {
     //         _ => m! {} - 1,  // binary subtraction operator
     //     }
     //
-    #[cfg(feature = "full")]
     match_arm: bool,
 
     // This is almost equivalent to `leftmost_subexpression_in_stmt`, other than
@@ -88,7 +81,6 @@ pub(crate) struct FixupContext {
     //         _ => m! {} - 1,  // no parens
     //     }
     //
-    #[cfg(feature = "full")]
     leftmost_subexpression_in_match_arm: bool,
 
     // This is the difference between:
@@ -99,7 +91,6 @@ pub(crate) struct FixupContext {
     //         () if let _ = Struct {} => {}  // no parens
     //     }
     //
-    #[cfg(feature = "full")]
     condition: bool,
 
     // This is the difference between:
@@ -108,7 +99,6 @@ pub(crate) struct FixupContext {
     //
     //     if break break == Struct {} {}  // no parens
     //
-    #[cfg(feature = "full")]
     rightmost_subexpression_in_condition: bool,
 
     // This is the difference between:
@@ -117,7 +107,6 @@ pub(crate) struct FixupContext {
     //
     //     if break 1 + { x }.field {}  // no parens
     //
-    #[cfg(feature = "full")]
     leftmost_subexpression_in_optional_operand: bool,
 
     // This is the difference between:
@@ -126,7 +115,6 @@ pub(crate) struct FixupContext {
     //
     //     let _ = return + 1;  // no paren because '+' cannot begin expr
     //
-    #[cfg(feature = "full")]
     next_operator_can_begin_expr: bool,
 
     // This is the difference between:
@@ -135,7 +123,6 @@ pub(crate) struct FixupContext {
     //
     //     let _ = 1 + (return 1) + 1;  // needs parens
     //
-    #[cfg(feature = "full")]
     next_operator_can_continue_expr: bool,
 
     // This is the difference between:
@@ -152,34 +139,22 @@ impl FixupContext {
     /// The default amount of fixing is minimal fixing. Fixups should be turned
     /// on in a targeted fashion where needed.
     pub const NONE: Self = FixupContext {
-        #[cfg(feature = "full")]
         previous_operator: Precedence::MIN,
-        #[cfg(feature = "full")]
         next_operator: Precedence::MIN,
-        #[cfg(feature = "full")]
         stmt: false,
-        #[cfg(feature = "full")]
         leftmost_subexpression_in_stmt: false,
-        #[cfg(feature = "full")]
         match_arm: false,
-        #[cfg(feature = "full")]
         leftmost_subexpression_in_match_arm: false,
-        #[cfg(feature = "full")]
         condition: false,
-        #[cfg(feature = "full")]
         rightmost_subexpression_in_condition: false,
-        #[cfg(feature = "full")]
         leftmost_subexpression_in_optional_operand: false,
-        #[cfg(feature = "full")]
         next_operator_can_begin_expr: false,
-        #[cfg(feature = "full")]
         next_operator_can_continue_expr: false,
         next_operator_can_begin_generics: false,
     };
 
     /// Create the initial fixup for printing an expression in statement
     /// position.
-    #[cfg(feature = "full")]
     pub fn new_stmt() -> Self {
         FixupContext {
             stmt: true,
@@ -189,7 +164,6 @@ impl FixupContext {
 
     /// Create the initial fixup for printing an expression as the right-hand
     /// side of a match arm.
-    #[cfg(feature = "full")]
     pub fn new_match_arm() -> Self {
         FixupContext {
             match_arm: true,
@@ -201,7 +175,6 @@ impl FixupContext {
     /// of an `if` or `while`. There are a few other positions which are
     /// grammatically equivalent and also use this, such as the iterator
     /// expression in `for` and the scrutinee in `match`.
-    #[cfg(feature = "full")]
     pub fn new_condition() -> Self {
         FixupContext {
             condition: true,
@@ -224,27 +197,19 @@ impl FixupContext {
     pub fn leftmost_subexpression_with_operator(
         self,
         expr: &Expr,
-        #[cfg(feature = "full")] next_operator_can_begin_expr: bool,
+        next_operator_can_begin_expr: bool,
         next_operator_can_begin_generics: bool,
-        #[cfg(feature = "full")] precedence: Precedence,
+        precedence: Precedence,
     ) -> (Precedence, Self) {
         let fixup = FixupContext {
-            #[cfg(feature = "full")]
             next_operator: precedence,
-            #[cfg(feature = "full")]
             stmt: false,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_stmt: self.stmt || self.leftmost_subexpression_in_stmt,
-            #[cfg(feature = "full")]
             match_arm: false,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_match_arm: self.match_arm
                 || self.leftmost_subexpression_in_match_arm,
-            #[cfg(feature = "full")]
             rightmost_subexpression_in_condition: false,
-            #[cfg(feature = "full")]
             next_operator_can_begin_expr,
-            #[cfg(feature = "full")]
             next_operator_can_continue_expr: true,
             next_operator_can_begin_generics,
             ..self
@@ -259,21 +224,13 @@ impl FixupContext {
     /// subexpressions.
     pub fn leftmost_subexpression_with_dot(self, expr: &Expr) -> (Precedence, Self) {
         let fixup = FixupContext {
-            #[cfg(feature = "full")]
             next_operator: Precedence::Unambiguous,
-            #[cfg(feature = "full")]
             stmt: self.stmt || self.leftmost_subexpression_in_stmt,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_stmt: false,
-            #[cfg(feature = "full")]
             match_arm: self.match_arm || self.leftmost_subexpression_in_match_arm,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_match_arm: false,
-            #[cfg(feature = "full")]
             rightmost_subexpression_in_condition: false,
-            #[cfg(feature = "full")]
             next_operator_can_begin_expr: false,
-            #[cfg(feature = "full")]
             next_operator_can_continue_expr: true,
             next_operator_can_begin_generics: false,
             ..self
@@ -283,7 +240,6 @@ impl FixupContext {
     }
 
     fn leftmost_subexpression_precedence(self, expr: &Expr) -> Precedence {
-        #[cfg(feature = "full")]
         if !self.next_operator_can_begin_expr || self.next_operator == Precedence::Range {
             if let Scan::Bailout = scan_right(expr, self, false, 0, 0) {
                 if scan_left(expr, self) {
@@ -309,39 +265,25 @@ impl FixupContext {
     pub fn rightmost_subexpression(
         self,
         expr: &Expr,
-        #[cfg(feature = "full")] precedence: Precedence,
+        precedence: Precedence,
     ) -> (Precedence, Self) {
-        let fixup = self.rightmost_subexpression_fixup(
-            #[cfg(feature = "full")]
-            false,
-            #[cfg(feature = "full")]
-            false,
-            #[cfg(feature = "full")]
-            precedence,
-        );
+        let fixup = self.rightmost_subexpression_fixup(false, false, precedence);
         (fixup.rightmost_subexpression_precedence(expr), fixup)
     }
 
     pub fn rightmost_subexpression_fixup(
         self,
-        #[cfg(feature = "full")] reset_allow_struct: bool,
-        #[cfg(feature = "full")] optional_operand: bool,
-        #[cfg(feature = "full")] precedence: Precedence,
+        reset_allow_struct: bool,
+        optional_operand: bool,
+        precedence: Precedence,
     ) -> Self {
         FixupContext {
-            #[cfg(feature = "full")]
             previous_operator: precedence,
-            #[cfg(feature = "full")]
             stmt: false,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_stmt: false,
-            #[cfg(feature = "full")]
             match_arm: false,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_match_arm: false,
-            #[cfg(feature = "full")]
             condition: self.condition && !reset_allow_struct,
-            #[cfg(feature = "full")]
             leftmost_subexpression_in_optional_operand: self.condition && optional_operand,
             ..self
         }
@@ -350,7 +292,6 @@ impl FixupContext {
     pub fn rightmost_subexpression_precedence(self, expr: &Expr) -> Precedence {
         let default_prec = self.precedence(expr);
 
-        #[cfg(feature = "full")]
         if default_prec < Precedence::Prefix
             && (!self.next_operator_can_begin_expr || self.next_operator == Precedence::Range)
         {
@@ -372,7 +313,6 @@ impl FixupContext {
 
     /// Determine whether parentheses are needed around the given expression to
     /// head off the early termination of a statement or condition.
-    #[cfg(feature = "full")]
     pub fn parenthesize(self, expr: &Expr) -> bool {
         (self.leftmost_subexpression_in_stmt && !classify::requires_semi_to_be_stmt(expr))
             || ((self.stmt || self.leftmost_subexpression_in_stmt) && matches!(expr, Expr::Let(_)))
@@ -400,7 +340,6 @@ impl FixupContext {
     /// Determines the effective precedence of a subexpression. Some expressions
     /// have higher or lower precedence when adjacent to particular operators.
     fn precedence(self, expr: &Expr) -> Precedence {
-        #[cfg(feature = "full")]
         if self.next_operator_can_begin_expr {
             // Decrease precedence of value-less jumps when followed by an
             // operator that would otherwise get interpreted as beginning a
@@ -413,7 +352,6 @@ impl FixupContext {
             }
         }
 
-        #[cfg(feature = "full")]
         if !self.next_operator_can_continue_expr {
             match expr {
                 // Increase precedence of expressions that extend to the end of
@@ -442,32 +380,13 @@ impl FixupContext {
     }
 }
 
-impl Copy for FixupContext {}
-
-impl Clone for FixupContext {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-#[cfg(feature = "full")]
+#[derive(Copy, Clone)]
 enum Scan {
     Fail,
     Bailout,
     Consume,
 }
 
-#[cfg(feature = "full")]
-impl Copy for Scan {}
-
-#[cfg(feature = "full")]
-impl Clone for Scan {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-#[cfg(feature = "full")]
 fn scan_left(expr: &Expr, fixup: FixupContext) -> bool {
     match expr {
         Expr::Assign(_) => fixup.previous_operator <= Precedence::Assign,
@@ -480,7 +399,6 @@ fn scan_left(expr: &Expr, fixup: FixupContext) -> bool {
     }
 }
 
-#[cfg(feature = "full")]
 fn scan_right(
     expr: &Expr,
     fixup: FixupContext,
@@ -492,6 +410,7 @@ fn scan_right(
         return Scan::Consume;
     }
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::Assign(e) => {
             if match fixup.next_operator {
                 Precedence::Unambiguous => fail_offset >= 2,
@@ -671,6 +590,8 @@ fn scan_right(
                 _ => Scan::Consume,
             },
         },
+        // false positive: https://github.com/rust-lang/rust/issues/135137
+        #[cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
         Expr::Closure(e) => {
             if matches!(e.output, ReturnType::Default)
                 || matches!(&*e.body, Expr::Block(body) if body.attrs.is_empty() && body.label.is_none())
@@ -718,6 +639,11 @@ fn scan_right(
         | Expr::Unsafe(_)
         | Expr::Verbatim(_)
         | Expr::While(_) => match fixup.next_operator {
+            Precedence::Assign | Precedence::Range if range => Scan::Fail,
+            _ => Scan::Consume,
+        },
+
+        _ => match fixup.next_operator {
             Precedence::Assign | Precedence::Range if range => Scan::Fail,
             _ => Scan::Consume,
         },

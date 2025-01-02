@@ -336,6 +336,7 @@
     clippy::needless_pass_by_value,
     clippy::ref_option,
     clippy::similar_names,
+    clippy::struct_excessive_bools,
     clippy::too_many_lines,
     clippy::unused_self,
     clippy::vec_init_then_push
@@ -344,10 +345,12 @@
 
 mod algorithm;
 mod attr;
+mod classify;
 mod convenience;
 mod data;
 mod expr;
 mod file;
+mod fixup;
 mod generics;
 mod item;
 mod iter;
@@ -356,6 +359,7 @@ mod lit;
 mod mac;
 mod pat;
 mod path;
+mod precedence;
 mod ring;
 mod stmt;
 mod token;

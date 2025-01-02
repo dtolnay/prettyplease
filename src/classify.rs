@@ -1,29 +1,18 @@
-#[cfg(feature = "full")]
-use crate::expr::Expr;
-#[cfg(any(feature = "printing", feature = "full"))]
-use crate::generics::TypeParamBound;
-#[cfg(any(feature = "printing", feature = "full"))]
-use crate::path::{Path, PathArguments};
-#[cfg(any(feature = "printing", feature = "full"))]
-use crate::punctuated::Punctuated;
-#[cfg(any(feature = "printing", feature = "full"))]
-use crate::ty::{ReturnType, Type};
-#[cfg(feature = "full")]
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
-#[cfg(any(feature = "printing", feature = "full"))]
 use std::ops::ControlFlow;
+use syn::punctuated::Punctuated;
+use syn::{Expr, MacroDelimiter, Path, PathArguments, ReturnType, Token, Type, TypeParamBound};
 
-#[cfg(feature = "full")]
 pub(crate) fn requires_semi_to_be_stmt(expr: &Expr) -> bool {
     match expr {
-        Expr::Macro(expr) => !expr.mac.delimiter.is_brace(),
+        Expr::Macro(expr) => !matches!(expr.mac.delimiter, MacroDelimiter::Brace(_)),
         _ => requires_comma_to_be_match_arm(expr),
     }
 }
 
-#[cfg(feature = "full")]
 pub(crate) fn requires_comma_to_be_match_arm(expr: &Expr) -> bool {
     match expr {
+        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
         Expr::If(_)
         | Expr::Match(_)
         | Expr::Block(_) | Expr::Unsafe(_) // both under ExprKind::Block in rustc
@@ -64,13 +53,15 @@ pub(crate) fn requires_comma_to_be_match_arm(expr: &Expr) -> bool {
         | Expr::Unary(_)
         | Expr::Yield(_)
         | Expr::Verbatim(_) => true,
+
+        _ => true,
     }
 }
 
-#[cfg(feature = "printing")]
 pub(crate) fn trailing_unparameterized_path(mut ty: &Type) -> bool {
     loop {
         match ty {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Type::BareFn(t) => match &t.output {
                 ReturnType::Default => return false,
                 ReturnType::Type(_, ret) => ty = ret,
@@ -99,6 +90,8 @@ pub(crate) fn trailing_unparameterized_path(mut ty: &Type) -> bool {
             | Type::Slice(_)
             | Type::Tuple(_)
             | Type::Verbatim(_) => return false,
+
+            _ => return false,
         }
     }
 
@@ -117,19 +110,21 @@ pub(crate) fn trailing_unparameterized_path(mut ty: &Type) -> bool {
         bounds: &Punctuated<TypeParamBound, Token![+]>,
     ) -> ControlFlow<bool, &Type> {
         match bounds.last().unwrap() {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             TypeParamBound::Trait(t) => last_type_in_path(&t.path),
             TypeParamBound::Lifetime(_)
             | TypeParamBound::PreciseCapture(_)
             | TypeParamBound::Verbatim(_) => ControlFlow::Break(false),
+            _ => ControlFlow::Break(false),
         }
     }
 }
 
 /// Whether the expression's first token is the label of a loop/block.
-#[cfg(all(feature = "printing", feature = "full"))]
 pub(crate) fn expr_leading_label(mut expr: &Expr) -> bool {
     loop {
         match expr {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Expr::Block(e) => return e.label.is_some(),
             Expr::ForLoop(e) => return e.label.is_some(),
             Expr::Loop(e) => return e.label.is_some(),
@@ -175,15 +170,17 @@ pub(crate) fn expr_leading_label(mut expr: &Expr) -> bool {
             | Expr::Unsafe(_)
             | Expr::Verbatim(_)
             | Expr::Yield(_) => return false,
+
+            _ => return false,
         }
     }
 }
 
 /// Whether the expression's last token is `}`.
-#[cfg(feature = "full")]
 pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
     loop {
         match expr {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             Expr::Async(_)
             | Expr::Block(_)
             | Expr::Const(_)
@@ -205,7 +202,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
             Expr::Cast(e) => return type_trailing_brace(&e.ty),
             Expr::Closure(e) => expr = &e.body,
             Expr::Let(e) => expr = &e.expr,
-            Expr::Macro(e) => return e.mac.delimiter.is_brace(),
+            Expr::Macro(e) => return matches!(e.mac.delimiter, MacroDelimiter::Brace(_)),
             Expr::Range(e) => match &e.end {
                 Some(end) => expr = end,
                 None => return false,
@@ -238,12 +235,15 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
             | Expr::Repeat(_)
             | Expr::Try(_)
             | Expr::Tuple(_) => return false,
+
+            _ => return false,
         }
     }
 
     fn type_trailing_brace(mut ty: &Type) -> bool {
         loop {
             match ty {
+                #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
                 Type::BareFn(t) => match &t.output {
                     ReturnType::Default => return false,
                     ReturnType::Type(_, ret) => ty = ret,
@@ -252,7 +252,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
                     ControlFlow::Break(trailing_brace) => return trailing_brace,
                     ControlFlow::Continue(t) => ty = t,
                 },
-                Type::Macro(t) => return t.mac.delimiter.is_brace(),
+                Type::Macro(t) => return matches!(t.mac.delimiter, MacroDelimiter::Brace(_)),
                 Type::Path(t) => match last_type_in_path(&t.path) {
                     Some(t) => ty = t,
                     None => return false,
@@ -272,6 +272,8 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
                 | Type::Paren(_)
                 | Type::Slice(_)
                 | Type::Tuple(_) => return false,
+
+                _ => return false,
             }
         }
     }
@@ -290,6 +292,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
         bounds: &Punctuated<TypeParamBound, Token![+]>,
     ) -> ControlFlow<bool, &Type> {
         match bounds.last().unwrap() {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             TypeParamBound::Trait(t) => match last_type_in_path(&t.path) {
                 Some(t) => ControlFlow::Continue(t),
                 None => ControlFlow::Break(false),
@@ -298,6 +301,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
                 ControlFlow::Break(false)
             }
             TypeParamBound::Verbatim(t) => ControlFlow::Break(tokens_trailing_brace(t)),
+            _ => ControlFlow::Break(false),
         }
     }
 
