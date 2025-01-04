@@ -76,17 +76,17 @@ impl Printer {
         }
     }
 
-    fn subexpr(&mut self, expr: &Expr, beginning_of_line: bool) {
+    fn prefix_subexpr(&mut self, expr: &Expr, beginning_of_line: bool) {
         match expr {
-            Expr::Await(expr) => self.subexpr_await(expr, beginning_of_line),
-            Expr::Call(expr) => self.subexpr_call(expr),
-            Expr::Field(expr) => self.subexpr_field(expr, beginning_of_line),
-            Expr::Index(expr) => self.subexpr_index(expr, beginning_of_line),
+            Expr::Await(expr) => self.prefix_subexpr_await(expr, beginning_of_line),
+            Expr::Call(expr) => self.prefix_subexpr_call(expr),
+            Expr::Field(expr) => self.prefix_subexpr_field(expr, beginning_of_line),
+            Expr::Index(expr) => self.prefix_subexpr_index(expr, beginning_of_line),
             Expr::MethodCall(expr) => {
                 let unindent_call_args = false;
-                self.subexpr_method_call(expr, beginning_of_line, unindent_call_args);
+                self.prefix_subexpr_method_call(expr, beginning_of_line, unindent_call_args);
             }
-            Expr::Try(expr) => self.subexpr_try(expr, beginning_of_line),
+            Expr::Try(expr) => self.prefix_subexpr_try(expr, beginning_of_line),
             _ => {
                 self.cbox(-INDENT);
                 self.expr(expr);
@@ -151,12 +151,12 @@ impl Printer {
     fn expr_await(&mut self, expr: &ExprAwait, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        self.subexpr_await(expr, beginning_of_line);
+        self.prefix_subexpr_await(expr, beginning_of_line);
         self.end();
     }
 
-    fn subexpr_await(&mut self, expr: &ExprAwait, beginning_of_line: bool) {
-        self.subexpr(&expr.base, beginning_of_line);
+    fn prefix_subexpr_await(&mut self, expr: &ExprAwait, beginning_of_line: bool) {
+        self.prefix_subexpr(&expr.base, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".await");
     }
@@ -205,9 +205,9 @@ impl Printer {
         self.word(")");
     }
 
-    fn subexpr_call(&mut self, expr: &ExprCall) {
+    fn prefix_subexpr_call(&mut self, expr: &ExprCall) {
         let beginning_of_line = false;
-        self.subexpr(&expr.func, beginning_of_line);
+        self.prefix_subexpr(&expr.func, beginning_of_line);
         self.word("(");
         self.call_args(&expr.args);
         self.word(")");
@@ -324,12 +324,12 @@ impl Printer {
     fn expr_field(&mut self, expr: &ExprField, beginning_of_line: bool) {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
-        self.subexpr_field(expr, beginning_of_line);
+        self.prefix_subexpr_field(expr, beginning_of_line);
         self.end();
     }
 
-    fn subexpr_field(&mut self, expr: &ExprField, beginning_of_line: bool) {
-        self.subexpr(&expr.base, beginning_of_line);
+    fn prefix_subexpr_field(&mut self, expr: &ExprField, beginning_of_line: bool) {
+        self.prefix_subexpr(&expr.base, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
         self.word(".");
         self.member(&expr.member);
@@ -429,8 +429,8 @@ impl Printer {
         self.word("]");
     }
 
-    fn subexpr_index(&mut self, expr: &ExprIndex, beginning_of_line: bool) {
-        self.subexpr(&expr.expr, beginning_of_line);
+    fn prefix_subexpr_index(&mut self, expr: &ExprIndex, beginning_of_line: bool) {
+        self.prefix_subexpr(&expr.expr, beginning_of_line);
         self.word("[");
         self.expr(&expr.index);
         self.word("]");
@@ -515,17 +515,17 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.cbox(INDENT);
         let unindent_call_args = beginning_of_line && is_short_ident(&expr.receiver);
-        self.subexpr_method_call(expr, beginning_of_line, unindent_call_args);
+        self.prefix_subexpr_method_call(expr, beginning_of_line, unindent_call_args);
         self.end();
     }
 
-    fn subexpr_method_call(
+    fn prefix_subexpr_method_call(
         &mut self,
         expr: &ExprMethodCall,
         beginning_of_line: bool,
         unindent_call_args: bool,
     ) {
-        self.subexpr(&expr.receiver, beginning_of_line);
+        self.prefix_subexpr(&expr.receiver, beginning_of_line);
         self.zerobreak_unless_short_ident(beginning_of_line, &expr.receiver);
         self.word(".");
         self.ident(&expr.method);
@@ -628,8 +628,8 @@ impl Printer {
         self.word("?");
     }
 
-    fn subexpr_try(&mut self, expr: &ExprTry, beginning_of_line: bool) {
-        self.subexpr(&expr.expr, beginning_of_line);
+    fn prefix_subexpr_try(&mut self, expr: &ExprTry, beginning_of_line: bool) {
+        self.prefix_subexpr(&expr.expr, beginning_of_line);
         self.word("?");
     }
 
