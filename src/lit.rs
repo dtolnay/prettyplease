@@ -44,7 +44,12 @@ impl Printer {
     }
 
     fn lit_float(&mut self, lit: &LitFloat) {
-        self.word(lit.token().to_string());
+        let repr = lit.token().to_string();
+        let dot = repr.ends_with('.');
+        self.word(repr);
+        if dot {
+            self.word("0");
+        }
     }
 
     fn lit_bool(&mut self, lit: &LitBool) {
