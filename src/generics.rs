@@ -5,7 +5,7 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use std::ptr;
 use syn::{
-    BoundLifetimes, CapturedParam, ConstParam, GenericParam, Generics, LifetimeParam,
+    BoundLifetimes, CapturedParam, ConstParam, Expr, GenericParam, Generics, LifetimeParam,
     PreciseCapture, PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam,
     TypeParamBound, WhereClause, WherePredicate,
 };
@@ -209,7 +209,7 @@ impl Printer {
         self.ty(&const_param.ty);
         if let Some(default) = &const_param.default {
             self.word(" = ");
-            self.expr(default);
+            self.const_argument(default);
         }
     }
 
@@ -355,6 +355,29 @@ impl Printer {
             CapturedParam::Lifetime(lifetime) => self.lifetime(lifetime),
             CapturedParam::Ident(ident) => self.ident(ident),
             _ => unimplemented!("unknown CapturedParam"),
+        }
+    }
+
+    pub fn const_argument(&mut self, expr: &Expr) {
+        match expr {
+            #![cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
+            Expr::Lit(expr) => self.expr_lit(expr),
+
+            Expr::Path(expr)
+                if expr.attrs.is_empty()
+                    && expr.qself.is_none()
+                    && expr.path.get_ident().is_some() =>
+            {
+                self.expr_path(expr);
+            }
+
+            Expr::Block(expr) => self.expr_block(expr),
+
+            _ => {
+                self.word("{");
+                self.expr(expr);
+                self.word("}");
+            }
         }
     }
 }

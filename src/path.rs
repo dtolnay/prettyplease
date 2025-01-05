@@ -3,7 +3,7 @@ use crate::iter::IterDelimited;
 use crate::INDENT;
 use std::ptr;
 use syn::{
-    AngleBracketedGenericArguments, AssocConst, AssocType, Constraint, Expr, GenericArgument,
+    AngleBracketedGenericArguments, AssocConst, AssocType, Constraint, GenericArgument,
     ParenthesizedGenericArguments, Path, PathArguments, PathSegment, QSelf,
 };
 
@@ -50,20 +50,7 @@ impl Printer {
             #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
             GenericArgument::Lifetime(lifetime) => self.lifetime(lifetime),
             GenericArgument::Type(ty) => self.ty(ty),
-            GenericArgument::Const(expr) => {
-                match expr {
-                    #![cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
-                    Expr::Lit(expr) => self.expr_lit(expr),
-                    Expr::Block(expr) => self.expr_block(expr),
-                    // ERROR CORRECTION: Add braces to make sure that the
-                    // generated code is valid.
-                    _ => {
-                        self.word("{");
-                        self.expr(expr);
-                        self.word("}");
-                    }
-                }
-            }
+            GenericArgument::Const(expr) => self.const_argument(expr),
             GenericArgument::AssocType(assoc) => self.assoc_type(assoc),
             GenericArgument::AssocConst(assoc) => self.assoc_const(assoc),
             GenericArgument::Constraint(constraint) => self.constraint(constraint),
@@ -136,7 +123,7 @@ impl Printer {
             self.angle_bracketed_generic_arguments(generics, PathKind::Type);
         }
         self.word(" = ");
-        self.expr(&assoc.value);
+        self.const_argument(&assoc.value);
     }
 
     fn constraint(&mut self, constraint: &Constraint) {
