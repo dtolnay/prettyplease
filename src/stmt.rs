@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::expr;
 use crate::INDENT;
 use syn::{BinOp, Expr, Stmt};
 
@@ -19,13 +20,13 @@ impl Printer {
                         self.word("else ");
                         self.end();
                         self.neverbreak();
-                        if let Expr::Block(expr) = diverge.as_ref() {
-                            self.cbox(INDENT);
+                        self.cbox(INDENT);
+                        if let Some(expr) = expr::simple_block(diverge) {
                             self.small_block(&expr.block, &[]);
-                            self.end();
                         } else {
                             self.expr_as_small_block(diverge);
                         }
+                        self.end();
                     } else {
                         self.end();
                     }

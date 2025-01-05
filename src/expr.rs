@@ -1237,6 +1237,15 @@ fn is_blocklike(expr: &Expr) -> bool {
     }
 }
 
+pub fn simple_block(expr: &Expr) -> Option<&ExprBlock> {
+    if let Expr::Block(expr) = expr {
+        if expr.attrs.is_empty() && expr.label.is_none() {
+            return Some(expr);
+        }
+    }
+    None
+}
+
 // Expressions for which `$expr` and `{ $expr }` mean the same thing.
 //
 // This is not the case for all expressions. For example `{} | x | x` has some
