@@ -24,7 +24,7 @@ impl Printer {
                         if let Some(expr) = expr::simple_block(diverge) {
                             self.small_block(&expr.block, &[]);
                         } else {
-                            self.expr_as_small_block(diverge);
+                            self.expr_as_small_block(diverge, INDENT);
                         }
                         self.end();
                     } else {

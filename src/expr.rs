@@ -298,7 +298,14 @@ impl Printer {
                 self.ty(ty);
                 self.nbsp();
                 self.neverbreak();
-                self.expr(&expr.body);
+                if matches!(&*expr.body, Expr::Block(body) if body.attrs.is_empty() && body.label.is_none())
+                {
+                    self.expr(&expr.body);
+                } else {
+                    self.cbox(INDENT);
+                    self.expr_as_small_block(&expr.body, 0);
+                    self.end();
+                }
             }
         }
         self.end();
@@ -394,7 +401,7 @@ impl Printer {
                     }
                     // If not one of the valid expressions to exist in an else
                     // clause, wrap in a block.
-                    other => self.expr_as_small_block(other),
+                    other => self.expr_as_small_block(other, INDENT),
                 }
                 break;
             }
@@ -926,10 +933,10 @@ impl Printer {
         self.word("}");
     }
 
-    pub fn expr_as_small_block(&mut self, expr: &Expr) {
+    pub fn expr_as_small_block(&mut self, expr: &Expr, indent: isize) {
         self.word("{");
         self.space();
-        self.ibox(INDENT);
+        self.ibox(indent);
         self.expr_beginning_of_line(expr, true);
         self.end();
         self.space();
