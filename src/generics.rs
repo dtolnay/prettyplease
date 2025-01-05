@@ -374,9 +374,9 @@ impl Printer {
             Expr::Block(expr) => self.expr_block(expr),
 
             _ => {
-                self.word("{");
-                self.expr(expr);
-                self.word("}");
+                self.cbox(INDENT);
+                self.expr_as_small_block(expr, 0);
+                self.end();
             }
         }
     }
