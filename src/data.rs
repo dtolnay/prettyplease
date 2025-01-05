@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::fixup::FixupContext;
 use crate::iter::IterDelimited;
 use crate::path::PathKind;
 use crate::INDENT;
@@ -31,7 +32,7 @@ impl Printer {
         }
         if let Some((_eq_token, discriminant)) = &variant.discriminant {
             self.word(" = ");
-            self.expr(discriminant);
+            self.expr(discriminant, FixupContext::NONE);
         }
     }
 

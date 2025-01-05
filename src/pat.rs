@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::fixup::FixupContext;
 use crate::iter::IterDelimited;
 use crate::path::PathKind;
 use crate::INDENT;
@@ -19,7 +20,7 @@ impl Printer {
             Pat::Or(pat) => self.pat_or(pat),
             Pat::Paren(pat) => self.pat_paren(pat),
             Pat::Path(pat) => self.expr_path(pat),
-            Pat::Range(pat) => self.expr_range(pat),
+            Pat::Range(pat) => self.expr_range(pat, FixupContext::NONE),
             Pat::Reference(pat) => self.pat_reference(pat),
             Pat::Rest(pat) => self.pat_rest(pat),
             Pat::Slice(pat) => self.pat_slice(pat),

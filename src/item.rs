@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::fixup::FixupContext;
 use crate::iter::IterDelimited;
 use crate::path::PathKind;
 use crate::INDENT;
@@ -47,7 +48,7 @@ impl Printer {
         self.ty(&item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&item.expr);
+        self.expr(&item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -210,7 +211,7 @@ impl Printer {
         self.ty(&item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&item.expr);
+        self.expr(&item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -961,7 +962,7 @@ impl Printer {
         if let Some((_eq_token, default)) = &trait_item.default {
             self.word(" = ");
             self.neverbreak();
-            self.expr(default);
+            self.expr(default, FixupContext::NONE);
         }
         self.word(";");
         self.end();
@@ -1158,7 +1159,7 @@ impl Printer {
         self.ty(&impl_item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&impl_item.expr);
+        self.expr(&impl_item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -1421,6 +1422,7 @@ impl Printer {
 #[cfg(feature = "verbatim")]
 mod verbatim {
     use crate::algorithm::Printer;
+    use crate::fixup::FixupContext;
     use crate::iter::IterDelimited;
     use crate::INDENT;
     use syn::ext::IdentExt;
@@ -1707,7 +1709,7 @@ mod verbatim {
                 self.word(" = ");
                 self.neverbreak();
                 self.ibox(-INDENT);
-                self.expr(value);
+                self.expr(value, FixupContext::NONE);
                 self.end();
             }
             self.where_clause_oneline_semi(&item.generics.where_clause);
@@ -1756,7 +1758,7 @@ mod verbatim {
             if let Some(expr) = &item.expr {
                 self.word(" = ");
                 self.neverbreak();
-                self.expr(expr);
+                self.expr(expr, FixupContext::NONE);
             }
             self.word(";");
             self.end();

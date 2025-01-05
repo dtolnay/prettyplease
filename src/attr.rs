@@ -1,4 +1,5 @@
 use crate::algorithm::Printer;
+use crate::fixup::FixupContext;
 use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
@@ -102,7 +103,7 @@ impl Printer {
     fn meta_name_value(&mut self, meta: &MetaNameValue) {
         self.path(&meta.path, PathKind::Simple);
         self.word(" = ");
-        self.expr(&meta.value);
+        self.expr(&meta.value, FixupContext::NONE);
     }
 
     fn attr_tokens(&mut self, tokens: TokenStream) {
