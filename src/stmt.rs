@@ -26,13 +26,9 @@ impl Printer {
                         } else {
                             self.expr_as_small_block(diverge, INDENT);
                         }
-                        self.end();
-                    } else {
-                        self.end();
                     }
-                } else {
-                    self.end();
                 }
+                self.end();
                 self.word(";");
                 self.hardbreak();
             }
