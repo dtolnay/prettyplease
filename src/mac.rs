@@ -179,6 +179,7 @@ impl Printer {
                 (_, Token::Ident(ident)) if !is_keyword(ident) => {
                     (state != Dot && state != Colon2, Ident)
                 }
+                (_, Token::Literal(lit)) if lit.to_string().ends_with('.') => (state != Dot, Other),
                 (_, Token::Literal(_)) => (state != Dot, Ident),
                 (_, Token::Punct(',' | ';', _)) => (false, Other),
                 (_, Token::Punct('.', _)) if !matcher => (state != Ident && state != Delim, Dot),
