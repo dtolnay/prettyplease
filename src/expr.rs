@@ -1043,7 +1043,6 @@ fn requires_terminator(expr: &Expr) -> bool {
         | Expr::Closure(_)
         | Expr::Continue(_)
         | Expr::Field(_)
-        | Expr::Group(_)
         | Expr::Index(_)
         | Expr::Infer(_)
         | Expr::Let(_)
@@ -1063,6 +1062,8 @@ fn requires_terminator(expr: &Expr) -> bool {
         | Expr::Unary(_)
         | Expr::Verbatim(_)
         | Expr::Yield(_) => true,
+
+        Expr::Group(e) => requires_terminator(&e.expr),
 
         _ => true,
     }
@@ -1217,7 +1218,6 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::Continue(_)
         | Expr::Field(_)
         | Expr::ForLoop(_)
-        | Expr::Group(_)
         | Expr::If(_)
         | Expr::Index(_)
         | Expr::Infer(_)
@@ -1239,6 +1239,8 @@ fn is_blocklike(expr: &Expr) -> bool {
         | Expr::Verbatim(_)
         | Expr::While(_)
         | Expr::Yield(_) => false,
+
+        Expr::Group(e) => is_blocklike(&e.expr),
 
         _ => false,
     }
