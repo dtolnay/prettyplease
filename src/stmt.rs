@@ -24,14 +24,7 @@ impl Printer {
                             self.small_block(&expr.block, &[]);
                             self.end();
                         } else {
-                            self.word("{");
-                            self.space();
-                            self.ibox(INDENT);
-                            self.expr(diverge);
-                            self.end();
-                            self.space();
-                            self.offset(-INDENT);
-                            self.word("}");
+                            self.expr_as_small_block(diverge);
                         }
                     } else {
                         self.end();

@@ -394,16 +394,7 @@ impl Printer {
                     }
                     // If not one of the valid expressions to exist in an else
                     // clause, wrap in a block.
-                    other => {
-                        self.word("{");
-                        self.space();
-                        self.ibox(INDENT);
-                        self.expr(other);
-                        self.end();
-                        self.space();
-                        self.offset(-INDENT);
-                        self.word("}");
-                    }
+                    other => self.expr_as_small_block(other),
                 }
                 break;
             }
@@ -932,6 +923,17 @@ impl Printer {
             }
             self.offset(-INDENT);
         }
+        self.word("}");
+    }
+
+    pub fn expr_as_small_block(&mut self, expr: &Expr) {
+        self.word("{");
+        self.space();
+        self.ibox(INDENT);
+        self.expr_beginning_of_line(expr, true);
+        self.end();
+        self.space();
+        self.offset(-INDENT);
         self.word("}");
     }
 
