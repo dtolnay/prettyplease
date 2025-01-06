@@ -590,7 +590,7 @@ fn scan_right(
                 _ => Scan::Consume,
             },
         },
-        // false positive: https://github.com/rust-lang/rust/issues/135137
+        // false positive: https://github.com/rust-lang/rust/issues/117304
         #[cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
         Expr::Closure(e) => {
             if matches!(e.output, ReturnType::Default)
