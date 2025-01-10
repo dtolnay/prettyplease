@@ -417,7 +417,7 @@ impl Printer {
                     );
                     self.scan_break(BreakToken {
                         offset: -INDENT,
-                        pre_break: (okay_to_brace && stmt::add_semi(&expr.body)).then(|| ';'),
+                        pre_break: (okay_to_brace && stmt::add_semi(&expr.body)).then_some(';'),
                         post_break: Some(if okay_to_brace { '}' } else { ')' }),
                         ..BreakToken::default()
                     });
@@ -1111,9 +1111,9 @@ impl Printer {
             self.expr_beginning_of_line(body, false, true, FixupContext::new_match_arm());
             self.scan_break(BreakToken {
                 offset: -INDENT,
-                pre_break: stmt::add_semi(body).then(|| ';'),
+                pre_break: stmt::add_semi(body).then_some(';'),
                 post_break: Some('}'),
-                no_break: requires_terminator(body).then(|| ','),
+                no_break: requires_terminator(body).then_some(','),
                 ..BreakToken::default()
             });
             self.end();
