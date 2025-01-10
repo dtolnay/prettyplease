@@ -186,15 +186,14 @@ impl Printer {
             false,
             Precedence::Assign,
         );
-        let (right_prec, right_fixup) =
-            fixup.rightmost_subexpression(&expr.right, Precedence::Assign);
+        let right_fixup = fixup.rightmost_subexpression_fixup(false, false, Precedence::Assign);
 
         self.outer_attrs(&expr.attrs);
         self.ibox(0);
         self.subexpr(&expr.left, left_prec <= Precedence::Range, left_fixup);
         self.word(" = ");
         self.neverbreak();
-        self.subexpr(&expr.right, right_prec < Precedence::Assign, right_fixup);
+        self.expr(&expr.right, right_fixup);
         self.end();
     }
 
@@ -255,12 +254,14 @@ impl Printer {
             },
             binop_prec,
         );
-        let (right_prec, right_fixup) = fixup.rightmost_subexpression(&expr.right, binop_prec);
-        let (left_needs_group, right_needs_group) = match binop_prec {
-            Precedence::Assign => (left_prec <= Precedence::Range, right_prec < binop_prec),
-            Precedence::Compare => (left_prec <= binop_prec, right_prec <= binop_prec),
-            _ => (left_prec < binop_prec, right_prec <= binop_prec),
+        let left_needs_group = match binop_prec {
+            Precedence::Assign => left_prec <= Precedence::Range,
+            Precedence::Compare => left_prec <= binop_prec,
+            _ => left_prec < binop_prec,
         };
+        let right_fixup = fixup.rightmost_subexpression_fixup(false, false, binop_prec);
+        let right_needs_group = binop_prec != Precedence::Assign
+            && right_fixup.rightmost_subexpression_precedence(&expr.right) <= binop_prec;
 
         self.outer_attrs(&expr.attrs);
         self.ibox(INDENT);
