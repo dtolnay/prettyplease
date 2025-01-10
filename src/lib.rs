@@ -322,6 +322,7 @@
 
 #![doc(html_root_url = "https://docs.rs/prettyplease/0.2.27")]
 #![allow(
+    clippy::bool_to_int_with_if,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::derive_partial_eq_without_eq,
