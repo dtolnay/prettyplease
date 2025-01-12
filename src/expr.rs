@@ -1388,64 +1388,81 @@ pub fn simple_block(expr: &Expr) -> Option<&ExprBlock> {
 //
 // This is not the case for all expressions. For example `{} | x | x` has some
 // bitwise OR operators while `{ {} |x| x }` has a block followed by a closure.
-fn parseable_as_stmt(expr: &Expr) -> bool {
-    match expr {
-        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-        Expr::Array(_)
-        | Expr::Async(_)
-        | Expr::Block(_)
-        | Expr::Break(_)
-        | Expr::Closure(_)
-        | Expr::Const(_)
-        | Expr::Continue(_)
-        | Expr::ForLoop(_)
-        | Expr::If(_)
-        | Expr::Infer(_)
-        | Expr::Let(_)
-        | Expr::Lit(_)
-        | Expr::Loop(_)
-        | Expr::Macro(_)
-        | Expr::Match(_)
-        | Expr::Paren(_)
-        | Expr::Path(_)
-        | Expr::RawAddr(_)
-        | Expr::Reference(_)
-        | Expr::Repeat(_)
-        | Expr::Return(_)
-        | Expr::Struct(_)
-        | Expr::TryBlock(_)
-        | Expr::Tuple(_)
-        | Expr::Unary(_)
-        | Expr::Unsafe(_)
-        | Expr::Verbatim(_)
-        | Expr::While(_)
-        | Expr::Yield(_) => true,
+fn parseable_as_stmt(mut expr: &Expr) -> bool {
+    loop {
+        match expr {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            Expr::Array(_)
+            | Expr::Async(_)
+            | Expr::Block(_)
+            | Expr::Break(_)
+            | Expr::Closure(_)
+            | Expr::Const(_)
+            | Expr::Continue(_)
+            | Expr::ForLoop(_)
+            | Expr::If(_)
+            | Expr::Infer(_)
+            | Expr::Let(_)
+            | Expr::Lit(_)
+            | Expr::Loop(_)
+            | Expr::Macro(_)
+            | Expr::Match(_)
+            | Expr::Paren(_)
+            | Expr::Path(_)
+            | Expr::RawAddr(_)
+            | Expr::Reference(_)
+            | Expr::Repeat(_)
+            | Expr::Return(_)
+            | Expr::Struct(_)
+            | Expr::TryBlock(_)
+            | Expr::Tuple(_)
+            | Expr::Unary(_)
+            | Expr::Unsafe(_)
+            | Expr::Verbatim(_)
+            | Expr::While(_)
+            | Expr::Yield(_) => return true,
 
-        Expr::Assign(expr) => parseable_as_stmt(&expr.left),
-        Expr::Await(expr) => parseable_as_stmt(&expr.base),
-        Expr::Binary(expr) => {
-            classify::requires_comma_to_be_match_arm(&expr.left) && parseable_as_stmt(&expr.left)
-        }
-        Expr::Call(expr) => {
-            classify::requires_comma_to_be_match_arm(&expr.func) && parseable_as_stmt(&expr.func)
-        }
-        Expr::Cast(expr) => {
-            classify::requires_comma_to_be_match_arm(&expr.expr) && parseable_as_stmt(&expr.expr)
-        }
-        Expr::Field(expr) => parseable_as_stmt(&expr.base),
-        Expr::Group(expr) => parseable_as_stmt(&expr.expr),
-        Expr::Index(expr) => {
-            classify::requires_comma_to_be_match_arm(&expr.expr) && parseable_as_stmt(&expr.expr)
-        }
-        Expr::MethodCall(expr) => parseable_as_stmt(&expr.receiver),
-        Expr::Range(expr) => match &expr.start {
-            None => true,
-            Some(start) => {
-                classify::requires_comma_to_be_match_arm(start) && parseable_as_stmt(start)
+            Expr::Assign(e) => expr = &e.left,
+            Expr::Await(e) => expr = &e.base,
+            Expr::Binary(e) => {
+                if !classify::requires_comma_to_be_match_arm(&e.left) {
+                    return false;
+                }
+                expr = &e.left;
             }
-        },
-        Expr::Try(expr) => parseable_as_stmt(&expr.expr),
+            Expr::Call(e) => {
+                if !classify::requires_comma_to_be_match_arm(&e.func) {
+                    return false;
+                }
+                expr = &e.func;
+            }
+            Expr::Cast(e) => {
+                if !classify::requires_comma_to_be_match_arm(&e.expr) {
+                    return false;
+                }
+                expr = &e.expr;
+            }
+            Expr::Field(e) => expr = &e.base,
+            Expr::Group(e) => expr = &e.expr,
+            Expr::Index(e) => {
+                if !classify::requires_comma_to_be_match_arm(&e.expr) {
+                    return false;
+                }
+                expr = &e.expr;
+            }
+            Expr::MethodCall(e) => expr = &e.receiver,
+            Expr::Range(e) => match &e.start {
+                None => return true,
+                Some(start) => {
+                    if !classify::requires_comma_to_be_match_arm(start) {
+                        return false;
+                    }
+                    expr = start;
+                }
+            },
+            Expr::Try(e) => expr = &e.expr,
 
-        _ => false,
+            _ => return false,
+        }
     }
 }
