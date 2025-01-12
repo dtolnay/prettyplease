@@ -1070,7 +1070,7 @@ impl Printer {
             self.word(" if ");
             self.expr(guard, FixupContext::NONE);
         }
-        self.word(" =>");
+        self.word(" => ");
         let empty_block;
         let mut body = &*arm.body;
         while let Expr::Block(expr) = body {
@@ -1097,7 +1097,6 @@ impl Printer {
             }
         }
         if let Expr::Block(body) = body {
-            self.nbsp();
             if let Some(label) = &body.label {
                 self.label(label);
             }
@@ -1112,9 +1111,7 @@ impl Printer {
             self.offset(-INDENT);
             self.end();
             self.word("}");
-            self.end();
         } else {
-            self.nbsp();
             self.neverbreak();
             self.cbox(INDENT);
             self.scan_break(BreakToken {
@@ -1130,8 +1127,8 @@ impl Printer {
                 ..BreakToken::default()
             });
             self.end();
-            self.end();
         }
+        self.end();
     }
 
     fn call_args(&mut self, args: &Punctuated<Expr, Token![,]>) {
