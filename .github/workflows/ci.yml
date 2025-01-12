@@ -36,6 +36,9 @@ jobs:
       - run: cargo test
         env:
           RUSTFLAGS: ${{env.RUSTFLAGS}} ${{matrix.rust == 'nightly' && '--cfg exhaustive' || ''}}
+      - run: cargo test --release --test test_precedence
+        env:
+          RUSTFLAGS: ${{env.RUSTFLAGS}} ${{matrix.rust == 'nightly' && '--cfg exhaustive' || ''}}
       - uses: actions/upload-artifact@v4
         if: matrix.rust == 'nightly' && always()
         with:

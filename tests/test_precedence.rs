@@ -886,7 +886,7 @@ fn test_permutations() -> ExitCode {
         }
     };
 
-    iter(3, &mut assert);
+    iter(if cfg!(debug_assertions) { 3 } else { 4 }, &mut assert);
     if failures > 0 {
         eprintln!("FAILURES: {failures}");
         ExitCode::FAILURE
