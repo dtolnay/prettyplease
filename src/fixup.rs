@@ -2,7 +2,6 @@ use crate::classify;
 use crate::precedence::Precedence;
 use syn::{
     Expr, ExprBreak, ExprRange, ExprRawAddr, ExprReference, ExprReturn, ExprUnary, ExprYield,
-    ReturnType,
 };
 
 #[derive(Copy, Clone)]
@@ -595,25 +594,7 @@ fn scan_right(
                 _ => Scan::Consume,
             },
         },
-        // false positive: https://github.com/rust-lang/rust/issues/117304
-        #[cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
-        Expr::Closure(e) => {
-            if matches!(e.output, ReturnType::Default)
-                || matches!(&*e.body, Expr::Block(body) if body.attrs.is_empty() && body.label.is_none())
-            {
-                if bailout_offset >= 1 {
-                    return Scan::Consume;
-                }
-                let right_fixup =
-                    fixup.rightmost_subexpression_fixup(false, false, Precedence::Jump);
-                match scan_right(&e.body, right_fixup, Precedence::Jump, 1, 1) {
-                    Scan::Fail => Scan::Bailout,
-                    Scan::Bailout | Scan::Consume => Scan::Consume,
-                }
-            } else {
-                Scan::Consume
-            }
-        }
+        Expr::Closure(_) => Scan::Consume,
         Expr::Let(e) => {
             if bailout_offset >= 1 {
                 return Scan::Consume;
