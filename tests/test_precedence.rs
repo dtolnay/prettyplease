@@ -57,8 +57,9 @@ impl VisitMut for AsIfPrinted {
                     MacroDelimiter::Brace(_) => true,
                     MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => semi.is_some(),
                 } {
-                    let Expr::Macro(expr) = mem::replace(expr, Expr::PLACEHOLDER) else {
-                        unreachable!();
+                    let expr = match mem::replace(expr, Expr::PLACEHOLDER) {
+                        Expr::Macro(expr) => expr,
+                        _ => unreachable!(),
                     };
                     *stmt = Stmt::Macro(StmtMacro {
                         attrs: expr.attrs,
@@ -137,8 +138,9 @@ fn test_permutations() -> ExitCode {
             }));
         }
 
-        let Some(depth) = depth.checked_sub(1) else {
-            return;
+        let depth = match depth.checked_sub(1) {
+            Some(depth) => depth,
+            None => return,
         };
 
         // Expr::Assign
@@ -850,11 +852,13 @@ fn test_permutations() -> ExitCode {
                 semi_token: Token![;](span),
             })]),
         });
-        let Ok(mut parsed) = syn::parse_file(&pretty) else {
-            fail!("failed to parse: {pretty}{original:#?}");
+        let mut parsed = match syn::parse_file(&pretty) {
+            Ok(parsed) => parsed,
+            _ => fail!("failed to parse: {pretty}{original:#?}"),
         };
-        let [Item::Const(item)] = parsed.items.as_mut_slice() else {
-            unreachable!();
+        let item = match parsed.items.as_mut_slice() {
+            [Item::Const(item)] => item,
+            _ => unreachable!(),
         };
         let mut parsed = mem::replace(&mut *item.expr, Expr::PLACEHOLDER);
         AsIfPrinted.visit_expr_mut(&mut original);
@@ -871,8 +875,9 @@ fn test_permutations() -> ExitCode {
         let no_paren = pretty.replace(['(', ')'], "");
         if pretty != no_paren {
             if let Ok(mut parsed2) = syn::parse_file(&no_paren) {
-                let [Item::Const(item)] = parsed2.items.as_mut_slice() else {
-                    unreachable!();
+                let item = match parsed2.items.as_mut_slice() {
+                    [Item::Const(item)] => item,
+                    _ => unreachable!(),
                 };
                 if original == *item.expr {
                     fail!("redundant parens: {}", pretty);
