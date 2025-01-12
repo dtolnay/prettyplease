@@ -521,8 +521,8 @@ impl Printer {
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
-        for stmt in &expr.body.stmts {
-            self.stmt(stmt);
+        for stmt in expr.body.stmts.iter().delimited() {
+            self.stmt(&stmt, stmt.is_last);
         }
         self.offset(-INDENT);
         self.end();
@@ -573,8 +573,8 @@ impl Printer {
         } else {
             self.word("{");
             self.hardbreak();
-            for stmt in &expr.then_branch.stmts {
-                self.stmt(stmt);
+            for stmt in expr.then_branch.stmts.iter().delimited() {
+                self.stmt(&stmt, stmt.is_last);
             }
             self.offset(-INDENT);
             self.word("}");
@@ -662,8 +662,8 @@ impl Printer {
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
-        for stmt in &expr.body.stmts {
-            self.stmt(stmt);
+        for stmt in expr.body.stmts.iter().delimited() {
+            self.stmt(&stmt, stmt.is_last);
         }
         self.offset(-INDENT);
         self.end();
@@ -1026,8 +1026,8 @@ impl Printer {
         self.cbox(INDENT);
         self.hardbreak_if_nonempty();
         self.inner_attrs(&expr.attrs);
-        for stmt in &expr.body.stmts {
-            self.stmt(stmt);
+        for stmt in expr.body.stmts.iter().delimited() {
+            self.stmt(&stmt, stmt.is_last);
         }
         self.offset(-INDENT);
         self.end();
@@ -1105,8 +1105,8 @@ impl Printer {
             self.cbox(INDENT);
             self.hardbreak_if_nonempty();
             self.inner_attrs(&body.attrs);
-            for stmt in &body.block.stmts {
-                self.stmt(stmt);
+            for stmt in body.block.stmts.iter().delimited() {
+                self.stmt(&stmt, stmt.is_last);
             }
             self.offset(-INDENT);
             self.end();
@@ -1164,8 +1164,8 @@ impl Printer {
                     self.space();
                 }
                 _ => {
-                    for stmt in &block.stmts {
-                        self.stmt(stmt);
+                    for stmt in block.stmts.iter().delimited() {
+                        self.stmt(&stmt, stmt.is_last);
                     }
                 }
             }
