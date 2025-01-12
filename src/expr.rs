@@ -1114,15 +1114,16 @@ impl Printer {
         } else {
             self.neverbreak();
             self.cbox(INDENT);
+            let okay_to_brace = parseable_as_stmt(body);
             self.scan_break(BreakToken {
-                pre_break: Some('{'),
+                pre_break: Some(if okay_to_brace { '{' } else { '(' }),
                 ..BreakToken::default()
             });
             self.expr_beginning_of_line(body, false, true, FixupContext::new_match_arm());
             self.scan_break(BreakToken {
                 offset: -INDENT,
-                pre_break: stmt::add_semi(body).then_some(';'),
-                post_break: "}",
+                pre_break: (okay_to_brace && stmt::add_semi(body)).then_some(';'),
+                post_break: if okay_to_brace { "}" } else { ")," },
                 no_break: classify::requires_comma_to_be_match_arm(body).then_some(','),
                 ..BreakToken::default()
             });
