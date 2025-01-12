@@ -423,7 +423,7 @@ impl Printer {
                     self.scan_break(BreakToken {
                         offset: -INDENT,
                         pre_break: (okay_to_brace && stmt::add_semi(&expr.body)).then_some(';'),
-                        post_break: Some(if okay_to_brace { '}' } else { ')' }),
+                        post_break: if okay_to_brace { "}" } else { ")" },
                         ..BreakToken::default()
                     });
                     self.end();
@@ -1129,7 +1129,7 @@ impl Printer {
             self.scan_break(BreakToken {
                 offset: -INDENT,
                 pre_break: stmt::add_semi(body).then_some(';'),
-                post_break: Some('}'),
+                post_break: "}",
                 no_break: classify::requires_comma_to_be_match_arm(body).then_some(','),
                 ..BreakToken::default()
             });
