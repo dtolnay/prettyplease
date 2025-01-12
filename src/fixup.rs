@@ -678,7 +678,7 @@ fn scan_right(
             _ if precedence == Precedence::Let && fixup.next_operator < Precedence::Let => {
                 Scan::Fail
             }
-            _ => Scan::Consume,
+            _ => consume_by_precedence,
         },
 
         _ => match fixup.next_operator {
@@ -686,7 +686,7 @@ fn scan_right(
             _ if precedence == Precedence::Let && fixup.next_operator < Precedence::Let => {
                 Scan::Fail
             }
-            _ => Scan::Consume,
+            _ => consume_by_precedence,
         },
     }
 }
