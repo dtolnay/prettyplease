@@ -2,11 +2,12 @@ use crate::algorithm::Printer;
 use crate::classify;
 use crate::expr;
 use crate::fixup::FixupContext;
+use crate::mac;
 use crate::INDENT;
 use syn::{BinOp, Expr, Stmt};
 
 impl Printer {
-    pub fn stmt(&mut self, stmt: &Stmt) {
+    pub fn stmt(&mut self, stmt: &Stmt, is_last: bool) {
         match stmt {
             Stmt::Local(local) => {
                 self.outer_attrs(&local.attrs);
@@ -69,7 +70,8 @@ impl Printer {
             }
             Stmt::Macro(stmt) => {
                 self.outer_attrs(&stmt.attrs);
-                let semicolon = true;
+                let semicolon = stmt.semi_token.is_some()
+                    || !is_last && mac::requires_semi(&stmt.mac.delimiter);
                 self.mac(&stmt.mac, None, semicolon);
                 self.hardbreak();
             }

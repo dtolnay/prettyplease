@@ -41,10 +41,7 @@ impl Printer {
         }
         self.word(close);
         if semicolon {
-            match mac.delimiter {
-                MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => self.word(";"),
-                MacroDelimiter::Brace(_) => {}
-            }
+            self.word(";");
         }
     }
 
@@ -209,6 +206,13 @@ impl Printer {
             );
             state = next_state;
         }
+    }
+}
+
+pub(crate) fn requires_semi(delimiter: &MacroDelimiter) -> bool {
+    match delimiter {
+        MacroDelimiter::Paren(_) | MacroDelimiter::Bracket(_) => true,
+        MacroDelimiter::Brace(_) => false,
     }
 }
 
