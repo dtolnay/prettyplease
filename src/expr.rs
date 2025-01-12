@@ -1130,7 +1130,7 @@ impl Printer {
                 offset: -INDENT,
                 pre_break: stmt::add_semi(body).then_some(';'),
                 post_break: Some('}'),
-                no_break: requires_terminator(body).then_some(','),
+                no_break: classify::requires_comma_to_be_match_arm(body).then_some(','),
                 ..BreakToken::default()
             });
             self.end();
@@ -1256,56 +1256,6 @@ impl Printer {
             PointerMutability::Const(_) => self.word("const"),
             PointerMutability::Mut(_) => self.word("mut"),
         }
-    }
-}
-
-fn requires_terminator(expr: &Expr) -> bool {
-    // see https://github.com/rust-lang/rust/blob/a266f1199/compiler/rustc_ast/src/util/classify.rs#L7-L26
-    match expr {
-        #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-        Expr::If(_)
-        | Expr::Match(_)
-        | Expr::Block(_) | Expr::Unsafe(_) // both under ExprKind::Block in rustc
-        | Expr::While(_)
-        | Expr::Loop(_)
-        | Expr::ForLoop(_)
-        | Expr::TryBlock(_)
-        | Expr::Const(_) => false,
-
-        Expr::Array(_)
-        | Expr::Assign(_)
-        | Expr::Async(_)
-        | Expr::Await(_)
-        | Expr::Binary(_)
-        | Expr::Break(_)
-        | Expr::Call(_)
-        | Expr::Cast(_)
-        | Expr::Closure(_)
-        | Expr::Continue(_)
-        | Expr::Field(_)
-        | Expr::Index(_)
-        | Expr::Infer(_)
-        | Expr::Let(_)
-        | Expr::Lit(_)
-        | Expr::Macro(_)
-        | Expr::MethodCall(_)
-        | Expr::Paren(_)
-        | Expr::Path(_)
-        | Expr::Range(_)
-        | Expr::RawAddr(_)
-        | Expr::Reference(_)
-        | Expr::Repeat(_)
-        | Expr::Return(_)
-        | Expr::Struct(_)
-        | Expr::Try(_)
-        | Expr::Tuple(_)
-        | Expr::Unary(_)
-        | Expr::Verbatim(_)
-        | Expr::Yield(_) => true,
-
-        Expr::Group(e) => requires_terminator(&e.expr),
-
-        _ => true,
     }
 }
 
@@ -1473,16 +1423,26 @@ fn parseable_as_stmt(expr: &Expr) -> bool {
 
         Expr::Assign(expr) => parseable_as_stmt(&expr.left),
         Expr::Await(expr) => parseable_as_stmt(&expr.base),
-        Expr::Binary(expr) => requires_terminator(&expr.left) && parseable_as_stmt(&expr.left),
-        Expr::Call(expr) => requires_terminator(&expr.func) && parseable_as_stmt(&expr.func),
-        Expr::Cast(expr) => requires_terminator(&expr.expr) && parseable_as_stmt(&expr.expr),
+        Expr::Binary(expr) => {
+            classify::requires_comma_to_be_match_arm(&expr.left) && parseable_as_stmt(&expr.left)
+        }
+        Expr::Call(expr) => {
+            classify::requires_comma_to_be_match_arm(&expr.func) && parseable_as_stmt(&expr.func)
+        }
+        Expr::Cast(expr) => {
+            classify::requires_comma_to_be_match_arm(&expr.expr) && parseable_as_stmt(&expr.expr)
+        }
         Expr::Field(expr) => parseable_as_stmt(&expr.base),
         Expr::Group(expr) => parseable_as_stmt(&expr.expr),
-        Expr::Index(expr) => requires_terminator(&expr.expr) && parseable_as_stmt(&expr.expr),
+        Expr::Index(expr) => {
+            classify::requires_comma_to_be_match_arm(&expr.expr) && parseable_as_stmt(&expr.expr)
+        }
         Expr::MethodCall(expr) => parseable_as_stmt(&expr.receiver),
         Expr::Range(expr) => match &expr.start {
             None => true,
-            Some(start) => requires_terminator(start) && parseable_as_stmt(start),
+            Some(start) => {
+                classify::requires_comma_to_be_match_arm(start) && parseable_as_stmt(start)
+            }
         },
         Expr::Try(expr) => parseable_as_stmt(&expr.expr),
 
