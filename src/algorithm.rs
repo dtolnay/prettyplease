@@ -211,9 +211,18 @@ impl Printer {
         self.scan_end();
     }
 
+    pub fn ends_with(&self, ch: char) -> bool {
+        for i in self.buf.index_range().rev() {
+            if let Token::String(token) = &self.buf[i].token {
+                return token.ends_with(ch);
+            }
+        }
+        self.out.ends_with(ch)
+    }
+
     fn check_stream(&mut self) {
         while self.right_total - self.left_total > self.space {
-            if *self.scan_stack.front().unwrap() == self.buf.index_of_first() {
+            if *self.scan_stack.front().unwrap() == self.buf.index_range().start {
                 self.scan_stack.pop_front().unwrap();
                 self.buf.first_mut().size = SIZE_INFINITY;
             }

@@ -229,7 +229,12 @@ impl Printer {
             beginning_of_line,
             left_fixup,
         );
-        self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
+        if !(beginning_of_line && is_short_ident(&expr.base)) {
+            self.scan_break(BreakToken {
+                no_break: self.ends_with('.').then_some(' '),
+                ..BreakToken::default()
+            });
+        }
         self.word(".await");
     }
 
@@ -494,7 +499,12 @@ impl Printer {
             beginning_of_line,
             left_fixup,
         );
-        self.zerobreak_unless_short_ident(beginning_of_line, &expr.base);
+        if !(beginning_of_line && is_short_ident(&expr.base)) {
+            self.scan_break(BreakToken {
+                no_break: self.ends_with('.').then_some(' '),
+                ..BreakToken::default()
+            });
+        }
         self.word(".");
         self.member(&expr.member);
     }
@@ -718,7 +728,12 @@ impl Printer {
             beginning_of_line,
             left_fixup,
         );
-        self.zerobreak_unless_short_ident(beginning_of_line, &expr.receiver);
+        if !(beginning_of_line && is_short_ident(&expr.receiver)) {
+            self.scan_break(BreakToken {
+                no_break: self.ends_with('.').then_some(' '),
+                ..BreakToken::default()
+            });
+        }
         self.word(".");
         self.ident(&expr.method);
         if let Some(turbofish) = &expr.turbofish {
@@ -749,6 +764,8 @@ impl Printer {
             let (left_prec, left_fixup) =
                 fixup.leftmost_subexpression_with_operator(start, true, false, Precedence::Range);
             self.subexpr(start, left_prec <= Precedence::Range, left_fixup);
+        } else if self.ends_with('.') {
+            self.nbsp();
         }
         self.word(match expr.limits {
             RangeLimits::HalfOpen(_) => "..",
@@ -1239,13 +1256,6 @@ impl Printer {
             PointerMutability::Const(_) => self.word("const"),
             PointerMutability::Mut(_) => self.word("mut"),
         }
-    }
-
-    fn zerobreak_unless_short_ident(&mut self, beginning_of_line: bool, expr: &Expr) {
-        if beginning_of_line && is_short_ident(expr) {
-            return;
-        }
-        self.zerobreak();
     }
 }
 
