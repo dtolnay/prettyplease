@@ -414,11 +414,7 @@ impl Printer {
                     });
                     self.expr(
                         &expr.body,
-                        if okay_to_brace {
-                            FixupContext::new_stmt()
-                        } else {
-                            FixupContext::NONE
-                        },
+                        fixup.rightmost_subexpression_fixup(false, false, Precedence::Jump),
                     );
                     self.scan_break(BreakToken {
                         offset: -INDENT,
