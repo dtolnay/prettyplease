@@ -872,6 +872,10 @@ fn test_permutations() -> ExitCode {
                 parsed,
             );
         }
+        if pretty.contains("(||") {
+            // https://github.com/dtolnay/prettyplease/issues/99
+            return;
+        }
         let no_paren = pretty.replace(['(', ')'], "");
         if pretty != no_paren {
             if let Ok(mut parsed2) = syn::parse_file(&no_paren) {
