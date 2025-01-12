@@ -1402,7 +1402,6 @@ fn parseable_as_stmt(mut expr: &Expr) -> bool {
             | Expr::ForLoop(_)
             | Expr::If(_)
             | Expr::Infer(_)
-            | Expr::Let(_)
             | Expr::Lit(_)
             | Expr::Loop(_)
             | Expr::Macro(_)
@@ -1422,22 +1421,29 @@ fn parseable_as_stmt(mut expr: &Expr) -> bool {
             | Expr::While(_)
             | Expr::Yield(_) => return true,
 
-            Expr::Assign(e) => expr = &e.left,
+            Expr::Let(_) => return false,
+
+            Expr::Assign(e) => {
+                if !classify::requires_semi_to_be_stmt(&e.left) {
+                    return false;
+                }
+                expr = &e.left;
+            }
             Expr::Await(e) => expr = &e.base,
             Expr::Binary(e) => {
-                if !classify::requires_comma_to_be_match_arm(&e.left) {
+                if !classify::requires_semi_to_be_stmt(&e.left) {
                     return false;
                 }
                 expr = &e.left;
             }
             Expr::Call(e) => {
-                if !classify::requires_comma_to_be_match_arm(&e.func) {
+                if !classify::requires_semi_to_be_stmt(&e.func) {
                     return false;
                 }
                 expr = &e.func;
             }
             Expr::Cast(e) => {
-                if !classify::requires_comma_to_be_match_arm(&e.expr) {
+                if !classify::requires_semi_to_be_stmt(&e.expr) {
                     return false;
                 }
                 expr = &e.expr;
@@ -1445,7 +1451,7 @@ fn parseable_as_stmt(mut expr: &Expr) -> bool {
             Expr::Field(e) => expr = &e.base,
             Expr::Group(e) => expr = &e.expr,
             Expr::Index(e) => {
-                if !classify::requires_comma_to_be_match_arm(&e.expr) {
+                if !classify::requires_semi_to_be_stmt(&e.expr) {
                     return false;
                 }
                 expr = &e.expr;
@@ -1454,7 +1460,7 @@ fn parseable_as_stmt(mut expr: &Expr) -> bool {
             Expr::Range(e) => match &e.start {
                 None => return true,
                 Some(start) => {
-                    if !classify::requires_comma_to_be_match_arm(start) {
+                    if !classify::requires_semi_to_be_stmt(start) {
                         return false;
                     }
                     expr = start;
