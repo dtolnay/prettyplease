@@ -27,9 +27,6 @@ proc-macro2 = { version = "1.0.80", default-features = false }
 quote = { version = "1.0.35", default-features = false }
 syn = { version = "2.0.96", default-features = false, features = ["clone-impls", "extra-traits", "parsing", "printing", "visit-mut"] }
 
-[lib]
-doc-scrape-examples = false
-
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 rustdoc-args = ["--generate-link-to-definition"]
