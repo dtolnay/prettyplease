@@ -229,6 +229,7 @@ fn is_keyword(ident: &Ident) -> bool {
 #[cfg(feature = "verbatim")]
 mod standard_library {
     use crate::algorithm::Printer;
+    use crate::expr;
     use crate::fixup::FixupContext;
     use crate::iter::IterDelimited;
     use crate::path::PathKind;
@@ -618,16 +619,37 @@ mod standard_library {
                     semicolon = false;
                 }
                 KnownMacro::VecArray(vec) => {
-                    self.word("[");
-                    self.cbox(INDENT);
-                    self.zerobreak();
-                    for elem in vec.iter().delimited() {
-                        self.expr(&elem, FixupContext::NONE);
-                        self.trailing_comma(elem.is_last);
+                    if vec.is_empty() {
+                        self.word("[]");
+                    } else if expr::simple_array(vec) {
+                        self.cbox(INDENT);
+                        self.word("[");
+                        self.zerobreak();
+                        self.ibox(0);
+                        for elem in vec.iter().delimited() {
+                            self.expr(&elem, FixupContext::NONE);
+                            if !elem.is_last {
+                                self.word(",");
+                                self.space();
+                            }
+                        }
+                        self.end();
+                        self.trailing_comma(true);
+                        self.offset(-INDENT);
+                        self.word("]");
+                        self.end();
+                    } else {
+                        self.word("[");
+                        self.cbox(INDENT);
+                        self.zerobreak();
+                        for elem in vec.iter().delimited() {
+                            self.expr(&elem, FixupContext::NONE);
+                            self.trailing_comma(elem.is_last);
+                        }
+                        self.offset(-INDENT);
+                        self.end();
+                        self.word("]");
                     }
-                    self.offset(-INDENT);
-                    self.end();
-                    self.word("]");
                 }
                 KnownMacro::VecRepeat { elem, n } => {
                     self.word("[");

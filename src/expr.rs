@@ -15,7 +15,7 @@ use syn::{
     ExprField, ExprForLoop, ExprGroup, ExprIf, ExprIndex, ExprInfer, ExprLet, ExprLit, ExprLoop,
     ExprMacro, ExprMatch, ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprRawAddr,
     ExprReference, ExprRepeat, ExprReturn, ExprStruct, ExprTry, ExprTryBlock, ExprTuple, ExprUnary,
-    ExprUnsafe, ExprWhile, ExprYield, FieldValue, Index, Label, Member, PointerMutability,
+    ExprUnsafe, ExprWhile, ExprYield, FieldValue, Index, Label, Lit, Member, PointerMutability,
     RangeLimits, ReturnType, Stmt, Token, UnOp,
 };
 
@@ -167,16 +167,37 @@ impl Printer {
 
     fn expr_array(&mut self, expr: &ExprArray) {
         self.outer_attrs(&expr.attrs);
-        self.word("[");
-        self.cbox(INDENT);
-        self.zerobreak();
-        for element in expr.elems.iter().delimited() {
-            self.expr(&element, FixupContext::NONE);
-            self.trailing_comma(element.is_last);
+        if expr.elems.is_empty() {
+            self.word("[]");
+        } else if simple_array(&expr.elems) {
+            self.cbox(INDENT);
+            self.word("[");
+            self.zerobreak();
+            self.ibox(0);
+            for elem in expr.elems.iter().delimited() {
+                self.expr(&elem, FixupContext::NONE);
+                if !elem.is_last {
+                    self.word(",");
+                    self.space();
+                }
+            }
+            self.end();
+            self.trailing_comma(true);
+            self.offset(-INDENT);
+            self.word("]");
+            self.end();
+        } else {
+            self.word("[");
+            self.cbox(INDENT);
+            self.zerobreak();
+            for elem in expr.elems.iter().delimited() {
+                self.expr(&elem, FixupContext::NONE);
+                self.trailing_comma(elem.is_last);
+            }
+            self.offset(-INDENT);
+            self.end();
+            self.word("]");
         }
-        self.offset(-INDENT);
-        self.end();
-        self.word("]");
     }
 
     fn expr_assign(&mut self, expr: &ExprAssign, fixup: FixupContext) {
@@ -1376,6 +1397,26 @@ pub fn simple_block(expr: &Expr) -> Option<&ExprBlock> {
         }
     }
     None
+}
+
+pub fn simple_array(elements: &Punctuated<Expr, Token![,]>) -> bool {
+    for expr in elements {
+        if let Expr::Lit(expr) = expr {
+            match expr.lit {
+                #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                Lit::Byte(_) | Lit::Char(_) | Lit::Int(_) | Lit::Bool(_) => {}
+
+                Lit::Str(_) | Lit::ByteStr(_) | Lit::CStr(_) | Lit::Float(_) | Lit::Verbatim(_) => {
+                    return false;
+                }
+
+                _ => return false,
+            }
+        } else {
+            return false;
+        }
+    }
+    true
 }
 
 // Expressions for which `$expr` and `{ $expr }` mean the same thing.
