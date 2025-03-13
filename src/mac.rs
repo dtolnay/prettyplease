@@ -235,6 +235,7 @@ mod standard_library {
     use crate::INDENT;
     use syn::ext::IdentExt;
     use syn::parse::{Parse, ParseStream, Parser, Result};
+    use syn::punctuated::Punctuated;
     use syn::{
         parenthesized, token, Attribute, Expr, ExprAssign, ExprPath, Ident, Lit, Macro, Pat, Path,
         Token, Type, Visibility,
@@ -246,7 +247,7 @@ mod standard_library {
         Cfg(Cfg),
         Matches(Matches),
         ThreadLocal(Vec<ThreadLocal>),
-        VecArray(Vec<Expr>),
+        VecArray(Punctuated<Expr, Token![,]>),
         VecRepeat { elem: Expr, n: Expr },
     }
 
@@ -463,7 +464,7 @@ mod standard_library {
 
         fn parse_vec(input: ParseStream) -> Result<Self> {
             if input.is_empty() {
-                return Ok(KnownMacro::VecArray(Vec::new()));
+                return Ok(KnownMacro::VecArray(Punctuated::new()));
             }
             let first: Expr = input.parse()?;
             if input.parse::<Option<Token![;]>>()?.is_some() {
@@ -473,14 +474,16 @@ mod standard_library {
                     n: len,
                 })
             } else {
-                let mut vec = vec![first];
+                let mut vec = Punctuated::new();
+                vec.push_value(first);
                 while !input.is_empty() {
-                    input.parse::<Token![,]>()?;
+                    let comma: Token![,] = input.parse()?;
+                    vec.push_punct(comma);
                     if input.is_empty() {
                         break;
                     }
                     let next: Expr = input.parse()?;
-                    vec.push(next);
+                    vec.push_value(next);
                 }
                 Ok(KnownMacro::VecArray(vec))
             }
