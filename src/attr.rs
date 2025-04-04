@@ -269,11 +269,6 @@ fn can_be_block_comment(value: &str) -> bool {
     let mut i = 0usize;
     let upper = bytes.len() - 1;
 
-    if value.ends_with('/') {
-        // following `*` would start a nested comment
-        return false;
-    }
-
     while i < upper {
         if bytes[i] == b'/' && bytes[i + 1] == b'*' {
             depth += 1;
@@ -289,5 +284,5 @@ fn can_be_block_comment(value: &str) -> bool {
         }
     }
 
-    depth == 0
+    depth == 0 && !value.ends_with('/')
 }
