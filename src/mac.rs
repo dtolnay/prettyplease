@@ -130,6 +130,7 @@ impl Printer {
         enum State {
             Start,
             Dollar,
+            DollarCrate,
             DollarIdent,
             DollarIdentColon,
             DollarParen,
@@ -152,7 +153,9 @@ impl Printer {
         for tt in stream {
             let token = Token::from(tt);
             let (needs_space, next_state) = match (&state, &token) {
-                (Dollar, Token::Ident(_)) => (false, if matcher { DollarIdent } else { Other }),
+                (Dollar, Token::Ident(_)) if matcher => (false, DollarIdent),
+                (Dollar, Token::Ident(ident)) if ident == "crate" => (false, DollarCrate),
+                (Dollar, Token::Ident(_)) => (false, Other),
                 (DollarIdent, Token::Punct(':', Spacing::Alone)) => (false, DollarIdentColon),
                 (DollarIdentColon, Token::Ident(_)) => (false, Other),
                 (DollarParen, Token::Punct('+' | '*' | '?', Spacing::Alone)) => (false, Other),
@@ -180,7 +183,9 @@ impl Printer {
                 (_, Token::Literal(_)) => (state != Dot, Ident),
                 (_, Token::Punct(',' | ';', _)) => (false, Other),
                 (_, Token::Punct('.', _)) if !matcher => (state != Ident && state != Delim, Dot),
-                (_, Token::Punct(':', Spacing::Joint)) => (state != Ident, Colon),
+                (_, Token::Punct(':', Spacing::Joint)) => {
+                    (state != Ident && state != DollarCrate, Colon)
+                }
                 (_, Token::Punct('$', _)) => (true, Dollar),
                 (_, Token::Punct('#', _)) => (true, Pound),
                 (_, _) => (true, Other),
