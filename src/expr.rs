@@ -211,10 +211,16 @@ impl Printer {
 
         self.outer_attrs(&expr.attrs);
         self.ibox(0);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.left, left_prec <= Precedence::Range, left_fixup);
         self.word(" = ");
         self.neverbreak();
         self.expr(&expr.right, right_fixup);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
@@ -292,12 +298,18 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.ibox(INDENT);
         self.ibox(-INDENT);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.left, left_needs_group, left_fixup);
         self.end();
         self.space();
         self.binary_operator(&expr.op);
         self.nbsp();
         self.subexpr(&expr.right, right_needs_group, right_fixup);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
@@ -375,11 +387,17 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.ibox(INDENT);
         self.ibox(-INDENT);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.expr, left_prec < Precedence::Cast, left_fixup);
         self.end();
         self.space();
         self.word("as ");
         self.ty(&expr.ty);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
