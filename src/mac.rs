@@ -545,9 +545,8 @@ mod standard_library {
                 _ => return false,
             };
 
-            let known_macro = match parser.parse2(mac.tokens.clone()) {
-                Ok(known_macro) => known_macro,
-                Err(_) => return false,
+            let Ok(known_macro) = parser.parse2(mac.tokens.clone()) else {
+                return false;
             };
 
             self.path(&mac.path, PathKind::Simple);
