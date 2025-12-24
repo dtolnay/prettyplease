@@ -39,6 +39,8 @@ The tradeoffs made by this crate are a good fit for generated code that you will
 output of `cargo-expand`. In those cases it's more important that the whole
 thing be formattable without the formatter giving up, than that it be flawless.
 
+Note that this crate does not support preserving non-doc comments or whitespace.
+
 <br>
 
 ## Feature matrix
@@ -58,6 +60,7 @@ detail comparing the output of each of these libraries.
 | published to crates.io | 💚 | ❌ | ❌ |
 | extensively configurable output | ❌ | ❌ | 💚 |
 | intended to accommodate hand-maintained source code | ❌ | ❌ | 💚 |
+| preserves comments and whitespace | ❌ | 💚 | 💚 |
 
 <br>
 
