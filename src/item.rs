@@ -10,8 +10,9 @@ use syn::{
     ForeignItemType, ImplItem, ImplItemConst, ImplItemFn, ImplItemMacro, ImplItemType, Item,
     ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMod,
     ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse, Receiver,
-    Signature, StaticMutability, TraitItem, TraitItemConst, TraitItemFn, TraitItemMacro,
-    TraitItemType, Type, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree, Variadic,
+    ReceiverKind, Safety, Signature, StaticMutability, TraitItem, TraitItemConst, TraitItemFn,
+    TraitItemMacro, TraitItemType, UseGlob, UseGroup, UseName, UsePath, UseRename, UseTree,
+    Variadic,
 };
 
 impl Printer {
@@ -93,11 +94,7 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.cbox(INDENT);
         self.visibility(&item.vis);
-        self.signature(
-            &item.sig,
-            #[cfg(feature = "verbatim")]
-            &verbatim::Safety::Disallowed,
-        );
+        self.signature(&item.sig);
         self.where_clause_for_body(&item.sig.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
@@ -135,7 +132,7 @@ impl Printer {
         self.cbox(INDENT);
         self.ibox(-INDENT);
         self.cbox(INDENT);
-        if item.defaultness.is_some() {
+        if item.modifiers.defaultness.is_some() {
             self.word("default ");
         }
         if item.unsafety.is_some() {
@@ -145,10 +142,10 @@ impl Printer {
         self.generics(&item.generics);
         self.end();
         self.nbsp();
-        if let Some((negative_polarity, path, _for_token)) = &item.trait_ {
-            if negative_polarity.is_some() {
-                self.word("!");
-            }
+        if item.modifiers.polarity.is_some() {
+            self.word("!");
+        }
+        if let Some((path, _for_token)) = &item.trait_ {
             self.path(path, PathKind::Type);
             self.space();
             self.word("for ");
@@ -259,7 +256,7 @@ impl Printer {
         if item.unsafety.is_some() {
             self.word("unsafe ");
         }
-        if item.auto_token.is_some() {
+        if item.modifiers.auto_token.is_some() {
             self.word("auto ");
         }
         self.word("trait ");
@@ -371,7 +368,8 @@ impl Printer {
         use syn::parse::{Parse, ParseStream, Result};
         use syn::punctuated::Punctuated;
         use syn::{
-            braced, parenthesized, token, Attribute, Generics, Ident, Lifetime, Token, Visibility,
+            braced, parenthesized, token, Attribute, Generics, Ident, Lifetime, Token, Type,
+            Visibility,
         };
         use verbatim::{
             FlexibleItemConst, FlexibleItemFn, FlexibleItemStatic, FlexibleItemType,
@@ -801,11 +799,7 @@ impl Printer {
         self.outer_attrs(&foreign_item.attrs);
         self.cbox(INDENT);
         self.visibility(&foreign_item.vis);
-        self.signature(
-            &foreign_item.sig,
-            #[cfg(feature = "verbatim")]
-            &verbatim::Safety::Disallowed,
-        );
+        self.signature(&foreign_item.sig);
         self.where_clause_semi(&foreign_item.sig.generics.where_clause);
         self.end();
         self.hardbreak();
@@ -856,9 +850,7 @@ impl Printer {
     fn foreign_item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
         use syn::{Abi, Attribute, Token, Visibility};
-        use verbatim::{
-            kw, FlexibleItemFn, FlexibleItemStatic, FlexibleItemType, WhereClauseLocation,
-        };
+        use verbatim::{FlexibleItemFn, FlexibleItemStatic, FlexibleItemType, WhereClauseLocation};
 
         enum ForeignItemVerbatim {
             Empty,
@@ -872,7 +864,7 @@ impl Printer {
             let fork = input.fork();
             fork.parse::<Option<Token![const]>>().is_ok()
                 && fork.parse::<Option<Token![async]>>().is_ok()
-                && ((fork.peek(kw::safe) && fork.parse::<kw::safe>().is_ok())
+                && ((fork.parse::<Option<Token![safe]>>().unwrap().is_some())
                     || fork.parse::<Option<Token![unsafe]>>().is_ok())
                 && fork.parse::<Option<Abi>>().is_ok()
                 && fork.peek(Token![fn])
@@ -896,7 +888,7 @@ impl Printer {
                     let flexible_item = FlexibleItemFn::parse(attrs, vis, defaultness, input)?;
                     Ok(ForeignItemVerbatim::FnFlexible(flexible_item))
                 } else if lookahead.peek(Token![static])
-                    || ((input.peek(Token![unsafe]) || input.peek(kw::safe))
+                    || ((input.peek(Token![unsafe]) || input.peek(Token![safe]))
                         && input.peek2(Token![static]))
                 {
                     let flexible_item = FlexibleItemStatic::parse(attrs, vis, input)?;
@@ -974,11 +966,7 @@ impl Printer {
     fn trait_item_fn(&mut self, trait_item: &TraitItemFn) {
         self.outer_attrs(&trait_item.attrs);
         self.cbox(INDENT);
-        self.signature(
-            &trait_item.sig,
-            #[cfg(feature = "verbatim")]
-            &verbatim::Safety::Disallowed,
-        );
+        self.signature(&trait_item.sig);
         if let Some(block) = &trait_item.default {
             self.where_clause_for_body(&trait_item.sig.generics.where_clause);
             self.word("{");
@@ -1151,7 +1139,7 @@ impl Printer {
         self.outer_attrs(&impl_item.attrs);
         self.cbox(0);
         self.visibility(&impl_item.vis);
-        if impl_item.defaultness.is_some() {
+        if impl_item.modifiers.defaultness.is_some() {
             self.word("default ");
         }
         self.word("const ");
@@ -1171,14 +1159,10 @@ impl Printer {
         self.outer_attrs(&impl_item.attrs);
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
-        if impl_item.defaultness.is_some() {
+        if impl_item.modifiers.defaultness.is_some() {
             self.word("default ");
         }
-        self.signature(
-            &impl_item.sig,
-            #[cfg(feature = "verbatim")]
-            &verbatim::Safety::Disallowed,
-        );
+        self.signature(&impl_item.sig);
         self.where_clause_for_body(&impl_item.sig.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
@@ -1196,7 +1180,7 @@ impl Printer {
         self.outer_attrs(&impl_item.attrs);
         self.cbox(INDENT);
         self.visibility(&impl_item.vis);
-        if impl_item.defaultness.is_some() {
+        if impl_item.modifiers.defaultness.is_some() {
             self.word("default ");
         }
         self.word("type ");
@@ -1306,33 +1290,14 @@ impl Printer {
         }
     }
 
-    fn signature(
-        &mut self,
-        signature: &Signature,
-        #[cfg(feature = "verbatim")] safety: &verbatim::Safety,
-    ) {
+    fn signature(&mut self, signature: &Signature) {
         if signature.constness.is_some() {
             self.word("const ");
         }
         if signature.asyncness.is_some() {
             self.word("async ");
         }
-        #[cfg(feature = "verbatim")]
-        {
-            if let verbatim::Safety::Disallowed = safety {
-                if signature.unsafety.is_some() {
-                    self.word("unsafe ");
-                }
-            } else {
-                self.safety(safety);
-            }
-        }
-        #[cfg(not(feature = "verbatim"))]
-        {
-            if signature.unsafety.is_some() {
-                self.word("unsafe ");
-            }
-        }
+        self.safety(&signature.safety);
         if let Some(abi) = &signature.abi {
             self.abi(abi);
         }
@@ -1360,6 +1325,14 @@ impl Printer {
         self.end();
     }
 
+    fn safety(&mut self, safety: &Safety) {
+        match safety {
+            Safety::Safe(_) => self.word("safe "),
+            Safety::Unsafe(_) => self.word("unsafe "),
+            Safety::Default => {}
+        }
+    }
+
     fn fn_arg(&mut self, fn_arg: &FnArg) {
         match fn_arg {
             FnArg::Receiver(receiver) => self.receiver(receiver),
@@ -1369,36 +1342,34 @@ impl Printer {
 
     fn receiver(&mut self, receiver: &Receiver) {
         self.outer_attrs(&receiver.attrs);
-        if let Some((_ampersand, lifetime)) = &receiver.reference {
-            self.word("&");
-            if let Some(lifetime) = lifetime {
-                self.lifetime(lifetime);
-                self.nbsp();
-            }
-        }
-        if receiver.mutability.is_some() {
-            self.word("mut ");
-        }
-        self.word("self");
-        if receiver.colon_token.is_some() {
-            self.word(": ");
-            self.ty(&receiver.ty);
-        } else {
-            let consistent = match (&receiver.reference, &receiver.mutability, &*receiver.ty) {
-                (Some(_), mutability, Type::Reference(ty)) => {
-                    mutability.is_some() == ty.mutability.is_some()
-                        && match &*ty.elem {
-                            Type::Path(ty) => ty.qself.is_none() && ty.path.is_ident("Self"),
-                            _ => false,
-                        }
+        match &receiver.kind {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            ReceiverKind::Value => {
+                if receiver.mutability.is_some() {
+                    self.word("mut ");
                 }
-                (None, _, Type::Path(ty)) => ty.qself.is_none() && ty.path.is_ident("Self"),
-                _ => false,
-            };
-            if !consistent {
-                self.word(": ");
-                self.ty(&receiver.ty);
+                self.word("self");
             }
+            ReceiverKind::Reference(_ampersand, lifetime, mutability) => {
+                self.word("&");
+                if let Some(lifetime) = lifetime {
+                    self.lifetime(lifetime);
+                    self.nbsp();
+                }
+                if mutability.is_some() {
+                    self.word("mut ");
+                }
+                self.word("self");
+            }
+            ReceiverKind::Typed(_colon, ty) => {
+                if receiver.mutability.is_some() {
+                    self.word("mut ");
+                }
+                self.word("self");
+                self.word(": ");
+                self.ty(ty);
+            }
+            _ => unimplemented!("unknown ReceiverKind"),
         }
     }
 
@@ -1428,15 +1399,11 @@ mod verbatim {
     use crate::iter::IterDelimited;
     use crate::INDENT;
     use syn::ext::IdentExt;
-    use syn::parse::{Parse, ParseStream, Result};
+    use syn::parse::{ParseStream, Result};
     use syn::{
-        braced, token, Attribute, Block, Expr, Generics, Ident, Signature, StaticMutability, Stmt,
-        Token, Type, TypeParamBound, Visibility, WhereClause,
+        braced, token, Attribute, Block, Expr, Generics, Ident, Safety, Signature,
+        StaticMutability, Stmt, Token, Type, TypeParamBound, Visibility, WhereClause,
     };
-
-    pub mod kw {
-        syn::custom_keyword!(safe);
-    }
 
     pub struct FlexibleItemConst {
         pub attrs: Vec<Attribute>,
@@ -1452,7 +1419,6 @@ mod verbatim {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
         pub defaultness: bool,
-        pub safety: Safety,
         pub sig: Signature,
         pub body: Option<Vec<Stmt>>,
     }
@@ -1476,13 +1442,6 @@ mod verbatim {
         pub bounds: Vec<TypeParamBound>,
         pub definition: Option<Type>,
         pub where_clause_after_eq: Option<WhereClause>,
-    }
-
-    pub enum Safety {
-        Unsafe,
-        Safe,
-        Default,
-        Disallowed,
     }
 
     pub enum WhereClauseLocation {
@@ -1536,7 +1495,7 @@ mod verbatim {
         ) -> Result<Self> {
             let constness: Option<Token![const]> = input.parse()?;
             let asyncness: Option<Token![async]> = input.parse()?;
-            let safety: Safety = input.parse()?;
+            let safety = Safety::parse_safe_or_unsafe(input)?;
 
             let lookahead = input.lookahead1();
             let sig: Signature = if lookahead.peek(Token![extern]) || lookahead.peek(Token![fn]) {
@@ -1562,11 +1521,10 @@ mod verbatim {
                 attrs,
                 vis,
                 defaultness,
-                safety,
                 sig: Signature {
                     constness,
                     asyncness,
-                    unsafety: None,
+                    safety,
                     ..sig
                 },
                 body,
@@ -1576,7 +1534,7 @@ mod verbatim {
 
     impl FlexibleItemStatic {
         pub fn parse(attrs: Vec<Attribute>, vis: Visibility, input: ParseStream) -> Result<Self> {
-            let safety: Safety = input.parse()?;
+            let safety = Safety::parse_safe_or_unsafe(input)?;
             input.parse::<Token![static]>()?;
             let mutability: StaticMutability = input.parse()?;
             let ident = input.parse()?;
@@ -1678,20 +1636,6 @@ mod verbatim {
         }
     }
 
-    impl Parse for Safety {
-        fn parse(input: ParseStream) -> Result<Self> {
-            if input.peek(Token![unsafe]) {
-                input.parse::<Token![unsafe]>()?;
-                Ok(Safety::Unsafe)
-            } else if input.peek(kw::safe) {
-                input.parse::<kw::safe>()?;
-                Ok(Safety::Safe)
-            } else {
-                Ok(Safety::Default)
-            }
-        }
-    }
-
     impl Printer {
         pub fn flexible_item_const(&mut self, item: &FlexibleItemConst) {
             self.outer_attrs(&item.attrs);
@@ -1726,7 +1670,7 @@ mod verbatim {
             if item.defaultness {
                 self.word("default ");
             }
-            self.signature(&item.sig, &item.safety);
+            self.signature(&item.sig);
             if let Some(body) = &item.body {
                 self.where_clause_for_body(&item.sig.generics.where_clause);
                 self.word("{");
@@ -1799,15 +1743,6 @@ mod verbatim {
             }
             self.end();
             self.hardbreak();
-        }
-
-        pub fn safety(&mut self, safety: &Safety) {
-            match safety {
-                Safety::Unsafe => self.word("unsafe "),
-                Safety::Safe => self.word("safe "),
-                Safety::Default => {}
-                Safety::Disallowed => unreachable!(),
-            }
         }
     }
 }

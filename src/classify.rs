@@ -65,7 +65,7 @@ pub(crate) fn trailing_unparameterized_path(mut ty: &Type) -> bool {
     loop {
         match ty {
             #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-            Type::BareFn(t) => match &t.output {
+            Type::FnPtr(t) => match &t.output {
                 ReturnType::Default => return false,
                 ReturnType::Type(_, ret) => ty = ret,
             },
@@ -253,7 +253,7 @@ pub(crate) fn expr_trailing_brace(mut expr: &Expr) -> bool {
         loop {
             match ty {
                 #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-                Type::BareFn(t) => match &t.output {
+                Type::FnPtr(t) => match &t.output {
                     ReturnType::Default => return false,
                     ReturnType::Type(_, ret) => ty = ret,
                 },
