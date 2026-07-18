@@ -6,8 +6,8 @@ use proc_macro2::TokenStream;
 use std::ptr;
 use syn::{
     BoundLifetimes, CapturedParam, ConstParam, Expr, GenericParam, Generics, LifetimeParam,
-    PreciseCapture, PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam,
-    TypeParamBound, WhereClause, WherePredicate,
+    PreciseCapture, PredicateLifetime, PredicateType, TraitBound, TypeParam, TypeParamBound,
+    WhereClause, WherePredicate,
 };
 
 impl Printer {
@@ -93,7 +93,7 @@ impl Printer {
             }
             self.type_param_bound(&type_param_bound);
         }
-        if let Some(default) = &type_param.default {
+        if let Some((_eq_token, default)) = &type_param.default {
             self.space();
             self.word("= ");
             self.ty(default);
@@ -130,7 +130,9 @@ impl Printer {
             #[cfg(feature = "verbatim")]
             TraitBoundConst::Unconditional => self.word("const "),
         }
-        self.trait_bound_modifier(&trait_bound.modifier);
+        if trait_bound.maybe.is_some() {
+            self.word("?");
+        }
         for segment in trait_bound.path.segments.iter().delimited() {
             if !segment.is_first || trait_bound.path.leading_colon.is_some() {
                 self.word("::");
@@ -139,13 +141,6 @@ impl Printer {
         }
         if trait_bound.paren_token.is_some() {
             self.word(")");
-        }
-    }
-
-    fn trait_bound_modifier(&mut self, trait_bound_modifier: &TraitBoundModifier) {
-        match trait_bound_modifier {
-            TraitBoundModifier::None => {}
-            TraitBoundModifier::Maybe(_question_mark) => self.word("?"),
         }
     }
 
@@ -159,7 +154,7 @@ impl Printer {
         use syn::parse::{Parse, ParseStream, Result};
         use syn::{
             bracketed, parenthesized, token, ParenthesizedGenericArguments, Path, PathArguments,
-            Token,
+            Token, TraitBoundModifiers,
         };
 
         enum TypeParamBoundVerbatim {
@@ -196,7 +191,7 @@ impl Printer {
                     TraitBoundConst::None
                 };
 
-                let modifier: TraitBoundModifier = content.parse()?;
+                let maybe: Option<Token![?]> = content.parse()?;
 
                 let mut path: Path = content.parse()?;
                 if path.segments.last().unwrap().arguments.is_empty()
@@ -212,8 +207,9 @@ impl Printer {
                 Ok(TypeParamBoundVerbatim::Const(
                     TraitBound {
                         paren_token: None,
-                        modifier,
                         lifetimes,
+                        modifiers: TraitBoundModifiers::default(),
+                        maybe,
                         path,
                     },
                     constness,
@@ -242,7 +238,7 @@ impl Printer {
         self.ident(&const_param.ident);
         self.word(": ");
         self.ty(&const_param.ty);
-        if let Some(default) = &const_param.default {
+        if let Some((_eq_token, default)) = &const_param.default {
             self.word(" = ");
             self.const_argument(default);
         }
