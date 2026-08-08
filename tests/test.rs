@@ -1,4 +1,4 @@
-use indoc::indoc;
+﻿use indoc::indoc;
 use proc_macro2::{Delimiter, Group, TokenStream};
 use quote::quote;
 
@@ -48,4 +48,32 @@ fn test_parenthesize_match_guard() {
             }
         "},
     );
+}
+
+#[cfg(feature = "verbatim")]
+#[test]
+fn test_const_impl() {
+    let src = "const impl std::ops::Deref for Foo { type Target = Bar; fn deref(&self) -> &Self::Target { &self.x } }";
+    let file = syn::parse_file(src).unwrap();
+    let pretty = prettyplease::unparse(&file);
+    assert_eq!(
+        pretty,
+        indoc! {"
+            const impl std::ops::Deref for Foo {
+                type Target = Bar;
+                fn deref(&self) -> &Self::Target {
+                    &self.x
+                }
+            }
+        "}
+    );
+}
+
+#[cfg(feature = "verbatim")]
+#[test]
+fn test_const_unsafe_impl() {
+    let src = "const unsafe impl Send for Foo {}";
+    let file = syn::parse_file(src).unwrap();
+    let pretty = prettyplease::unparse(&file);
+    assert_eq!(pretty, "const unsafe impl Send for Foo {}\n");
 }
