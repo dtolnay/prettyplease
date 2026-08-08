@@ -461,11 +461,15 @@ impl Printer {
                 let vis: Visibility = input.parse()?;
 
                 let lookahead = input.lookahead1();
+                // `const impl` / `const unsafe impl` (not `const fn` / `const unsafe fn`)
+                let const_impl = input.peek(Token![const])
+                    && (input.peek2(Token![impl])
+                        || input.peek2(Token![unsafe]) && input.peek3(Token![impl]));
                 if lookahead.peek(Token![const]) && (input.peek2(Ident) || input.peek2(Token![_])) {
                     let defaultness = false;
                     let flexible_item = FlexibleItemConst::parse(attrs, vis, defaultness, input)?;
                     Ok(ItemVerbatim::ConstFlexible(flexible_item))
-                } else if input.peek(Token![const])
+                } else if (input.peek(Token![const]) && !const_impl)
                     || lookahead.peek(Token![async])
                     || lookahead.peek(Token![unsafe]) && !input.peek2(Token![impl])
                     || lookahead.peek(Token![extern])
@@ -475,10 +479,14 @@ impl Printer {
                     let flexible_item = FlexibleItemFn::parse(attrs, vis, defaultness, input)?;
                     Ok(ItemVerbatim::FnFlexible(flexible_item))
                 } else if lookahead.peek(Token![default])
+                    || const_impl
                     || input.peek(Token![unsafe])
                     || lookahead.peek(Token![impl])
                 {
+                    // Syntax: [default] [const] [unsafe] impl ...
+                    // (const before impl; see rust-lang/rust#158009 / syn#1980)
                     let defaultness = input.parse::<Option<Token![default]>>()?.is_some();
+                    let constness: ImplConstness = input.parse()?;
                     let unsafety = input.parse::<Option<Token![unsafe]>>()?.is_some();
                     input.parse::<Token![impl]>()?;
                     let has_generics = input.peek(Token![<])
@@ -495,7 +503,6 @@ impl Printer {
                     } else {
                         Generics::default()
                     };
-                    let constness: ImplConstness = input.parse()?;
                     let negative_impl =
                         !input.peek2(token::Brace) && input.parse::<Option<Token![!]>>()?.is_some();
                     let first_ty: Type = input.parse()?;
@@ -599,6 +606,11 @@ impl Printer {
                 if item.defaultness {
                     self.word("default ");
                 }
+                match item.constness {
+                    ImplConstness::None => {}
+                    ImplConstness::MaybeConst => self.word("?const "),
+                    ImplConstness::Const => self.word("const "),
+                }
                 if item.unsafety {
                     self.word("unsafe ");
                 }
@@ -606,11 +618,6 @@ impl Printer {
                 self.generics(&item.generics);
                 self.end();
                 self.nbsp();
-                match item.constness {
-                    ImplConstness::None => {}
-                    ImplConstness::MaybeConst => self.word("?const "),
-                    ImplConstness::Const => self.word("const "),
-                }
                 if item.negative_impl {
                     self.word("!");
                 }
